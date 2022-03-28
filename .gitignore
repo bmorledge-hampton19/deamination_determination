@@ -157,3 +157,6 @@ cython_debug/
 
 # Test files
 test.*
+
+# Data files
+data/
