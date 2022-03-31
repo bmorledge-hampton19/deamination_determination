@@ -1,6 +1,6 @@
 library(data.table)
 library(stringr)
-library(ggplot)
+library(ggplot2)
 
 # Default text scaling
 defaultTextScaling = theme(plot.title = element_text(size = 26, hjust = 0.5),
@@ -19,20 +19,41 @@ filterResults = function(mismatchData, removeRowsWithN = TRUE, maxMismatchesAllo
   mismatchData = mismatchData[str_count(V4, ':') <= maxMismatchesAllowed]
 }
 
-# Condenses the given table of bed formatted mismatches into a smaller
+# Simplifies the given table of bed formatted mismatches into a smaller
 # two-column table of positions and sequence context.
-condenseTable = function(table) {
-  return(table[,list(Position = unlist(strsplit(V4, ':')),
+simplifyTable = function(table) {
+  return(table[,list(Position = as.numeric(unlist(strsplit(V4, ':'))),
                      Mismatch = unlist(strsplit(V5, ':')))])
 }
 
 # Displays the frequencies of each mismatch type.
-plotMismatchTypeFrequencies = function(mismatchTable) {
+plotMismatchTypeFrequencies = function(mismatchTable, title = "Mismatch Type Frequency") {
+
+  ggplot(mismatchTable[, .N, by = Mismatch][, Freq := N/sum(N)], aes(x = Mismatch, y = Freq)) +
+    geom_bar(stat = "identity") +
+    labs(title = title, x = "Mismatch Type", y = "Frequency") +
+    blankBackground + defaultTextScaling + theme(axis.text = element_text(size = 15))
 
 }
 
 # Displays the frequencies of positions for the chosen mismatch types.
 # (Types can be chosen by inclusion or omission)
-plotMismatchPositionFrequencies = function(mismatchTable, includedTypes = list(), omittedTypes = list()) {
+plotMismatchPositionFrequencies = function(mismatchTable, includedTypes = list(), omittedTypes = list(),
+                                           title = "Position Frequency") {
+
+  if ( length(includedTypes) > 0 && length(omittedTypes) > 0) {
+    stop("Included types and omitted types given simultaneously")
+  } else if (length(includedTypes) > 0) {
+    frequencyData = mismatchTable[Mismatch %in% includedTypes, .N, by = Position][, Freq := N/sum(N)]
+  } else if (length(omittedTypes) > 0) {
+    frequencyData = mismatchTable[!(Mismatch %in% omittedTypes), .N, by = Position][, Freq := N/sum(N)]
+  } else {
+    frequencyData = mismatchTable[, .N, by = Position][, Freq := N/sum(N)]
+  }
+
+  ggplot(frequencyData, aes(x = Position, y = Freq)) +
+    geom_bar(stat = "identity") +
+    labs(title = title, x = "3` Relative Position", y = "Frequency") +
+    blankBackground + defaultTextScaling
 
 }
