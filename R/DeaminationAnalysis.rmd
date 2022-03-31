@@ -1,0 +1,79 @@
+---
+title: "R Notebook"
+output: html_document
+params:
+  bioinformaticsDirectory:
+    label: "Bioinformatics Projects Directory"
+    value: C:/Bioinformatics_Projects
+    input: select
+    choices: [C:/Bioinformatics_Projects, F:/Bioinformatics_Projects]
+---
+
+
+```{r setup_chunk}
+library(knitr)
+opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5)
+if (interactive()) {
+  bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
+} else {
+  bioinformaticsDirectory = params$bioinformaticsDirectory
+}
+```
+
+
+```{r acquire_and_format_data}
+deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data")
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R', "DeaminationAnalysis.R"))
+
+# Read in the relevant data
+CPDMismatchDataFilePaths = list(hr1 = file.path(deaminationDataDirectory, "NHF1_CPD_1h_Rep1_mismatches.bed"),
+                                hr24 = file.path(deaminationDataDirectory, "NHF1_CPD_24h_Rep1_mismatches.bed"),
+                                hr48 = file.path(deaminationDataDirectory, "NHF1_CPD_48h_Rep1_mismatches.bed"))
+
+sixFourMismatchDataFilePaths = list(hr1 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_1h_Rep1_mismatches.bed"))
+
+CPDMismatchData = lapply(CPDMismatchDataFilePaths, fread)
+sixFourMismatchData = lapply(sixFourMismatchDataFilePaths, fread)
+
+# Simplify the data
+CPDMismatchData = lapply(CPDMismatchData, function(x) simplifyTable(filterResults(x)))
+sixFourMismatchData = lapply(sixFourMismatchData, function(x) simplifyTable(filterResults(x)))
+
+```
+
+
+```{r plot_mismatch_type_frequency}
+
+plotMismatchTypeFrequencies(CPDMismatchData$hr1, title = "CPD 1hr Mismatch Type Frequency")
+plotMismatchTypeFrequencies(CPDMismatchData$hr24, title = "CPD 24hr Mismatch Type Frequency")
+plotMismatchTypeFrequencies(CPDMismatchData$hr48, title = "CPD 48hr Mismatch Type Frequency")
+
+plotMismatchTypeFrequencies(sixFourMismatchData$hr1, title = "6-4 1hr Mismatch Type Frequency")
+
+```
+
+
+```{r plot_mismatch_pos_frequency}
+
+plotMismatchPositionFrequencies(CPDMismatchData$hr1, includedTypes = c("C>T"), 
+                                title = "CPD 1hr C>T Mismatch Positions")
+plotMismatchPositionFrequencies(CPDMismatchData$hr1, omittedTypes = c("C>T"), 
+                                title = "CPD 1hr !C>T Mismatch Positions")
+
+plotMismatchPositionFrequencies(CPDMismatchData$hr24, includedTypes = c("C>T"), 
+                                title = "CPD 24hr C>T Mismatch Positions")
+plotMismatchPositionFrequencies(CPDMismatchData$hr1, omittedTypes = c("C>T"), 
+                                title = "CPD 24hr !C>T Mismatch Positions")
+
+plotMismatchPositionFrequencies(CPDMismatchData$hr48, includedTypes = c("C>T"), 
+                                title = "CPD 48hr C>T Mismatch Positions")
+plotMismatchPositionFrequencies(CPDMismatchData$hr48, omittedTypes = c("C>T"), 
+                                title = "CPD 48hr !C>T Mismatch Positions")
+
+plotMismatchPositionFrequencies(sixFourMismatchData$hr1, includedTypes = c("C>T"), 
+                                title = "6-4 1hr C>T Mismatch Positions")
+plotMismatchPositionFrequencies(sixFourMismatchData$hr1, omittedTypes = c("C>T"), 
+                                title = "6-4 1hr !C>T Mismatch Positions")
+
+```
+
