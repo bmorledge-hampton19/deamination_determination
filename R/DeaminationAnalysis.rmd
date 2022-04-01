@@ -57,10 +57,10 @@ sixFourMismatchData = lapply(sixFourMismatchDataFilePaths, function(x) lapply(x,
 
 # Simplify the data
 CPDMismatchData = lapply(CPDMismatchData, function(x) lapply(
-  x, function(y) simplifyTable(filterResults(y, TRUE, 3, 20, 30))
+  x, function(y) simplifyTable(filterResults(y, TRUE, 3, 23, 31))
 ))
 sixFourMismatchData = lapply(sixFourMismatchData, function(x) lapply(
-  x, function(y) simplifyTable(filterResults(y, TRUE, 3, 20, 30))
+  x, function(y) simplifyTable(filterResults(y, TRUE, 3, 23, 31))
 ))
 
 ```
