@@ -13,26 +13,46 @@ blankBackground = theme(panel.grid.major = element_blank(), panel.grid.minor = e
                         panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
 
-# Filters the given mismatch data based the presence of 'N' and the number
-filterResults = function(mismatchData, removeRowsWithN = TRUE, maxMismatchesAllowed = 3) {
+# Filters the given mismatch data based the presence of 'N', the number of mismatches per read,
+# and read length.
+filterResults = function(mismatchData, removeRowsWithN = TRUE, maxMismatchesAllowed = NA,
+                         minReadLength = NA, maxReadLength = NA) {
+
   if (removeRowsWithN) mismatchData = mismatchData[!grepl('N', V5)]
-  mismatchData = mismatchData[str_count(V4, ':') <= maxMismatchesAllowed]
+
+  if (!is.na(maxMismatchesAllowed)) {
+    mismatchData = mismatchData[str_count(V4, ':') <= maxMismatchesAllowed]
+  }
+
+  if (!is.na(minReadLength)) {
+    mismatchData = mismatchData[V3-V2 >= minReadLength]
+  }
+
+  if (!is.na(maxReadLength)) {
+    mismatchData = mismatchData[V3-V2 <= maxReadLength]
+  }
+
+  return(mismatchData)
+
 }
 
 # Simplifies the given table of bed formatted mismatches into a smaller
-# two-column table of positions and sequence context.
+# three-column table of positions, sequence context, and read length.
 simplifyTable = function(table) {
   return(table[,list(Position = as.numeric(unlist(strsplit(V4, ':'))),
-                     Mismatch = unlist(strsplit(V5, ':')))])
+                     Mismatch = unlist(strsplit(V5, ':')),
+                     Read_Length = unlist(mapply(rep, V3-V2, lapply(strsplit(V5,':'), length))))])
 }
 
 # Displays the frequencies of each mismatch type.
 plotMismatchTypeFrequencies = function(mismatchTable, title = "Mismatch Type Frequency") {
 
-  ggplot(mismatchTable[, .N, by = Mismatch][, Freq := N/sum(N)], aes(x = Mismatch, y = Freq)) +
-    geom_bar(stat = "identity") +
-    labs(title = title, x = "Mismatch Type", y = "Frequency") +
-    blankBackground + defaultTextScaling + theme(axis.text = element_text(size = 15))
+  print(
+    ggplot(mismatchTable[, .N, by = Mismatch][, Freq := N/sum(N)], aes(x = Mismatch, y = Freq)) +
+      geom_bar(stat = "identity") +
+      labs(title = title, x = "Mismatch Type", y = "Frequency") +
+      blankBackground + defaultTextScaling + theme(axis.text = element_text(size = 15))
+  )
 
 }
 
@@ -51,9 +71,11 @@ plotMismatchPositionFrequencies = function(mismatchTable, includedTypes = list()
     frequencyData = mismatchTable[, .N, by = Position][, Freq := N/sum(N)]
   }
 
-  ggplot(frequencyData, aes(x = Position, y = Freq)) +
-    geom_bar(stat = "identity") +
-    labs(title = title, x = "3` Relative Position", y = "Frequency") +
-    blankBackground + defaultTextScaling
+  print(
+    ggplot(frequencyData, aes(x = Position, y = Freq)) +
+      geom_bar(stat = "identity") +
+      labs(title = title, x = "3` Relative Position", y = "Frequency") +
+      blankBackground + defaultTextScaling
+  )
 
 }
