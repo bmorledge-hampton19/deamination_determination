@@ -26,54 +26,90 @@ deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_deter
 source(file.path(bioinformaticsDirectory, "deamination_determination", 'R', "DeaminationAnalysis.R"))
 
 # Read in the relevant data
-CPDMismatchDataFilePaths = list(hr1 = file.path(deaminationDataDirectory, "NHF1_CPD_1h_Rep1_mismatches.bed"),
-                                hr24 = file.path(deaminationDataDirectory, "NHF1_CPD_24h_Rep1_mismatches.bed"),
-                                hr48 = file.path(deaminationDataDirectory, "NHF1_CPD_48h_Rep1_mismatches.bed"))
+CPDMismatchDataFilePaths = list(rep1 = list(), rep2 = list())
+CPDMismatchDataFilePaths$rep1 = list(
+  hr1 = file.path(deaminationDataDirectory, "NHF1_CPD_1h_Rep1_mismatches.bed"),
+  hr8 = file.path(deaminationDataDirectory, "NHF1_CPD_8h_Rep1_mismatches.bed"),
+  hr24 = file.path(deaminationDataDirectory, "NHF1_CPD_24h_Rep1_mismatches.bed"),
+  hr48 = file.path(deaminationDataDirectory, "NHF1_CPD_48h_Rep1_mismatches.bed")
+)
+CPDMismatchDataFilePaths$rep2 = list(
+  hr1 = file.path(deaminationDataDirectory, "NHF1_CPD_1h_Rep2_mismatches.bed"),
+  hr8 = file.path(deaminationDataDirectory, "NHF1_CPD_8h_Rep2_mismatches.bed"),
+  hr24 = file.path(deaminationDataDirectory, "NHF1_CPD_24h_Rep2_mismatches.bed"),
+  hr48 = file.path(deaminationDataDirectory, "NHF1_CPD_48h_Rep2_mismatches.bed")
+)
 
-sixFourMismatchDataFilePaths = list(hr1 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_1h_Rep1_mismatches.bed"))
+sixFourMismatchDataFilePaths = list(rep1 = list(), rep2 = list())
+sixFourMismatchDataFilePaths$rep1 = list(
+  min5 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_5min_Rep1_mismatches.bed"),
+  min20 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_20min_Rep1_mismatches.bed"),
+  hr1 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_1h_Rep1_mismatches.bed")
+)
+sixFourMismatchDataFilePaths$rep2 = list(
+  min5 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_5min_Rep2_mismatches.bed"),
+  min20 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_20min_Rep2_mismatches.bed"),
+  hr1 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_1h_Rep2_mismatches.bed")
+)
 
-CPDMismatchData = lapply(CPDMismatchDataFilePaths, fread)
-sixFourMismatchData = lapply(sixFourMismatchDataFilePaths, fread)
+CPDMismatchData = lapply(CPDMismatchDataFilePaths, function(x) lapply(x, fread))
+sixFourMismatchData = lapply(sixFourMismatchDataFilePaths, function(x) lapply(x, fread))
 
 # Simplify the data
-CPDMismatchData = lapply(CPDMismatchData, function(x) simplifyTable(filterResults(x)))
-sixFourMismatchData = lapply(sixFourMismatchData, function(x) simplifyTable(filterResults(x)))
+CPDMismatchData = lapply(CPDMismatchData, function(x) lapply(
+  x, function(y) simplifyTable(filterResults(y, TRUE, 3, 20, 30))
+))
+sixFourMismatchData = lapply(sixFourMismatchData, function(x) lapply(
+  x, function(y) simplifyTable(filterResults(y, TRUE, 3, 20, 30))
+))
 
 ```
 
 
 ```{r plot_mismatch_type_frequency}
 
-plotMismatchTypeFrequencies(CPDMismatchData$hr1, title = "CPD 1hr Mismatch Type Frequency")
-plotMismatchTypeFrequencies(CPDMismatchData$hr24, title = "CPD 24hr Mismatch Type Frequency")
-plotMismatchTypeFrequencies(CPDMismatchData$hr48, title = "CPD 48hr Mismatch Type Frequency")
+for (i in 1:length(CPDMismatchData)) {
+  for (j in 1:length(CPDMismatchData[[i]])) {
+    plotMismatchTypeFrequencies(CPDMismatchData[[i]][[j]],
+                                title = paste("CPD", names(CPDMismatchData)[i], 
+                                              names(CPDMismatchData[[i]])[j], "Mismatch Type Frequency"))
+  }
+}
 
-plotMismatchTypeFrequencies(sixFourMismatchData$hr1, title = "6-4 1hr Mismatch Type Frequency")
+for (i in 1:length(sixFourMismatchData)) {
+  for (j in 1:length(sixFourMismatchData[[i]])) {
+    plotMismatchTypeFrequencies(sixFourMismatchData[[i]][[j]],
+                                title = paste("6-4", names(sixFourMismatchData)[i], 
+                                              names(sixFourMismatchData[[i]])[j], "Mismatch Type Frequency"))
+  }
+}
 
 ```
 
 
 ```{r plot_mismatch_pos_frequency}
 
-plotMismatchPositionFrequencies(CPDMismatchData$hr1, includedTypes = c("C>T"), 
-                                title = "CPD 1hr C>T Mismatch Positions")
-plotMismatchPositionFrequencies(CPDMismatchData$hr1, omittedTypes = c("C>T"), 
-                                title = "CPD 1hr !C>T Mismatch Positions")
+for (i in 1:length(CPDMismatchData)) {
+  for (j in 1:length(CPDMismatchData[[i]])) {
+    plotMismatchPositionFrequencies(CPDMismatchData[[i]][[j]], includedTypes = c("C>T"),
+                                    title = paste("CPD", names(CPDMismatchData)[i], 
+                                                  names(CPDMismatchData[[i]])[j], "C>T Mismatch Positions"))
+    plotMismatchPositionFrequencies(CPDMismatchData[[i]][[j]], omittedTypes = c("C>T"),
+                                    title = paste("CPD", names(CPDMismatchData)[i], 
+                                                  names(CPDMismatchData[[i]])[j], "!C>T Mismatch Positions"))
+  }
+}
 
-plotMismatchPositionFrequencies(CPDMismatchData$hr24, includedTypes = c("C>T"), 
-                                title = "CPD 24hr C>T Mismatch Positions")
-plotMismatchPositionFrequencies(CPDMismatchData$hr1, omittedTypes = c("C>T"), 
-                                title = "CPD 24hr !C>T Mismatch Positions")
-
-plotMismatchPositionFrequencies(CPDMismatchData$hr48, includedTypes = c("C>T"), 
-                                title = "CPD 48hr C>T Mismatch Positions")
-plotMismatchPositionFrequencies(CPDMismatchData$hr48, omittedTypes = c("C>T"), 
-                                title = "CPD 48hr !C>T Mismatch Positions")
-
-plotMismatchPositionFrequencies(sixFourMismatchData$hr1, includedTypes = c("C>T"), 
-                                title = "6-4 1hr C>T Mismatch Positions")
-plotMismatchPositionFrequencies(sixFourMismatchData$hr1, omittedTypes = c("C>T"), 
-                                title = "6-4 1hr !C>T Mismatch Positions")
+for (i in 1:length(sixFourMismatchData)) {
+  for (j in 1:length(sixFourMismatchData[[i]])) {
+    plotMismatchPositionFrequencies(sixFourMismatchData[[i]][[j]], includedTypes = c("C>T"),
+                                    title = paste("6-4", names(sixFourMismatchData)[i], 
+                                                  names(sixFourMismatchData[[i]])[j], "C>T Mismatch Positions"))
+    plotMismatchPositionFrequencies(sixFourMismatchData[[i]][[j]], omittedTypes = c("C>T"),
+                                    title = paste("6-4", names(sixFourMismatchData)[i], 
+                                                  names(sixFourMismatchData[[i]])[j], "!C>T Mismatch Positions"))
+  }
+}
 
 ```
 
