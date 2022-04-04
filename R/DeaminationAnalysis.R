@@ -36,12 +36,51 @@ filterResults = function(mismatchData, removeRowsWithN = TRUE, maxMismatchesAllo
 
 }
 
+
 # Simplifies the given table of bed formatted mismatches into a smaller
 # three-column table of positions, sequence context, and read length.
 simplifyTable = function(table) {
   return(table[,list(Position = as.numeric(unlist(strsplit(V4, ':'))),
                      Mismatch = unlist(strsplit(V5, ':')),
                      Read_Length = unlist(mapply(rep, V3-V2, lapply(strsplit(V5,':'), length))))])
+}
+
+
+# Determines if the given mismatch position and type data for a single read
+# contains a tandem C>T mutation.
+hasTandemCTMismatch = function(mismatchPositions, mismatchTypes) {
+
+  if (length(mismatchPositions) < 2) return(NA)
+
+  for (i in 2:length(mismatchPositions)) {
+    if (abs(mismatchPositions[i] - mismatchPositions[i-1]) == 1 &&
+        mismatchTypes[i] == "C>T" && mismatchTypes[i-1] == "C>T") return(TRUE)
+  }
+
+  return(FALSE)
+
+}
+
+
+# Finds adjacent C>T mismatches in the given table of reads.
+# Can also filter results by boundary conditions (e.g. a threePrimeBoundary of -4 will filter out
+# tandem mismatches that extend into the -3, -2, or -1 positions.)
+getTandemCTMismatches = function(table, threePrimeBoundary = NA, fivePrimeBoundary = NA) {
+
+  multiMismatchReads = table[grepl(':', V4)]
+  tandemCTMismatches = multiMismatchReads[mapply(hasTandemCTMismatch,
+                                                 lapply(V4, function(x) as.numeric(unlist(strsplit(x,':')))),
+                                                 strsplit(V5, ':'))]
+  if (!is.na(threePrimeBoundary)) {
+    tandemCTMismatches = tandemCTMismatches[sapply(strsplit(V4, ':'),
+                                                   function(x) min(as.numeric(x)) < threePrimeBoundary)]
+  }
+  if (!is.na(fivePrimeBoundary)) {
+    tandemCTMismatches = tandemCTMismatches[sapply(strsplit(V4, ':'),
+                                                   function(x) min(as.numeric(x)) > fivePrimeBoundary)]
+  }
+  return(tandemCTMismatches)
+
 }
 
 # Displays the frequencies of each mismatch type.
