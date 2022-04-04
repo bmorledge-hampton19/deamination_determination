@@ -55,19 +55,29 @@ sixFourMismatchDataFilePaths$rep2 = list(
 CPDMismatchData = lapply(CPDMismatchDataFilePaths, function(x) lapply(x, fread))
 sixFourMismatchData = lapply(sixFourMismatchDataFilePaths, function(x) lapply(x, fread))
 
-# Simplify the data
+# Filter the data
 CPDMismatchData = lapply(CPDMismatchData, function(x) lapply(
-  x, function(y) simplifyTable(filterResults(y, TRUE, 3, 23, 31))
+  x, function(y) filterResults(y, TRUE, 3, 23, 31)
 ))
 sixFourMismatchData = lapply(sixFourMismatchData, function(x) lapply(
-  x, function(y) simplifyTable(filterResults(y, TRUE, 3, 23, 31))
+  x, function(y) filterResults(y, TRUE, 3, 23, 31)
+))
+
+# Extract tandem C>T mismatches
+
+
+# Simplify the data
+CPDMismatchData = lapply(CPDMismatchData, function(x) lapply(
+  x, function(y) simplifyTable(y)
+))
+sixFourMismatchData = lapply(sixFourMismatchData, function(x) lapply(
+  x, function(y) simplifyTable(y)
 ))
 
 ```
 
 
-```{r plot_mismatch_type_frequency}
-
+```{r plot_CPD_mismatch_type_frequency}
 for (i in 1:length(CPDMismatchData)) {
   for (j in 1:length(CPDMismatchData[[i]])) {
     plotMismatchTypeFrequencies(CPDMismatchData[[i]][[j]],
@@ -75,7 +85,10 @@ for (i in 1:length(CPDMismatchData)) {
                                               names(CPDMismatchData[[i]])[j], "Mismatch Type Frequency"))
   }
 }
+```
 
+
+```{r plot_6-4_mismatch_type_frequency}
 for (i in 1:length(sixFourMismatchData)) {
   for (j in 1:length(sixFourMismatchData[[i]])) {
     plotMismatchTypeFrequencies(sixFourMismatchData[[i]][[j]],
@@ -87,8 +100,7 @@ for (i in 1:length(sixFourMismatchData)) {
 ```
 
 
-```{r plot_mismatch_pos_frequency}
-
+```{r plot_CPD_mismatch_pos_frequency}
 for (i in 1:length(CPDMismatchData)) {
   for (j in 1:length(CPDMismatchData[[i]])) {
     plotMismatchPositionFrequencies(CPDMismatchData[[i]][[j]], includedTypes = c("C>T"),
@@ -99,7 +111,10 @@ for (i in 1:length(CPDMismatchData)) {
                                                   names(CPDMismatchData[[i]])[j], "!C>T Mismatch Positions"))
   }
 }
+```
 
+
+```{r plot_6-4_mismatch_pos_frequency}
 for (i in 1:length(sixFourMismatchData)) {
   for (j in 1:length(sixFourMismatchData[[i]])) {
     plotMismatchPositionFrequencies(sixFourMismatchData[[i]][[j]], includedTypes = c("C>T"),
