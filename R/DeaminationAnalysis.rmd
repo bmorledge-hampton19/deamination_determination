@@ -63,8 +63,13 @@ sixFourMismatchData = lapply(sixFourMismatchData, function(x) lapply(
   x, function(y) filterResults(y, TRUE, 3, 23, 31)
 ))
 
-# Extract tandem C>T mismatches
-
+# Extract and simplify tandem C>T mismatches
+CPDTandemCTMismatches = lapply(CPDMismatchData, function(x) lapply(
+  x, function(y) simplifyTable(getTandemCTMismatches(y))
+))
+sixFourTandemCTMismatches = lapply(sixFourMismatchData, function(x) lapply(
+  x, function(y) simplifyTable(getTandemCTMismatches(y))
+))
 
 # Simplify the data
 CPDMismatchData = lapply(CPDMismatchData, function(x) lapply(
@@ -126,5 +131,28 @@ for (i in 1:length(sixFourMismatchData)) {
   }
 }
 
+```
+
+
+```{r plot_CPD_tandem_C>T_pos_frequency}
+for (i in 1:length(CPDTandemCTMismatches)) {
+  for (j in 1:length(CPDTandemCTMismatches[[i]])) {
+    plotMismatchPositionFrequencies(CPDTandemCTMismatches[[i]][[j]],
+                                    title = paste("CPD", names(CPDTandemCTMismatches)[i], 
+                                                  names(CPDTandemCTMismatches[[i]])[j], "Tandem C>T Mismatch Pos"))
+  }
+}
+```
+
+
+```{r plot_6-4_tandem_C>T_pos_frequency}
+for (i in 1:length(sixFourTandemCTMismatches)) {
+  for (j in 1:length(sixFourTandemCTMismatches[[i]])) {
+    plotMismatchPositionFrequencies(sixFourTandemCTMismatches[[i]][[j]],
+                                    title = paste("CPD", names(sixFourTandemCTMismatches)[i], 
+                                                  names(sixFourTandemCTMismatches[[i]])[j], 
+                                                  "Tandem C>T Mismatch Pos"))
+  }
+}
 ```
 
