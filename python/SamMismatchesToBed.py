@@ -109,6 +109,9 @@ def samMismatchesToBed(samFilePaths: List[str], verbose = False):
                                 i += 1
                                 refSeqPos += 1
 
+                    # If no mismatches were found (i.e. the MD string only referenced insertions and deletions), skip this line.
+                    if len(mismatches) == 0: continue
+
                     # Write the pertinent data for this read to the bed output file.
                     # Adjust values as necessary if the read is on the '-' strand.
                     threePrimeMismatchPositions = list()
