@@ -5,6 +5,7 @@
 # Alternatively, this script can look for a specific type of tandem mutation at specific positions.
 import os
 from typing import List
+import warnings
 from benbiohelpers.TkWrappers.TkinterDialog import TkinterDialog
 from benbiohelpers.FileSystemHandling.DirectoryHandling import checkDirs
 
@@ -21,7 +22,7 @@ def samBedToCustomBed(samBedFilePaths: List[str],
 
     for samBedFilePath in samBedFilePaths:
 
-        print(f"Working in {os.path.basename(samBedFilePath)}")
+        print(f"\nWorking in {os.path.basename(samBedFilePath)}")
 
         # Generate the required output file paths, each within its own directory (for convenience with mutperiod).
         inputFileDir = os.path.dirname(samBedFilePath)
@@ -44,6 +45,8 @@ def samBedToCustomBed(samBedFilePaths: List[str],
             for line in samBedFile:
 
                 (readChrom, readStart, readEnd, mismatchPositions, mismatchSequences, strand) = line.split()
+                readStart = int(readStart)
+                readEnd = int(readEnd)
                 
                 # Perform initial filtering on the read.
                 if ( (acceptableReadLengths is None or int(readEnd) - int(readStart) in acceptableReadLengths) and
@@ -55,42 +58,44 @@ def samBedToCustomBed(samBedFilePaths: List[str],
                 lastPosition = None
                 lastSequence = None
                 for position, sequence in zip(mismatchPositions.split(':'), mismatchSequences.split(':')):
-                    if ( (acceptableMismatchPositions is None or int(position) in acceptableMismatchPositions) and
+                    position = int(position)
+                    if ( (acceptableMismatchPositions is None or position in acceptableMismatchPositions) and
                             (acceptableMismatchSequences is None or sequence in acceptableMismatchSequences) ):
-                        
+
                         if outputSingleBaseMismatches:
                             if strand == '+':
-                                absolutePos = int(readEnd) + int(position)
+                                absolutePos = readEnd + position
                             else:
-                                absolutePos = int(readStart) - int(position) - 1
+                                absolutePos = readStart - position - 1
 
-                            singleMismatchOutputFile.write('\t'.join(readChrom, str(absolutePos), str(absolutePos+1),
-                                                                     sequence[0], sequence[2], strand, position) + '\n')
+                            singleMismatchOutputFile.write('\t'.join((readChrom, str(absolutePos), str(absolutePos+1),
+                                                                      sequence[0], sequence[2], strand, str(position))) + '\n')
 
-                        if outputTandemMismatches and lastPosition is not None and abs(int(position)-lastPosition) == 1:
+                        if outputTandemMismatches and lastPosition is not None and abs(position-lastPosition) == 1:
                             if strand == '+':
-                                absolutePos = int(readEnd) + int(lastPosition)
+                                absolutePos = readEnd + lastPosition
                                 refSeq = lastSequence[0] + sequence[0]
                                 mutSeq = lastSequence[2] + sequence[2]
                             else:
-                                absolutePos = int(readStart) - int(position) - 1
+                                absolutePos = readStart - lastPosition - 1
                                 refSeq = sequence[0] + lastSequence[0]
                                 mutSeq = sequence[2] + lastSequence[2]
 
-                            tandemMismatchOutputFile.write('\t'.join(readChrom, str(absolutePos), str(absolutePos+2),
-                                                                     refSeq, mutSeq, strand, position) + '\n')
+                            tandemMismatchOutputFile.write('\t'.join((readChrom, str(absolutePos), str(absolutePos+2),
+                                                                      refSeq, mutSeq, strand, 
+                                                                      str((position+lastPosition)/2) )) + '\n')
 
-                        lastPosition = int(position)
+                        lastPosition = position
                         lastSequence = sequence
 
 
 def main():
     # Create the Tkinter dialog.
     dialog = TkinterDialog(workingDirectory=os.path.join(os.path.dirname(os.path.dirname(__file__)),"data"))
-    dialog.createMultipleFileSelector("Mismatched Reads Bed Files:",0,".bed",("Bed Files",".bed"))
+    dialog.createMultipleFileSelector("Mismatched Reads Bed Files:",0,"mismatches_by_read.bed",("Bed Files",".bed"))
     dialog.createTextField("Acceptable Read Lengths: ", 1, 0, defaultText = "23-31")
     dialog.createTextField("Max Mismatches: ", 2, 0, defaultText = "2")
-    dialog.createTextField("Acceptable Mismatch Positions: ", 3, 0, defaultText = "-3$-12")
+    dialog.createTextField("Acceptable Mismatch Positions: ", 3, 0, defaultText = "-12$-3")
     dialog.createTextField("Acceptable Mismatch Sequences: ", 4, 0, defaultText = "C>T")
 
     with dialog.createDynamicSelector(5, 0) as singleBaseDynSel:
@@ -132,6 +137,7 @@ def main():
         # return a range object as the iterable.
         elif rangeChar in input:
             start, stop = input.split(rangeChar)
+            if int(stop) < int(start): warnings.warn(f"Stop comes before start in range {input}")
             return(range(int(start),int(stop)+1))
 
         # Otherwise, the input is a single item that just needs to be turned into an iterable and returned.
