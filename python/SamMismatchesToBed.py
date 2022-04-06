@@ -18,10 +18,10 @@ def samMismatchesToBed(samFilePaths: List[str], verbose = False):
 
         # Create output file paths (bed file + metadata)
         if gzipped:
-            outputBedFilePath = samFilePath.rsplit('.',2)[0] + "_mismatches.bed"
+            outputBedFilePath = samFilePath.rsplit('.',2)[0] + "_mismatches_by_read.bed"
             openFunction = gzip.open
         else:
-            outputBedFilePath = samFilePath.rsplit('.',1)[0] + "_mismatches.bed"
+            outputBedFilePath = samFilePath.rsplit('.',1)[0] + "_mismatches_by_read.bed"
             openFunction = open
         metadataFilePath = outputBedFilePath.rsplit('.',1)[0] + ".metadata"
 
