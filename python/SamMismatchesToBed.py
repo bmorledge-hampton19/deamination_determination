@@ -110,6 +110,7 @@ def samMismatchesToBed(samFilePaths: List[str], verbose = False):
                                 refSeqPos += 1
 
                     # If no mismatches were found (i.e. the MD string only referenced insertions and deletions), skip this line.
+                    # NOTE: It turns out you can also do this with the "XM" string, which just counts mismatches.
                     if len(mismatches) == 0: continue
 
                     # Write the pertinent data for this read to the bed output file.
