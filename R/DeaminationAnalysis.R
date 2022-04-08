@@ -21,7 +21,7 @@ filterResults = function(mismatchData, removeRowsWithN = TRUE, maxMismatchesAllo
   if (removeRowsWithN) mismatchData = mismatchData[!grepl('N', V5)]
 
   if (!is.na(maxMismatchesAllowed)) {
-    mismatchData = mismatchData[str_count(V4, ':') <= maxMismatchesAllowed]
+    mismatchData = mismatchData[str_count(V4, ':') < maxMismatchesAllowed]
   }
 
   if (!is.na(minReadLength)) {

@@ -50,7 +50,7 @@ def samBedToCustomBed(samBedFilePaths: List[str],
                 
                 # Perform initial filtering on the read.
                 if ( (acceptableReadLengths is None or int(readEnd) - int(readStart) in acceptableReadLengths) and
-                     (maxMismatches is None or mismatchPositions.count(':') <= maxMismatches) ):
+                     (maxMismatches is None or mismatchPositions.count(':') < maxMismatches) ):
                     pass
                 else: continue
 
