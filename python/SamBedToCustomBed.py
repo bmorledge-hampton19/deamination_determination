@@ -5,9 +5,9 @@
 # Alternatively, this script can look for a specific type of tandem mutation at specific positions.
 import os
 from typing import List
-import warnings
 from benbiohelpers.TkWrappers.TkinterDialog import TkinterDialog
 from benbiohelpers.FileSystemHandling.DirectoryHandling import checkDirs
+from benbiohelpers.InputParsing.ParseToIterable import parseToIterable
 
 
 # Given a bed file path containing information on sam read mismatches, filter the reads and mismatches
@@ -119,34 +119,9 @@ def main():
     
     samBedFilePaths = selections.getFilePathGroups()[0]
     
-    # Make a function for parsing input in range or list format.
-    def parseInputToIterable(input: str, rangeChar = '-', sepChar = ','):
-
-        # Remove trailing and leading whitespace
-        input = input.strip()
-
-        # If there are separator characters in the input, split it into multiple inputs,
-        # and recursively perform this function on each, concatenating the results into a single list.
-        if sepChar in input:
-            return([
-                item for inputIterable in input.split(sepChar)
-                    for item in parseInputToIterable(inputIterable, rangeChar, sepChar)
-            ])
-
-        # If there is a range separator in the input (and no separator characters),
-        # return a range object as the iterable.
-        elif rangeChar in input:
-            start, stop = input.split(rangeChar)
-            if int(stop) < int(start): warnings.warn(f"Stop comes before start in range {input}")
-            return(range(int(start),int(stop)+1))
-
-        # Otherwise, the input is a single item that just needs to be turned into an iterable and returned.
-        else:
-            return([int(input)])
-
-    acceptableReadLengths = parseInputToIterable(selections.getTextEntries()[0])
+    acceptableReadLengths = parseToIterable(selections.getTextEntries()[0])
     maxMismatches = int(selections.getTextEntries()[1])
-    acceptableMismatchPositions = parseInputToIterable(selections.getTextEntries()[2],rangeChar = '$')
+    acceptableMismatchPositions = parseToIterable(selections.getTextEntries()[2],rangeChar = '$')
     acceptableMismatchSequences = [sequence.strip() for sequence in selections.getTextEntries()[3].split(',')]
 
     if singleBaseDynSel.getControllerVar():
