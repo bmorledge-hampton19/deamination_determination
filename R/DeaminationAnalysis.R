@@ -118,3 +118,40 @@ plotMismatchPositionFrequencies = function(mismatchTable, includedTypes = list()
   )
 
 }
+
+# Plot mismatch position using a facet plot with timepoint on one dimension and read length on the other
+plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTypes = list(), omittedTypes = list(),
+                                                    title = "Mismatch Position Frequencies") {
+
+  aggregateTable = rbindlist(lapply(seq_along(simplifiedTables),
+                                    function(i) simplifiedTables[[i]][,Timepoint := names(simplifiedTables)[i]]))
+
+  if ( length(includedTypes) > 0 && length(omittedTypes) > 0) {
+    stop("Included types and omitted types given simultaneously")
+  } else if (length(includedTypes) > 0) {
+    frequencyData = (aggregateTable[Mismatch %in% includedTypes, .N, by = list(Position,Read_Length,Timepoint)]
+                     [, Freq := N/sum(N), by = list(Read_Length, Timepoint)])
+  } else if (length(omittedTypes) > 0) {
+    frequencyData = (aggregateTable[!(Mismatch %in% omittedTypes), .N, by = list(Position,Read_Length,Timepoint)]
+                     [, Freq := N/sum(N), by = list(Read_Length, Timepoint)])
+  } else {
+    frequencyData = (aggregateTable[, .N, by = list(Position,Read_Length,Timepoint)]
+                     [, Freq := N/sum(N), by = list(Read_Length, Timepoint)])
+  }
+
+  print(
+    ggplot(frequencyData, aes(Position, Freq)) +
+      geom_bar(stat = "identity") +
+      labs(title = title, x = "3` Relative Position", y = "Relative Mismatch Frequency") +
+      blankBackground + defaultTextScaling +
+      facet_grid(Read_Length~factor(Timepoint, levels = names(simplifiedTables))) +
+      theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
+            strip.background = element_rect(color = "black", size = 1),
+            axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+            strip.text.y = element_text(size = 16),
+            panel.grid.major.x = element_line(color = "red", size = 0.5, linetype = 2)) +
+      scale_y_continuous(sec.axis = dup_axis(~., name = "Read Length")) +
+      scale_x_continuous(breaks = c(0, -10, -20))
+  )
+
+}
