@@ -206,3 +206,9 @@ test.*
 # Data files
 data/
 .Rproj.user
+
+# Figures
+Deamination_Analysis_Figures/
+
+# R markdown output
+R/DeaminationAnalysis.html
