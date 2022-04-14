@@ -12,7 +12,7 @@ params:
 
 ```{r setup_chunk}
 library(knitr)
-opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5)
+opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5, fig.path = "Deamination_Analysis_Figures/")
 if (interactive()) {
   bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
 } else {
@@ -88,7 +88,7 @@ sixFourMismatchData = lapply(sixFourMismatchData, function(x) lapply(
 ```
 
 
-```{r plot_CPD_mismatch_type_frequency}
+```{r CPD_mismatch_type_frequency}
 for (i in 1:length(CPDMismatchData)) {
   for (j in 1:length(CPDMismatchData[[i]])) {
     plotMismatchTypeFrequencies(CPDMismatchData[[i]][[j]],
@@ -99,7 +99,7 @@ for (i in 1:length(CPDMismatchData)) {
 ```
 
 
-```{r plot_6-4_mismatch_type_frequency}
+```{r 6-4_mismatch_type_frequency}
 for (i in 1:length(sixFourMismatchData)) {
   for (j in 1:length(sixFourMismatchData[[i]])) {
     plotMismatchTypeFrequencies(sixFourMismatchData[[i]][[j]],
@@ -111,7 +111,7 @@ for (i in 1:length(sixFourMismatchData)) {
 ```
 
 
-```{r plot_CPD_mismatch_pos_frequency}
+```{r CPD_mismatch_pos_frequency}
 for (i in 1:length(CPDMismatchData)) {
   for (j in 1:length(CPDMismatchData[[i]])) {
     plotMismatchPositionFrequencies(CPDMismatchData[[i]][[j]], includedTypes = c("C>T"),
@@ -125,7 +125,7 @@ for (i in 1:length(CPDMismatchData)) {
 ```
 
 
-```{r plot_6-4_mismatch_pos_frequency}
+```{r 6-4_mismatch_pos_frequency}
 for (i in 1:length(sixFourMismatchData)) {
   for (j in 1:length(sixFourMismatchData[[i]])) {
     plotMismatchPositionFrequencies(sixFourMismatchData[[i]][[j]], includedTypes = c("C>T"),
@@ -140,7 +140,7 @@ for (i in 1:length(sixFourMismatchData)) {
 ```
 
 
-```{r plot_CPD_tandem_C>T_pos_frequency}
+```{r CPD_tandem_C_to_T_pos_frequency}
 for (i in 1:length(CPDTandemCTMismatches)) {
   for (j in 1:length(CPDTandemCTMismatches[[i]])) {
     plotMismatchPositionFrequencies(CPDTandemCTMismatches[[i]][[j]],
@@ -151,7 +151,7 @@ for (i in 1:length(CPDTandemCTMismatches)) {
 ```
 
 
-```{r plot_6-4_tandem_C>T_pos_frequency}
+```{r 6-4_tandem_C_to_T_pos_frequency}
 for (i in 1:length(sixFourTandemCTMismatches)) {
   for (j in 1:length(sixFourTandemCTMismatches[[i]])) {
     plotMismatchPositionFrequencies(sixFourTandemCTMismatches[[i]][[j]],
@@ -161,6 +161,19 @@ for (i in 1:length(sixFourTandemCTMismatches)) {
   }
 }
 ```
+
+
+```{r Facet_Mismatch_Position_Frequencies, fig.width = 9, fig.height = 5}
+plotPositionAcrossTimepointAndReadLength(CPDMismatchData$rep1, includedTypes = c("C>T"),
+                                         title = "CPD C>T Mismatch Pos Freq Rep1")
+plotPositionAcrossTimepointAndReadLength(CPDMismatchData$rep2, includedTypes = c("C>T"),
+                                         title = "CPD C>T Mismatch Pos Freq Rep2")
+plotPositionAcrossTimepointAndReadLength(sixFourMismatchData$rep1, includedTypes = c("C>T"),
+                                         title = "6-4 C>T Mismatch Pos Freq Rep1")
+plotPositionAcrossTimepointAndReadLength(sixFourMismatchData$rep2, includedTypes = c("C>T"),
+                                         title = "6-4 C>T Mismatch Pos Freq Rep2")
+```
+
 
 
 ```{r acquire_and_format_data_2}
