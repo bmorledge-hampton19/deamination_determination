@@ -205,9 +205,57 @@ getGroupedPositionStats = function(simplifiedTables, includedTypes = list(),
 
   groupedPositionStats = aggregateTable[order(Timepoint, Read_Length),
                                         .(mean = mean(Position), median = median(Position),
-                                          mode = getMode(Position)),
+                                          mode = getMode(Position), IQR = IQR(Position),
+                                          Standard_Deviation = sd(Position)),
                                         by = list(Read_Length,Timepoint)]
 
+  # Get the absolute change in position relative to the 3' end for each timepoint
+  shortestReadMeanPos = unlist(lapply(unique(groupedPositionStats$Timepoint), function(x) {
+    rep(groupedPositionStats[Timepoint == x, mean][1],length(groupedPositionStats[Timepoint==x,mean]))
+  }))
+  groupedPositionStats[,Absolute_Pos_Change := abs(mean-shortestReadMeanPos)]
+
   return(groupedPositionStats)
+
+}
+
+
+POS_DIFF = "Position Difference"
+IQR = "IQR"
+STDEV = "Standard Deviation"
+# Plots grouped stats across timepoints and positioning type (3' vs. 5')
+plotGroupedPositionStats = function(threePrimeGroupedStats, fivePrimeGroupedStats, stat,
+                                    title = paste(stat,"Over Time"), xAxisBreaks = waiver()) {
+
+  # Combine the two data sets with an extra column for the position type
+  threePrimeGroupedStats = copy(threePrimeGroupedStats)
+  threePrimeGroupedStats[,Position_Type := "3' Relative Position"]
+
+  fivePrimeGroupedStats = copy(fivePrimeGroupedStats)
+  fivePrimeGroupedStats[,Position_Type := "5' Relative Position"]
+
+  aggregateData = rbindlist(list(threePrimeGroupedStats,fivePrimeGroupedStats))
+
+  if (stat == POS_DIFF) {
+    groupedStatsPlot =
+      ggplot(aggregateData, aes(Read_Length, Absolute_Pos_Change, color = Timepoint, linetype = Position_Type)) +
+      geom_line(size = 1.25)
+  } else if (stat == IQR) {
+    groupedStatsPlot =
+      ggplot(aggregateData, aes(Read_Length, IQR, color = Timepoint, shape = Position_Type)) +
+      geom_jitter(height = 0, size = 3)
+  } else if (stat == STDEV) {
+    groupedStatsPlot =
+      ggplot(aggregateData, aes(Read_Length, Standard_Deviation, color = Timepoint, shape = Position_Type)) +
+      geom_jitter(height = 0, size = 3)
+  } else {
+    stop(paste("Unrecognized stat:",stat))
+  }
+
+  groupedStatsPlot = groupedStatsPlot + blankBackground + defaultTextScaling +
+    labs(title = title, x = "Read Length", y = stat) + scale_color_brewer(palette = "Set1") +
+    scale_x_continuous(breaks = xAxisBreaks)
+
+  print(groupedStatsPlot)
 
 }
