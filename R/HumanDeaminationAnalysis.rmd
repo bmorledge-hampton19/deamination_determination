@@ -14,7 +14,7 @@ params:
 library(knitr)
 opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5, 
                fig.path = paste0(file.path("deamination_analysis_output","human_analysis_figures"),
-                                 .Platform$path.sep))
+                                 .Platform$file.sep))
 if (interactive()) {
   bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
 } else {
@@ -31,7 +31,7 @@ source(file.path(bioinformaticsDirectory, "Chromatin_Features_Analysis", "R_scri
 
 
 ```{r acquire_and_format_data_1}
-deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data")
+deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data", "human")
 
 # Read in the relevant data
 CPDMismatchDataFilePaths = list(rep1 = list(), rep2 = list())
@@ -209,30 +209,31 @@ sixFourGroupedStats$rep1$five_prime =
 sixFourGroupedStats$rep2$five_prime =
   getGroupedPositionStats(sixFourMismatchData$rep2, includedTypes = c("C>T"), posType = FIVE_PRIME)
 
-dir.create(file.path("deamination_analysis_output","human_analysis_tables"))
+tableOutputDir = file.path("deamination_analysis_output","human_analysis_tables")
+dir.create(tableOutputDir)
 
 fwrite(CPDGroupedStats$rep1$three_prime,
-       file.path("deamination_analysis_tables", "CPD_mismatch_three_prime_position_stats_rep1.tsv"),sep = '\t')
+       file.path(tableOutputDir, "CPD_mismatch_three_prime_position_stats_rep1.tsv"),sep = '\t')
 fwrite(CPDGroupedStats$rep2$three_prime,
-       file.path("deamination_analysis_tables", "CPD_mismatch_three_prime_position_stats_rep2.tsv"),sep = '\t')
+       file.path(tableOutputDir, "CPD_mismatch_three_prime_position_stats_rep2.tsv"),sep = '\t')
 fwrite(CPDGroupedStats$rep1$five_prime,
-       file.path("deamination_analysis_tables", "CPD_mismatch_five_prime_position_stats_rep1.tsv"),sep = '\t')
+       file.path(tableOutputDir, "CPD_mismatch_five_prime_position_stats_rep1.tsv"),sep = '\t')
 fwrite(CPDGroupedStats$rep2$five_prime,
-       file.path("deamination_analysis_tables", "CPD_mismatch_five_prime_position_stats_rep2.tsv"),sep = '\t')
+       file.path(tableOutputDir, "CPD_mismatch_five_prime_position_stats_rep2.tsv"),sep = '\t')
 
 fwrite(sixFourGroupedStats$rep1$three_prime,
-       file.path("deamination_analysis_tables", "6-4_mismatch_three_prime_position_stats_rep1.tsv"), sep = '\t')
+       file.path(tableOutputDir, "6-4_mismatch_three_prime_position_stats_rep1.tsv"), sep = '\t')
 fwrite(sixFourGroupedStats$rep2$three_prime,
-       file.path("deamination_analysis_tables", "6-4_mismatch_three_prime_position_stats_rep2.tsv"), sep = '\t')
+       file.path(tableOutputDir, "6-4_mismatch_three_prime_position_stats_rep2.tsv"), sep = '\t')
 fwrite(sixFourGroupedStats$rep1$five_prime,
-       file.path("deamination_analysis_tables", "6-4_mismatch_five_prime_position_stats_rep1.tsv"), sep = '\t')
+       file.path(tableOutputDir, "6-4_mismatch_five_prime_position_stats_rep1.tsv"), sep = '\t')
 fwrite(sixFourGroupedStats$rep2$five_prime,
-       file.path("deamination_analysis_tables", "6-4_mismatch_five_prime_position_stats_rep2.tsv"), sep = '\t')
+       file.path(tableOutputDir, "6-4_mismatch_five_prime_position_stats_rep2.tsv"), sep = '\t')
 ```
 
 
 ```{r acquire_and_format_data_2}
-load(file.path(deaminationDataDirectory, "deamination_periodicity_results.rda"))
+load(file.path(deaminationDataDirectory, "NHF1_deamination_periodicity_results.rda"))
 dataSetNames = as.list(setNames(nm = mutperiodData$periodicityResults$Data_Set))
 
 ```
@@ -289,7 +290,7 @@ parseAndPlotPeriodicity(
 
 
 ```{r acquire_and_format_data_3}
-load(file.path(deaminationDataDirectory, "TCG_deamination_periodicity_results.rda"))
+load(file.path(deaminationDataDirectory, "NHF1_TCG_deamination_periodicity_results.rda"))
 dataSetNames = as.list(setNames(nm = mutperiodData$periodicityResults$Data_Set))
 
 ```
