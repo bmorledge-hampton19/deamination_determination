@@ -12,7 +12,7 @@ params:
 
 ```{r setup_chunk}
 library(knitr)
-opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5, fig.path = "Deamination_Analysis_Figures/")
+opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5, fig.path = "deamination_analysis_figures/")
 if (interactive()) {
   bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
 } else {
@@ -116,7 +116,8 @@ for (i in 1:length(CPDMismatchData)) {
   for (j in 1:length(CPDMismatchData[[i]])) {
     plotMismatchPositionFrequencies(CPDMismatchData[[i]][[j]], includedTypes = c("C>T"),
                                     title = paste("CPD", names(CPDMismatchData)[i], 
-                                                  names(CPDMismatchData[[i]])[j], "C>T Mismatch Positions"))
+                                                  names(CPDMismatchData[[i]])[j], "C>T Mismatch Positions"),
+                                    posType = FIVE_PRIME)
     plotMismatchPositionFrequencies(CPDMismatchData[[i]][[j]], omittedTypes = c("C>T"),
                                     title = paste("CPD", names(CPDMismatchData)[i], 
                                                   names(CPDMismatchData[[i]])[j], "!C>T Mismatch Positions"))
@@ -131,6 +132,11 @@ for (i in 1:length(sixFourMismatchData)) {
     plotMismatchPositionFrequencies(sixFourMismatchData[[i]][[j]], includedTypes = c("C>T"),
                                     title = paste("6-4", names(sixFourMismatchData)[i], 
                                                   names(sixFourMismatchData[[i]])[j], "C>T Mismatch Positions"))
+    plotMismatchPositionFrequencies(sixFourMismatchData[[i]][[j]], includedTypes = c("C>T"),
+                                    title = paste("6-4", names(sixFourMismatchData)[i], 
+                                                  names(sixFourMismatchData[[i]])[j], "C>T Mismatch Positions"),
+                                    posType = FIVE_PRIME)
+    
     plotMismatchPositionFrequencies(sixFourMismatchData[[i]][[j]], omittedTypes = c("C>T"),
                                     title = paste("6-4", names(sixFourMismatchData)[i], 
                                                   names(sixFourMismatchData[[i]])[j], "!C>T Mismatch Positions"))
@@ -140,40 +146,87 @@ for (i in 1:length(sixFourMismatchData)) {
 ```
 
 
-```{r CPD_tandem_C_to_T_pos_frequency}
-for (i in 1:length(CPDTandemCTMismatches)) {
-  for (j in 1:length(CPDTandemCTMismatches[[i]])) {
-    plotMismatchPositionFrequencies(CPDTandemCTMismatches[[i]][[j]],
-                                    title = paste("CPD", names(CPDTandemCTMismatches)[i], 
-                                                  names(CPDTandemCTMismatches[[i]])[j], "Tandem C>T Mismatch Pos"))
-  }
-}
-```
+# ```{r CPD_tandem_C_to_T_pos_frequency}
+# for (i in 1:length(CPDTandemCTMismatches)) {
+#   for (j in 1:length(CPDTandemCTMismatches[[i]])) {
+#     plotMismatchPositionFrequencies(CPDTandemCTMismatches[[i]][[j]],
+#                                     title = paste("CPD", names(CPDTandemCTMismatches)[i], 
+#                                                   names(CPDTandemCTMismatches[[i]])[j], "Tandem C>T Mismatch Pos"))
+#   }
+# }
+# ```
 
 
-```{r 6-4_tandem_C_to_T_pos_frequency}
-for (i in 1:length(sixFourTandemCTMismatches)) {
-  for (j in 1:length(sixFourTandemCTMismatches[[i]])) {
-    plotMismatchPositionFrequencies(sixFourTandemCTMismatches[[i]][[j]],
-                                    title = paste("6-4", names(sixFourTandemCTMismatches)[i], 
-                                                  names(sixFourTandemCTMismatches[[i]])[j], 
-                                                  "Tandem C>T Mismatch Pos"))
-  }
-}
-```
+# ```{r 6-4_tandem_C_to_T_pos_frequency}
+# for (i in 1:length(sixFourTandemCTMismatches)) {
+#   for (j in 1:length(sixFourTandemCTMismatches[[i]])) {
+#     plotMismatchPositionFrequencies(sixFourTandemCTMismatches[[i]][[j]],
+#                                     title = paste("6-4", names(sixFourTandemCTMismatches)[i], 
+#                                                   names(sixFourTandemCTMismatches[[i]])[j], 
+#                                                   "Tandem C>T Mismatch Pos"))
+#   }
+# }
+# ```
 
 
-```{r Facet_Mismatch_Position_Frequencies, fig.width = 9, fig.height = 5}
+```{r facet_mismatch_position_frequencies, fig.width = 9, fig.height = 5}
 plotPositionAcrossTimepointAndReadLength(CPDMismatchData$rep1, includedTypes = c("C>T"),
                                          title = "CPD C>T Mismatch Pos Freq Rep1")
 plotPositionAcrossTimepointAndReadLength(CPDMismatchData$rep2, includedTypes = c("C>T"),
                                          title = "CPD C>T Mismatch Pos Freq Rep2")
+plotPositionAcrossTimepointAndReadLength(CPDMismatchData$rep1, includedTypes = c("C>T"),
+                                         title = "CPD C>T Mismatch Pos Freq Rep1", posType = FIVE_PRIME)
+plotPositionAcrossTimepointAndReadLength(CPDMismatchData$rep2, includedTypes = c("C>T"),
+                                         title = "CPD C>T Mismatch Pos Freq Rep2", posType = FIVE_PRIME)
+
 plotPositionAcrossTimepointAndReadLength(sixFourMismatchData$rep1, includedTypes = c("C>T"),
                                          title = "6-4 C>T Mismatch Pos Freq Rep1")
 plotPositionAcrossTimepointAndReadLength(sixFourMismatchData$rep2, includedTypes = c("C>T"),
                                          title = "6-4 C>T Mismatch Pos Freq Rep2")
+plotPositionAcrossTimepointAndReadLength(sixFourMismatchData$rep1, includedTypes = c("C>T"),
+                                         title = "6-4 C>T Mismatch Pos Freq Rep1", posType = FIVE_PRIME)
+plotPositionAcrossTimepointAndReadLength(sixFourMismatchData$rep2, includedTypes = c("C>T"),
+                                         title = "6-4 C>T Mismatch Pos Freq Rep2", posType = FIVE_PRIME)
 ```
 
+
+```{r facet_mismatch_position_statistics}
+CPDGroupedStats = list(rep1 = list(), rep2 = list())
+CPDGroupedStats$rep1$three_prime = getGroupedPositionStats(CPDMismatchData$rep1, includedTypes = c("C>T"))
+CPDGroupedStats$rep2$three_prime = getGroupedPositionStats(CPDMismatchData$rep2, includedTypes = c("C>T"))
+CPDGroupedStats$rep1$five_prime =
+  getGroupedPositionStats(CPDMismatchData$rep1, includedTypes = c("C>T"), posType = FIVE_PRIME)
+CPDGroupedStats$rep2$five_prime =
+  getGroupedPositionStats(CPDMismatchData$rep2, includedTypes = c("C>T"), posType = FIVE_PRIME)
+
+sixFourGroupedStats = list(rep1 = list(), rep2 = list())
+sixFourGroupedStats$rep1$three_prime = getGroupedPositionStats(sixFourMismatchData$rep1, includedTypes = c("C>T"))
+sixFourGroupedStats$rep2$three_prime = getGroupedPositionStats(sixFourMismatchData$rep2, includedTypes = c("C>T"))
+sixFourGroupedStats$rep1$five_prime =
+  getGroupedPositionStats(sixFourMismatchData$rep1, includedTypes = c("C>T"), posType = FIVE_PRIME)
+sixFourGroupedStats$rep2$five_prime =
+  getGroupedPositionStats(sixFourMismatchData$rep2, includedTypes = c("C>T"), posType = FIVE_PRIME)
+
+dir.create("deamination_analysis_tables")
+
+fwrite(CPDGroupedStats$rep1$three_prime,
+       file.path("deamination_analysis_tables", "CPD_mismatch_three_prime_position_stats_rep1.tsv"),sep = '\t')
+fwrite(CPDGroupedStats$rep2$three_prime,
+       file.path("deamination_analysis_tables", "CPD_mismatch_three_prime_position_stats_rep2.tsv"),sep = '\t')
+fwrite(CPDGroupedStats$rep1$five_prime,
+       file.path("deamination_analysis_tables", "CPD_mismatch_five_prime_position_stats_rep1.tsv"),sep = '\t')
+fwrite(CPDGroupedStats$rep2$five_prime,
+       file.path("deamination_analysis_tables", "CPD_mismatch_five_prime_position_stats_rep2.tsv"),sep = '\t')
+
+fwrite(sixFourGroupedStats$rep1$three_prime,
+       file.path("deamination_analysis_tables", "6-4_mismatch_three_prime_position_stats_rep1.tsv"), sep = '\t')
+fwrite(sixFourGroupedStats$rep2$three_prime,
+       file.path("deamination_analysis_tables", "6-4_mismatch_three_prime_position_stats_rep2.tsv"), sep = '\t')
+fwrite(sixFourGroupedStats$rep1$five_prime,
+       file.path("deamination_analysis_tables", "6-4_mismatch_five_prime_position_stats_rep1.tsv"), sep = '\t')
+fwrite(sixFourGroupedStats$rep2$five_prime,
+       file.path("deamination_analysis_tables", "6-4_mismatch_five_prime_position_stats_rep2.tsv"), sep = '\t')
+```
 
 
 ```{r acquire_and_format_data_2}
