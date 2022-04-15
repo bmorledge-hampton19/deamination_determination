@@ -2,6 +2,9 @@ library(data.table)
 library(stringr)
 library(ggplot2)
 
+THREE_PRIME = 3
+FIVE_PRIME = 5
+
 # Default text scaling
 defaultTextScaling = theme(plot.title = element_text(size = 26, hjust = 0.5),
                            axis.title = element_text(size = 22), axis.text = element_text(size = 18),
@@ -98,7 +101,15 @@ plotMismatchTypeFrequencies = function(mismatchTable, title = "Mismatch Type Fre
 # Displays the frequencies of positions for the chosen mismatch types.
 # (Types can be chosen by inclusion or omission)
 plotMismatchPositionFrequencies = function(mismatchTable, includedTypes = list(), omittedTypes = list(),
-                                           title = "Position Frequency") {
+                                           title = "Position Frequency", posType = THREE_PRIME) {
+
+  if (posType == THREE_PRIME) {
+    xAxisLabel = "3' Relative Position"
+  } else if (posType == FIVE_PRIME) {
+    xAxisLabel = "5' Relative Position"
+    mismatchTable = copy(mismatchTable)
+    mismatchTable[, Position := Read_Length + Position + 1]
+  } else stop("Unrecognized value for posType parameter.")
 
   if ( length(includedTypes) > 0 && length(omittedTypes) > 0) {
     stop("Included types and omitted types given simultaneously")
@@ -113,7 +124,7 @@ plotMismatchPositionFrequencies = function(mismatchTable, includedTypes = list()
   print(
     ggplot(frequencyData, aes(x = Position, y = Freq)) +
       geom_bar(stat = "identity") +
-      labs(title = title, x = "3` Relative Position", y = "Frequency") +
+      labs(title = title, x = xAxisLabel, y = "Frequency") +
       blankBackground + defaultTextScaling
   )
 
@@ -121,7 +132,17 @@ plotMismatchPositionFrequencies = function(mismatchTable, includedTypes = list()
 
 # Plot mismatch position using a facet plot with timepoint on one dimension and read length on the other
 plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTypes = list(), omittedTypes = list(),
-                                                    title = "Mismatch Position Frequencies") {
+                                                    title = "Mismatch Position Frequencies", posType = THREE_PRIME) {
+
+  if (posType == THREE_PRIME) {
+    xAxisLabel = "3' Relative Position"
+    xAxisBreaks = c(0, -10, -20)
+  } else if (posType == FIVE_PRIME) {
+    xAxisLabel = "5' Relative Position"
+    xAxisBreaks = c(0, 10, 20)
+    simplifiedTables = lapply(simplifiedTables, copy)
+    lapply(simplifiedTables, function(x) x[, Position := Read_Length + Position + 1])
+  } else stop("Unrecognized value for posType parameter.")
 
   aggregateTable = rbindlist(lapply(seq_along(simplifiedTables),
                                     function(i) simplifiedTables[[i]][,Timepoint := names(simplifiedTables)[i]]))
@@ -129,20 +150,18 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
   if ( length(includedTypes) > 0 && length(omittedTypes) > 0) {
     stop("Included types and omitted types given simultaneously")
   } else if (length(includedTypes) > 0) {
-    frequencyData = (aggregateTable[Mismatch %in% includedTypes, .N, by = list(Position,Read_Length,Timepoint)]
-                     [, Freq := N/sum(N), by = list(Read_Length, Timepoint)])
+    aggregateTable = aggregateTable[Mismatch %in% includedTypes]
   } else if (length(omittedTypes) > 0) {
-    frequencyData = (aggregateTable[!(Mismatch %in% omittedTypes), .N, by = list(Position,Read_Length,Timepoint)]
-                     [, Freq := N/sum(N), by = list(Read_Length, Timepoint)])
-  } else {
-    frequencyData = (aggregateTable[, .N, by = list(Position,Read_Length,Timepoint)]
-                     [, Freq := N/sum(N), by = list(Read_Length, Timepoint)])
+    aggregateTable = aggregateTable[!(Mismatch %in% omittedTypes)]
   }
 
+  groupedPositionFrequencies = (aggregateTable[, .N, by = list(Position,Read_Length,Timepoint)]
+                                [, Freq := N/sum(N), by = list(Read_Length, Timepoint)])
+
   print(
-    ggplot(frequencyData, aes(Position, Freq)) +
+    ggplot(groupedPositionFrequencies, aes(Position, Freq)) +
       geom_bar(stat = "identity") +
-      labs(title = title, x = "3` Relative Position", y = "Relative Mismatch Frequency") +
+      labs(title = title, x = xAxisLabel, y = "Relative Mismatch Frequency") +
       blankBackground + defaultTextScaling +
       facet_grid(Read_Length~factor(Timepoint, levels = names(simplifiedTables))) +
       theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
@@ -151,7 +170,7 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
             strip.text.y = element_text(size = 16),
             panel.grid.major.x = element_line(color = "red", size = 0.5, linetype = 2)) +
       scale_y_continuous(sec.axis = dup_axis(~., name = "Read Length")) +
-      scale_x_continuous(breaks = c(0, -10, -20))
+      scale_x_continuous(breaks = xAxisBreaks)
   )
 
 }
