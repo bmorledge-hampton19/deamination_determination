@@ -209,6 +209,7 @@ data/
 
 # Figures
 Deamination_Analysis_Figures/
+Deamination_Analysis_Tables/
 
 # R markdown output
 R/DeaminationAnalysis.html
