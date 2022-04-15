@@ -12,7 +12,9 @@ params:
 
 ```{r setup_chunk}
 library(knitr)
-opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5, fig.path = "deamination_analysis_figures/")
+opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5, 
+               fig.path = paste0(file.path("deamination_analysis_output","human_analysis_figures"),
+                                 .Platform$path.sep))
 if (interactive()) {
   bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
 } else {
@@ -207,7 +209,7 @@ sixFourGroupedStats$rep1$five_prime =
 sixFourGroupedStats$rep2$five_prime =
   getGroupedPositionStats(sixFourMismatchData$rep2, includedTypes = c("C>T"), posType = FIVE_PRIME)
 
-dir.create("deamination_analysis_tables")
+dir.create(file.path("deamination_analysis_output","human_analysis_tables"))
 
 fwrite(CPDGroupedStats$rep1$three_prime,
        file.path("deamination_analysis_tables", "CPD_mismatch_three_prime_position_stats_rep1.tsv"),sep = '\t')
