@@ -174,3 +174,40 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
   )
 
 }
+
+
+# Gets the mode. (Why isn't there a base R function for this?)
+getMode = function(values) {
+  frequencyTable = table(values)
+  return(as.numeric(names(frequencyTable)[which.max(frequencyTable)]))
+}
+
+
+# Returns a table of the mean, median, and mode positions for each read length at each time point.
+getGroupedPositionStats = function(simplifiedTables, includedTypes = list(),
+                                   omittedTypes = list(), posType = THREE_PRIME) {
+
+  if (posType == FIVE_PRIME) {
+    simplifiedTables = lapply(simplifiedTables, copy)
+    lapply(simplifiedTables, function(x) x[, Position := Read_Length + Position + 1])
+  } else if (posType != THREE_PRIME) stop("Unrecognized value for posType parameter.")
+
+  aggregateTable = rbindlist(lapply(seq_along(simplifiedTables),
+                                    function(i) simplifiedTables[[i]][,Timepoint := names(simplifiedTables)[i]]))
+
+  if ( length(includedTypes) > 0 && length(omittedTypes) > 0) {
+    stop("Included types and omitted types given simultaneously")
+  } else if (length(includedTypes) > 0) {
+    aggregateTable = aggregateTable[Mismatch %in% includedTypes]
+  } else if (length(omittedTypes) > 0) {
+    aggregateTable = aggregateTable[!(Mismatch %in% omittedTypes)]
+  }
+
+  groupedPositionStats = aggregateTable[order(Timepoint, Read_Length),
+                                        .(mean = mean(Position), median = median(Position),
+                                          mode = getMode(Position)),
+                                        by = list(Read_Length,Timepoint)]
+
+  return(groupedPositionStats)
+
+}
