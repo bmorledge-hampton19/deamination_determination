@@ -86,6 +86,13 @@ getTandemCTMismatches = function(table, threePrimeBoundary = NA, fivePrimeBounda
 
 }
 
+# Computes and returns sequence length and GC content for each read in a given table.
+getReadLengthAndGCContent = function(table) {
+  return(table[,.(Length = nchar(V7),
+                  GC_Content = str_count(V7, "C|G") / (nchar(V7) - str_count(V7, 'N')) )])
+}
+
+
 # Displays the frequencies of each mismatch type.
 plotMismatchTypeFrequencies = function(mismatchTable, title = "Mismatch Type Frequency") {
 
