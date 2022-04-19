@@ -36,28 +36,28 @@ deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_deter
 # Read in the relevant data
 CPDMismatchDataFilePaths = list(rep1 = list(), rep2 = list())
 CPDMismatchDataFilePaths$rep1 = list(
-  hr1 = file.path(deaminationDataDirectory, "NHF1_CPD_1h_Rep1_mismatches.bed"),
-  hr8 = file.path(deaminationDataDirectory, "NHF1_CPD_8h_Rep1_mismatches.bed"),
-  hr24 = file.path(deaminationDataDirectory, "NHF1_CPD_24h_Rep1_mismatches.bed"),
-  hr48 = file.path(deaminationDataDirectory, "NHF1_CPD_48h_Rep1_mismatches.bed")
+  hr1 = file.path(deaminationDataDirectory, "NHF1_CPD_1h_Rep1_mismatches_by_read.bed"),
+  hr8 = file.path(deaminationDataDirectory, "NHF1_CPD_8h_Rep1_mismatches_by_read.bed"),
+  hr24 = file.path(deaminationDataDirectory, "NHF1_CPD_24h_Rep1_mismatches_by_read.bed"),
+  hr48 = file.path(deaminationDataDirectory, "NHF1_CPD_48h_Rep1_mismatches_by_read.bed")
 )
 CPDMismatchDataFilePaths$rep2 = list(
-  hr1 = file.path(deaminationDataDirectory, "NHF1_CPD_1h_Rep2_mismatches.bed"),
-  hr8 = file.path(deaminationDataDirectory, "NHF1_CPD_8h_Rep2_mismatches.bed"),
-  hr24 = file.path(deaminationDataDirectory, "NHF1_CPD_24h_Rep2_mismatches.bed"),
-  hr48 = file.path(deaminationDataDirectory, "NHF1_CPD_48h_Rep2_mismatches.bed")
+  hr1 = file.path(deaminationDataDirectory, "NHF1_CPD_1h_Rep2_mismatches_by_read.bed"),
+  hr8 = file.path(deaminationDataDirectory, "NHF1_CPD_8h_Rep2_mismatches_by_read.bed"),
+  hr24 = file.path(deaminationDataDirectory, "NHF1_CPD_24h_Rep2_mismatches_by_read.bed"),
+  hr48 = file.path(deaminationDataDirectory, "NHF1_CPD_48h_Rep2_mismatches_by_read.bed")
 )
 
 sixFourMismatchDataFilePaths = list(rep1 = list(), rep2 = list())
 sixFourMismatchDataFilePaths$rep1 = list(
-  min5 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_5min_Rep1_mismatches.bed"),
-  min20 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_20min_Rep1_mismatches.bed"),
-  hr1 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_1h_Rep1_mismatches.bed")
+  min5 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_5min_Rep1_mismatches_by_read.bed"),
+  min20 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_20min_Rep1_mismatches_by_read.bed"),
+  hr1 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_1h_Rep1_mismatches_by_read.bed")
 )
 sixFourMismatchDataFilePaths$rep2 = list(
-  min5 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_5min_Rep2_mismatches.bed"),
-  min20 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_20min_Rep2_mismatches.bed"),
-  hr1 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_1h_Rep2_mismatches.bed")
+  min5 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_5min_Rep2_mismatches_by_read.bed"),
+  min20 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_20min_Rep2_mismatches_by_read.bed"),
+  hr1 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_1h_Rep2_mismatches_by_read.bed")
 )
 
 CPDMismatchData = lapply(CPDMismatchDataFilePaths, function(x) lapply(x, fread))
@@ -69,6 +69,14 @@ CPDMismatchData = lapply(CPDMismatchData, function(x) lapply(
 ))
 sixFourMismatchData = lapply(sixFourMismatchData, function(x) lapply(
   x, function(y) filterResults(y, TRUE, 3, 23, 31)
+))
+
+# Get the tables of read length vs. GC content
+CPDReadLengthVsGCData = lapply(CPDMismatchData, function(x) lapply(
+  x, getReadLengthAndGCContent
+))
+sixReadLengthVsGCData = lapply(sixFourMismatchData, function(x) lapply(
+  x, getReadLengthAndGCContent
 ))
 
 # Extract and simplify tandem C>T mismatches
@@ -283,10 +291,15 @@ plotGroupedPositionStats(sixFourGroupedStats$rep2$three_prime, sixFourGroupedSta
 # ```
 
 
+```{r read_length_vs_GC_content}
+
+```
+
+
+
 ```{r acquire_and_format_data_2}
 load(file.path(deaminationDataDirectory, "NHF1_deamination_periodicity_results.rda"))
 dataSetNames = as.list(setNames(nm = mutperiodData$periodicityResults$Data_Set))
-
 ```
 
 
