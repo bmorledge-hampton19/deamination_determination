@@ -232,6 +232,57 @@ fwrite(sixFourGroupedStats$rep2$five_prime,
 ```
 
 
+```{r plot_position_differences_across_read_lengths, fig.width = 9, fig.height = 5}
+plotGroupedPositionStats(CPDGroupedStats$rep1$three_prime, CPDGroupedStats$rep1$five_prime, POS_DIFF,
+                         title = "CPD C>T Mismatch Pos Diff Rep1",
+                         xAxisBreaks = c(23:31))
+plotGroupedPositionStats(CPDGroupedStats$rep2$three_prime, CPDGroupedStats$rep2$five_prime, POS_DIFF,
+                         title = "CPD C>T Mismatch Pos Diff Rep2",
+                         xAxisBreaks = c(23:31))
+
+plotGroupedPositionStats(sixFourGroupedStats$rep1$three_prime, sixFourGroupedStats$rep1$five_prime, POS_DIFF,
+                         title = "6-4 C>T Mismatch Pos Diff Rep1",
+                         xAxisBreaks = c(23:31))
+plotGroupedPositionStats(sixFourGroupedStats$rep2$three_prime, sixFourGroupedStats$rep2$five_prime, POS_DIFF,
+                         title = "6-4 C>T Mismatch Pos Diff Rep2",
+                         xAxisBreaks = c(23:31))
+```
+
+
+# ```{r plot_position_differences_across_read_lengths, fig.width = 9, fig.height = 5}
+# plotGroupedPositionStats(CPDGroupedStats$rep1$three_prime, CPDGroupedStats$rep1$five_prime, IQR,
+#                          title = "CPD C>T Mismatch Pos Diff Rep1",
+#                          xAxisBreaks = c(23:31))
+# plotGroupedPositionStats(CPDGroupedStats$rep2$three_prime, CPDGroupedStats$rep2$five_prime, IQR,
+#                          title = "CPD C>T Mismatch Pos Diff Rep2",
+#                          xAxisBreaks = c(23:31))
+# 
+# plotGroupedPositionStats(sixFourGroupedStats$rep1$three_prime, sixFourGroupedStats$rep1$five_prime, IQR,
+#                          title = "6-4 C>T Mismatch Pos Diff Rep1",
+#                          xAxisBreaks = c(23:31))
+# plotGroupedPositionStats(sixFourGroupedStats$rep2$three_prime, sixFourGroupedStats$rep2$five_prime, IQR,
+#                          title = "6-4 C>T Mismatch Pos Diff Rep2",
+#                          xAxisBreaks = c(23:31))
+# ```
+
+
+# ```{r plot_position_differences_across_read_lengths, fig.width = 9, fig.height = 5}
+# plotGroupedPositionStats(CPDGroupedStats$rep1$three_prime, CPDGroupedStats$rep1$five_prime, STDEV,
+#                          title = "CPD C>T Mismatch Pos Diff Rep1",
+#                          xAxisBreaks = c(23:31))
+# plotGroupedPositionStats(CPDGroupedStats$rep2$three_prime, CPDGroupedStats$rep2$five_prime, STDEV,
+#                          title = "CPD C>T Mismatch Pos Diff Rep2",
+#                          xAxisBreaks = c(23:31))
+# 
+# plotGroupedPositionStats(sixFourGroupedStats$rep1$three_prime, sixFourGroupedStats$rep1$five_prime, STDEV,
+#                          title = "6-4 C>T Mismatch Pos Diff Rep1",
+#                          xAxisBreaks = c(23:31))
+# plotGroupedPositionStats(sixFourGroupedStats$rep2$three_prime, sixFourGroupedStats$rep2$five_prime, STDEV,
+#                          title = "6-4 C>T Mismatch Pos Diff Rep2",
+#                          xAxisBreaks = c(23:31))
+# ```
+
+
 ```{r acquire_and_format_data_2}
 load(file.path(deaminationDataDirectory, "NHF1_deamination_periodicity_results.rda"))
 dataSetNames = as.list(setNames(nm = mutperiodData$periodicityResults$Data_Set))
