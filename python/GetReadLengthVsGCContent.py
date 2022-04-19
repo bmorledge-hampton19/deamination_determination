@@ -37,7 +37,13 @@ def getReadLengthVsGCContent(samFilePaths: List[str], outputDir = None,
 
                 for line in samFile:
 
+                    # Skip header lines
+                    if line.startswith('@'): continue
+
                     splitLine = line.split()
+
+                    # Skip lines that didn't align.
+                    if splitLine[2] == '*': continue
 
                     # Find the XM field and get the number of mismatches from it to see if the read passes filtering
                     if splitLine[13].startswith("XM"):
