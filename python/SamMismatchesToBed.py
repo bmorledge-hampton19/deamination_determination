@@ -50,7 +50,7 @@ def samMismatchesToBed(samFilePaths: List[str], verbose = False):
                     alignedReadsCounter += 1
 
                     # Find the XM and MD fields and derive information about mismatches from them.
-                    # For those those reads that don't contain mismatches, skip them.
+                    # For those reads that don't contain mismatches, skip them.
                     if splitLine[13].startswith("XM"):
                         mismatchCount = int(splitLine[13].rsplit(':',1)[1])
                         assert splitLine[17].startswith("MD"), f"MD field not found at expected location:\n{line}"
