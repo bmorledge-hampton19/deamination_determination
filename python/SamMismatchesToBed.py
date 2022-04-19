@@ -49,10 +49,21 @@ def samMismatchesToBed(samFilePaths: List[str], verbose = False):
                     # Increment the aligned reads counter
                     alignedReadsCounter += 1
 
-                    # Using the "MD" optional field, determine if there were any mismatches.
-                    # For those those reads that don't contain mismatches (only numeric characters), skip them.
-                    mismatchDesignations = splitLine[17].rsplit(':',1)[1]
-                    if mismatchDesignations.isnumeric(): 
+                    # Find the XM and MD fields and derive information about mismatches from them.
+                    # For those those reads that don't contain mismatches, skip them.
+                    if splitLine[13].startswith("XM"):
+                        mismatchCount = int(splitLine[13].rsplit(':',1)[1])
+                        assert splitLine[17].startswith("MD"), f"MD field not found at expected location:\n{line}"
+                        mismatchDesignations = splitLine[17].rsplit(':',1)[1]
+
+                    elif splitLine[14].startswith("XM"): 
+                        mismatchCount = int(splitLine[14].rsplit(':',1)[1])
+                        assert splitLine[18].startswith("MD"), f"MD field not found at expected location:\n{line}"
+                        mismatchDesignations = splitLine[18].rsplit(':',1)[1]
+
+                    else: raise ValueError(f"XM field not at expected position:\n{line}")
+
+                    if mismatchCount == 0:
                         if verbose: print("Skipping read with no mismatches")
                         continue
 
@@ -109,9 +120,8 @@ def samMismatchesToBed(samFilePaths: List[str], verbose = False):
                                 i += 1
                                 refSeqPos += 1
 
-                    # If no mismatches were found (i.e. the MD string only referenced insertions and deletions), skip this line.
-                    # NOTE: It turns out you can also do this with the "XM" string, which just counts mismatches.
-                    if len(mismatches) == 0: continue
+                    # Ensure that the expected number of mismatches were found.
+                    assert len(mismatches) == mismatchCount, f"Expected mismatch count of {mismatchCount} but found none:\n{line}"
 
                     # Write the pertinent data for this read to the bed output file.
                     # Adjust values as necessary if the read is on the '-' strand.
@@ -125,9 +135,11 @@ def samMismatchesToBed(samFilePaths: List[str], verbose = False):
                             threePrimeMismatchPositions.append(str(pos - refSeqLength))
                             mismatchSequences.append(mismatches[pos])
 
+                    if isReverseCompliment: readSequence = reverseCompliment(readSequence)
+
                     outputBedFile.write('\t'.join((splitLine[2], str(int(splitLine[3]) - 1), str(int(splitLine[3]) - 1 + refSeqLength), 
                                                    ':'.join(threePrimeMismatchPositions), ':'.join(mismatchSequences),
-                                                   strandFromIsReverseComplement[isReverseCompliment])) + '\n')
+                                                   strandFromIsReverseComplement[isReverseCompliment], readSequence)) + '\n')
 
                     if verbose:
                         print(f"Byte flag: {splitLine[1]}")
