@@ -266,3 +266,15 @@ plotGroupedPositionStats = function(threePrimeGroupedStats, fivePrimeGroupedStat
   print(groupedStatsPlot)
 
 }
+
+# Plot a scatter and accompanying trend line for GC content vs. read length.
+plotGCContentVsReadLength = function(data, title = "GC Content Vs. Read Length") {
+
+  print(
+    ggplot(data, aes(GC_Content, Read_Length)) +
+      geom_point(size = 2) +
+      geom_smooth(method = lm, se = FALSE) +
+      geom_label(label = "Stats go here")
+  )
+
+}
