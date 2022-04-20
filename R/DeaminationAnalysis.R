@@ -267,14 +267,49 @@ plotGroupedPositionStats = function(threePrimeGroupedStats, fivePrimeGroupedStat
 
 }
 
-# Plot a scatter and accompanying trend line for GC content vs. read length.
-plotGCContentVsReadLength = function(data, title = "GC Content Vs. Read Length") {
+
+# Plot a scatter and accompanying trend line for the frequency of given nucleotides vs. read length.
+plotNucFreqVsReadLengthLinearRegression = function(data, columns, title = "Nucleotides Vs. Read Length") {
+
+  plotData = data.table(Nuc_Freq = data[,rowSums(.SD), .SDcols = columns] /
+                          data[,rowSums(.SD), .SDcols = c("A_Counts", "C_Counts", "G_Counts", "T_Counts")],
+                        Read_Length = data$Read_Length)
+
+  linearRegressionSummary = summary(lm(plotData$Read_Length ~ plotData$Nuc_Freq))
+
+  statsText = substitute(atop(italic(y) == m*italic(x) + b, italic(r)^2~"="~r2),
+                         list(m = format(round(linearRegressionSummary$coefficients[2], 2), nsmall = 2),
+                              b = format(round(linearRegressionSummary$coefficients[1], 2), nsmall = 2),
+                              r2 = format(round(linearRegressionSummary$r.squared, 2), nsmall = 2)))
+  statsText = as.expression(statsText)
 
   print(
     ggplot(data, aes(GC_Content, Read_Length)) +
       geom_point(size = 2) +
       geom_smooth(method = lm, se = FALSE) +
-      geom_label(label = "Stats go here")
+      annotate("text", label = "stats go here", x = -Inf, y = Inf, hjust = -0.05, vjust = 1.05, size = 18/.pt) +
+      labs(title = title, x = "GC Content", y = "Read Length") +
+      blankBackground + defaultTextScaling
   )
 
+}
+
+
+# Plot nucleotide frequencies (overlapping bar plot?) for a series of read lengths.
+plotNucFreqVsReadLengthBarPlot = function() {
+
+}
+
+# Testing resized points and displaying expression text
+testFun = function(data, myExpression, title = "testing") {
+  test = CPDReadLengthAndGCData$rep1$hr1[, .(Size = log(.N) + 1), by = list(Read_Length, GC_Content)]
+  print(
+    ggplot(data, aes(test$GC_Content, test$Read_Length, size = test$Size)) +
+      geom_point() +
+      geom_smooth(method = lm, se = FALSE) +
+      annotate("text", label = myExpression,
+               x = -Inf, y = Inf, hjust = -0.05, vjust = 1.05, size = 18/.pt) +
+      labs(title = title, x = "GC Content", y = "Read Length") +
+      blankBackground + defaultTextScaling
+  )
 }

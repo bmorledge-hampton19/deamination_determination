@@ -20,6 +20,8 @@ if (interactive()) {
 } else {
   bioinformaticsDirectory = params$bioinformaticsDirectory
 }
+
+deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data", "human")
 ```
 
 
@@ -31,9 +33,7 @@ source(file.path(bioinformaticsDirectory, "Chromatin_Features_Analysis", "R_scri
 
 
 ```{r acquire_and_format_data_1}
-deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data", "human")
-
-# Read in the relevant data
+# Read in the mismatch by read data
 CPDMismatchDataFilePaths = list(rep1 = list(), rep2 = list())
 CPDMismatchDataFilePaths$rep1 = list(
   hr1 = file.path(deaminationDataDirectory, "NHF1_CPD_1h_Rep1_mismatches_by_read.bed"),
@@ -291,13 +291,62 @@ plotGroupedPositionStats(sixFourGroupedStats$rep2$three_prime, sixFourGroupedSta
 # ```
 
 
-```{r read_length_vs_GC_content}
+```{r acquire_and_format_data_2}
+# Read in the GC content vs. read length data
+CPDReadLengthAndGCFilePaths = list(rep1 = list(), rep2 = list())
+CPDReadLengthAndGCFilePaths$rep1 = list(
+  hr1 = file.path(deaminationDataDirectory, "NHF1_CPD_1h_Rep1_read_length_vs_GC_content.tsv"),
+  hr8 = file.path(deaminationDataDirectory, "NHF1_CPD_8h_Rep1_read_length_vs_GC_content.tsv"),
+  hr24 = file.path(deaminationDataDirectory, "NHF1_CPD_24h_Rep1_read_length_vs_GC_content.tsv"),
+  hr48 = file.path(deaminationDataDirectory, "NHF1_CPD_48h_Rep1_read_length_vs_GC_content.tsv")
+)
+CPDReadLengthAndGCFilePaths$rep2 = list(
+  hr1 = file.path(deaminationDataDirectory, "NHF1_CPD_1h_Rep2_read_length_vs_GC_content.tsv"),
+  hr8 = file.path(deaminationDataDirectory, "NHF1_CPD_8h_Rep2_read_length_vs_GC_content.tsv"),
+  hr24 = file.path(deaminationDataDirectory, "NHF1_CPD_24h_Rep2_read_length_vs_GC_content.tsv"),
+  hr48 = file.path(deaminationDataDirectory, "NHF1_CPD_48h_Rep2_read_length_vs_GC_content.tsv")
+)
 
+sixFourReadLengthAndGCFilePaths = list(rep1 = list(), rep2 = list())
+sixFourReadLengthAndGCFilePaths$rep1 = list(
+  min5 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_5min_Rep1_read_length_vs_GC_content.tsv"),
+  min20 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_20min_Rep1_read_length_vs_GC_content.tsv"),
+  hr1 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_1h_Rep1_read_length_vs_GC_content.tsv")
+)
+sixFourReadLengthAndGCFilePaths$rep2 = list(
+  min5 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_5min_Rep2_read_length_vs_GC_content.tsv"),
+  min20 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_20min_Rep2_read_length_vs_GC_content.tsv"),
+  hr1 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_1h_Rep2_read_length_vs_GC_content.tsv")
+)
+
+CPDReadLengthAndGCData = lapply(CPDReadLengthAndGCFilePaths, function(x) lapply(x, fread))
+sixFourReadLengthAndGCData = lapply(sixFourReadLengthAndGCFilePaths, function(x) lapply(x, fread))
 ```
 
 
+```{r CPD_read_length_vs_GC_content}
+for (i in 1:length(CPDReadLengthAndGCData)) {
+  for (j in 1:length(CPDReadLengthAndGCData[[i]])) {
+    plotGCContentVsReadLength(CPDReadLengthAndGCData[[i]][[j]],
+                              title = paste("CPD", names(CPDReadLengthAndGCData)[i], 
+                                            names(CPDReadLengthAndGCData[[i]])[j], "GC Content Vs Read Length"))
+  }
+}
+```
 
-```{r acquire_and_format_data_2}
+
+```{r 6-4_read_length_vs_GC_content}
+for (i in 1:length(sixFourReadLengthAndGCData)) {
+  for (j in 1:length(sixFourReadLengthAndGCData[[i]])) {
+    plotGCContentVsReadLength(sixFourReadLengthAndGCData[[i]][[j]],
+                              title = paste("6-4", names(sixFourReadLengthAndGCData)[i], 
+                                            names(sixFourReadLengthAndGCData[[i]])[j], "GC Content Vs Read Length"))
+  }
+}
+```
+
+
+```{r acquire_and_format_data_3}
 load(file.path(deaminationDataDirectory, "NHF1_deamination_periodicity_results.rda"))
 dataSetNames = as.list(setNames(nm = mutperiodData$periodicityResults$Data_Set))
 ```
