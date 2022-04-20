@@ -63,7 +63,15 @@ sixFourMismatchDataFilePaths$rep2 = list(
 CPDMismatchData = lapply(CPDMismatchDataFilePaths, function(x) lapply(x, fread))
 sixFourMismatchData = lapply(sixFourMismatchDataFilePaths, function(x) lapply(x, fread))
 
-# Filter the data
+# Create a subset of single mismatch C>T reads.
+CPDSingleCToTMismatchData = lapply(CPDMismatchData, function(x) lapply(
+  x, function(y) filterResults(y[V5 == "C>T"], minReadLength = 23, maxReadLength = 31)
+))
+sixFourSingleCToTMismatchData = lapply(sixFourMismatchData, function(x) lapply(
+  x, function(y) filterResults(y[V5 == "C>T"], minReadLength = 23, maxReadLength = 31)
+))
+
+# Perform general filtering on the data
 CPDMismatchData = lapply(CPDMismatchData, function(x) lapply(
   x, function(y) filterResults(y, TRUE, 3, 23, 31)
 ))
@@ -79,13 +87,13 @@ sixReadLengthVsGCData = lapply(sixFourMismatchData, function(x) lapply(
   x, getReadLengthAndGCContent
 ))
 
-# Extract and simplify tandem C>T mismatches
-CPDTandemCTMismatches = lapply(CPDMismatchData, function(x) lapply(
-  x, function(y) simplifyTable(getTandemCTMismatches(y))
-))
-sixFourTandemCTMismatches = lapply(sixFourMismatchData, function(x) lapply(
-  x, function(y) simplifyTable(getTandemCTMismatches(y))
-))
+# # Extract and simplify tandem C>T mismatches
+# CPDTandemCTMismatches = lapply(CPDMismatchData, function(x) lapply(
+#   x, function(y) simplifyTable(getTandemCTMismatches(y))
+# ))
+# sixFourTandemCTMismatches = lapply(sixFourMismatchData, function(x) lapply(
+#   x, function(y) simplifyTable(getTandemCTMismatches(y))
+# ))
 
 # Simplify the data
 CPDMismatchData = lapply(CPDMismatchData, function(x) lapply(
@@ -93,6 +101,12 @@ CPDMismatchData = lapply(CPDMismatchData, function(x) lapply(
 ))
 sixFourMismatchData = lapply(sixFourMismatchData, function(x) lapply(
   x, function(y) simplifyTable(y)
+))
+CPDSingleCToTMismatchData = lapply(CPDSingleCToTMismatchData, function(x) lapply(
+  x, function(y) simplifyTable(y, TRUE)
+))
+sixFourSingleCToTMismatchData = lapply(sixFourSingleCToTMismatchData, function(x) lapply(
+  x, function(y) simplifyTable(y, TRUE)
 ))
 
 ```

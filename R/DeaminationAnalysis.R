@@ -42,10 +42,15 @@ filterResults = function(mismatchData, removeRowsWithN = TRUE, maxMismatchesAllo
 
 # Simplifies the given table of bed formatted mismatches into a smaller
 # three-column table of positions, sequence context, and read length.
-simplifyTable = function(table) {
-  return(table[,list(Position = as.numeric(unlist(strsplit(V4, ':'))),
-                     Mismatch = unlist(strsplit(V5, ':')),
-                     Read_Length = unlist(mapply(rep, V3-V2, lapply(strsplit(V5,':'), length))))])
+simplifyTable = function(table, includeReadSequence = FALSE) {
+
+  returnTable = table[,list(Position = as.numeric(unlist(strsplit(V4, ':'))),
+                            Mismatch = unlist(strsplit(V5, ':')),
+                            Read_Length = unlist(mapply(rep, V3-V2, lapply(strsplit(V5,':'), length))))]
+  if (includeReadSequence) returnTable[, Read_Sequence := table$V7]
+
+  return(returnTable)
+
 }
 
 
@@ -264,6 +269,14 @@ plotGroupedPositionStats = function(threePrimeGroupedStats, fivePrimeGroupedStat
     scale_x_continuous(breaks = xAxisBreaks)
 
   print(groupedStatsPlot)
+
+}
+
+
+# Calculates nucleotide frequencies at individual positions in a read (relative to the specified end).
+# Takes optional arguments to add columns with additional, repeating information (e.g. read length, timepoint).
+tabulateNucleotideFrequenciesByPosition = function(data, relativePos = THREE_PRIME,
+                                                   paddingColNames = list(), paddingInfo = list()) {
 
 }
 
