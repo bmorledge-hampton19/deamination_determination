@@ -80,7 +80,7 @@ def main():
         dialog.createTextField("Max Mismatches: ", 2, 0, defaultText = "2")
         dialog.createCheckbox("Allow N's in reads: ", 3, 0)
 
-        with dialog.createDynamicSelector(3, 0) as outputDirDynSel:
+        with dialog.createDynamicSelector(4, 0) as outputDirDynSel:
             outputDirDynSel.initCheckboxController("Specify single output dir")
             outputDirDialog = outputDirDynSel.initDisplay(True, "outputDir")
             outputDirDialog.createFileSelector("Output Directory:", 0, directory = True)
