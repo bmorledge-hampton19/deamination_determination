@@ -36,28 +36,28 @@ source(file.path(bioinformaticsDirectory, "Chromatin_Features_Analysis", "R_scri
 # Read in the mismatch by read data
 CPDMismatchDataFilePaths = list(rep1 = list(), rep2 = list())
 CPDMismatchDataFilePaths$rep1 = list(
-  hr1 = file.path(deaminationDataDirectory, "NHF1_CPD_1h_Rep1_mismatches_by_read.bed"),
-  hr8 = file.path(deaminationDataDirectory, "NHF1_CPD_8h_Rep1_mismatches_by_read.bed"),
-  hr24 = file.path(deaminationDataDirectory, "NHF1_CPD_24h_Rep1_mismatches_by_read.bed"),
-  hr48 = file.path(deaminationDataDirectory, "NHF1_CPD_48h_Rep1_mismatches_by_read.bed")
+  hr1 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_1h_Rep1_mismatches_by_read.bed"),
+  hr8 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_8h_Rep1_mismatches_by_read.bed"),
+  hr24 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_24h_Rep1_mismatches_by_read.bed"),
+  hr48 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_48h_Rep1_mismatches_by_read.bed")
 )
 CPDMismatchDataFilePaths$rep2 = list(
-  hr1 = file.path(deaminationDataDirectory, "NHF1_CPD_1h_Rep2_mismatches_by_read.bed"),
-  hr8 = file.path(deaminationDataDirectory, "NHF1_CPD_8h_Rep2_mismatches_by_read.bed"),
-  hr24 = file.path(deaminationDataDirectory, "NHF1_CPD_24h_Rep2_mismatches_by_read.bed"),
-  hr48 = file.path(deaminationDataDirectory, "NHF1_CPD_48h_Rep2_mismatches_by_read.bed")
+  hr1 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_1h_Rep2_mismatches_by_read.bed"),
+  hr8 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_8h_Rep2_mismatches_by_read.bed"),
+  hr24 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_24h_Rep2_mismatches_by_read.bed"),
+  hr48 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_48h_Rep2_mismatches_by_read.bed")
 )
 
 sixFourMismatchDataFilePaths = list(rep1 = list(), rep2 = list())
 sixFourMismatchDataFilePaths$rep1 = list(
-  min5 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_5min_Rep1_mismatches_by_read.bed"),
-  min20 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_20min_Rep1_mismatches_by_read.bed"),
-  hr1 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_1h_Rep1_mismatches_by_read.bed")
+  min5 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_5min_Rep1_mismatches_by_read.bed"),
+  min20 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_20min_Rep1_mismatches_by_read.bed"),
+  hr1 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_1h_Rep1_mismatches_by_read.bed")
 )
 sixFourMismatchDataFilePaths$rep2 = list(
-  min5 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_5min_Rep2_mismatches_by_read.bed"),
-  min20 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_20min_Rep2_mismatches_by_read.bed"),
-  hr1 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_1h_Rep2_mismatches_by_read.bed")
+  min5 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_5min_Rep2_mismatches_by_read.bed"),
+  min20 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_20min_Rep2_mismatches_by_read.bed"),
+  hr1 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_1h_Rep2_mismatches_by_read.bed")
 )
 
 CPDMismatchData = lapply(CPDMismatchDataFilePaths, function(x) lapply(x, fread))
@@ -232,7 +232,7 @@ sixFourGroupedStats$rep2$five_prime =
   getGroupedPositionStats(sixFourMismatchData$rep2, includedTypes = c("C>T"), posType = FIVE_PRIME)
 
 tableOutputDir = file.path("deamination_analysis_output","human_analysis_tables")
-dir.create(tableOutputDir)
+dir.create(tableOutputDir, recursive = TRUE)
 
 fwrite(CPDGroupedStats$rep1$three_prime,
        file.path(tableOutputDir, "CPD_mismatch_three_prime_position_stats_rep1.tsv"),sep = '\t')
@@ -319,6 +319,35 @@ plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTMismatchData$rep2, FIVE_PRIME,
 ```
 
 
+```{r purine_vs_pyrimidine_frequencies_first_quartile_mismatch_pos, fig.width = 11, fig.height = 5}
+
+plotNucFreqVsReadLengthBarPlot(rbindlist(lapply(CPDSingleCToTMismatchData$rep1,
+                               THREE_PRIME, title = "CPD Rep1 3' Nuc Freq",
+                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(CPDSingleCToTMismatchData$rep2,
+                               THREE_PRIME, title = "CPD Rep2 3' Nuc Freq",
+                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(CPDSingleCToTMismatchData$rep1,
+                               FIVE_PRIME, title = "CPD Rep1 5' Nuc Freq",
+                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(CPDSingleCToTMismatchData$rep2,
+                               FIVE_PRIME, title = "CPD Rep2 5' Nuc Freq",
+                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+
+plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTMismatchData$rep1, THREE_PRIME,
+                               title = "6-4 Rep1 3' Nuc Freq",
+                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTMismatchData$rep2, THREE_PRIME,
+                               title = "6-4 Rep2 3' Nuc Freq",
+                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTMismatchData$rep1, FIVE_PRIME,
+                               title = "6-4 Rep1 5' Nuc Freq",
+                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTMismatchData$rep2, FIVE_PRIME,
+                               title = "6-4 Rep2 5' Nuc Freq",
+                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+
+```
 
 # ```{r acquire_and_format_data_2}
 # # Read in the GC content vs. read length data
@@ -376,7 +405,7 @@ plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTMismatchData$rep2, FIVE_PRIME,
 
 
 ```{r acquire_and_format_data_3}
-load(file.path(deaminationDataDirectory, "NHF1_deamination_periodicity_results.rda"))
+load(file.path(deaminationDataDirectory, "periodicity_results", "NHF1_deamination_periodicity_results.rda"))
 dataSetNames = as.list(setNames(nm = mutperiodData$periodicityResults$Data_Set))
 ```
 
@@ -432,7 +461,7 @@ parseAndPlotPeriodicity(
 
 
 ```{r acquire_and_format_data_4}
-load(file.path(deaminationDataDirectory, "NHF1_TCG_deamination_periodicity_results.rda"))
+load(file.path(deaminationDataDirectory, "periodicity_results", "NHF1_TCG_deamination_periodicity_results.rda"))
 dataSetNames = as.list(setNames(nm = mutperiodData$periodicityResults$Data_Set))
 
 ```
