@@ -56,6 +56,45 @@ simplifyTable = function(table, includeReadSequence = FALSE) {
 }
 
 
+# Takes a simplified table of mismatches and filters them based on the position of the mismatch
+filterMismatchesByPosition = function(mismatchTable, minPos, maxPos, posType) {
+
+  if (posType == THREE_PRIME) {
+    positions = mismatchTable$Position
+  } else if (posType == FIVE_PRIME) {
+    positions = mismatchTable$Read_Length + mismatchTable$Position + 1
+  } else stop("Unrecognized value for posType parameter.")
+
+  return(mismatchTable[positions >= minPos & positions <= maxPos])
+
+}
+
+
+# Takes a simplified table of mismatches and filters them based on the position of the mismatch.
+# Unlike the filterMismatchesByPosition function, min and max positions are dynamic based on read length.
+# (This function is actually still used under the hood.)
+# See constant tables below for examples of how to format the posConstraintsByReadLength table.
+filterMismatchesByPositionAndReadLength = function(mismatchTable, posConstraintsByReadLength) {
+
+  return(rbindlist(mapply( function(readLength, minPos, maxPos) {
+    filterMismatchesByPosition(mismatchTable[Read_Length == readLength], minPos, maxPos, THREE_PRIME)
+  },
+  posConstraintsByReadLength$Read_Length,
+  posConstraintsByReadLength$Min_Pos,
+  posConstraintsByReadLength$Max_Pos,
+  SIMPLIFY = FALSE)))
+
+}
+
+
+HUMAN_THREE_PRIME_POS_CONSTRAINTS = data.table(Read_Length = c(23, 24, 25, 26, 27, 28, 29, 30, 31),
+                                               Max_Pos = c(-3, -3, -4, -5, -5, -6, -6, -6, -6),
+                                               Min_Pos = c(-9, -9, -10, -10, -10, -11, -11, -12, -12))
+# HUMAN_FIVE_PRIME_POS_CONSTRAINTS = copy(HUMAN_THREE_PRIME_POS_CONSTRAINTS)
+# HUMAN_FIVE_PRIME_POS_CONSTRAINTS[, Max_Pos := Read_Length + Max_Pos + 1]
+# HUMAN_FIVE_PRIME_POS_CONSTRAINTS[, Min_Pos := Read_Length + Min_Pos + 1]
+
+
 # Determines if the given mismatch position and type data for a single read
 # contains a tandem C>T mutation.
 hasTandemCTMismatch = function(mismatchPositions, mismatchTypes) {
