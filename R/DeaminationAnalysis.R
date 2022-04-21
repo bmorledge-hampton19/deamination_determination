@@ -42,6 +42,8 @@ filterResults = function(mismatchData, removeRowsWithN = TRUE, maxMismatchesAllo
 
 # Simplifies the given table of bed formatted mismatches into a smaller
 # three-column table of positions, sequence context, and read length.
+# NOTE: The Read_Length field is only accurate in the absence of indels. Otherwise, it only represents
+#       the length of the aligned region in the reference genome.
 simplifyTable = function(table, includeReadSequence = FALSE) {
 
   returnTable = table[,list(Position = as.numeric(unlist(strsplit(V4, ':'))),
@@ -273,10 +275,82 @@ plotGroupedPositionStats = function(threePrimeGroupedStats, fivePrimeGroupedStat
 }
 
 
-# Calculates nucleotide frequencies at individual positions in a read (relative to the specified end).
+# Calculates nucleotide frequencies at individual positions in a set of reads (relative to the specified end).
 # Takes optional arguments to add columns with additional, repeating information (e.g. read length, timepoint).
-tabulateNucleotideFrequenciesByPosition = function(data, relativePos = THREE_PRIME,
+tabulateNucleotideFrequenciesByPosition = function(sequences, posType = THREE_PRIME,
                                                    paddingColNames = list(), paddingInfo = list()) {
+
+  maxStringLength = max(nchar(sequences))
+  if (posType == THREE_PRIME) {
+    positions = -1:-maxStringLength
+  } else if (posType == FIVE_PRIME) {
+    positions = 1:maxStringLength
+  } else stop("Unrecognized value for posType parameter.")
+
+  nucFreqByPosition = data.table(Position = rep(positions, 4),
+                                 Nucleotide = unlist(lapply(c('A','C','G','T'),
+                                                            function(x) rep(x, maxStringLength))),
+                                 Frequency = unlist(lapply(c('A','C','G','T'), function(x) {
+                                   lapply(positions, function(y) {
+                                     nucleotides = str_sub(sequences, y, y)
+                                     return(sum(nucleotides == x) / sum(nucleotides != ''))
+                                   })
+                                 }))
+                                 )
+
+  mapply(function(x,y) nucFreqByPosition[, eval(x) := y], paddingColNames, paddingInfo)
+
+  return(nucFreqByPosition)
+
+}
+
+
+# Plot nucleotide frequencies (overlapping bar plot?) for a series of read lengths.
+plotNucFreqVsReadLengthBarPlot = function(simplifiedTablesByTimepoint, posType,
+                                          title = "Nuc Freq by Length and Timepoint",
+                                          combineNucleotides = list(), combinedNames = list()) {
+
+  if (posType == THREE_PRIME) {
+    xAxisLabel = "3' Relative Position"
+    xAxisBreaks = c(0, -10, -20, -30)
+  } else if (posType == FIVE_PRIME) {
+    xAxisLabel = "5' Relative Position"
+    xAxisBreaks = c(0, 10, 20, 30)
+  } else stop("Unrecognized value for posType parameter.")
+
+  # First, stratify the data by length and timepoint,
+  # calculating relative nucleotide frequencies within each category.
+  aggregateTable = rbindlist(lapply(seq_along(simplifiedTablesByTimepoint), function(i) {
+    rbindlist(lapply(unique(simplifiedTablesByTimepoint[[i]]$Read_Length), function(x) {
+      tabulateNucleotideFrequenciesByPosition(simplifiedTablesByTimepoint[[i]][Read_Length == x]$Read_Sequence,
+                                              posType, paddingColNames = c("Read_Length", "Timepoint"),
+                                              paddingInfo = c(x, names(simplifiedTablesByTimepoint)[i]))
+    }))
+  }))
+
+  # Next, perform any transformations on the frequencies as specified by the "combine" parameters.
+  # For example, convert to counts of Purines and pyrimidines.
+  aggregateTable = rbindlist(mapply(function(x,y) {
+    aggregateTable[sapply(Nucleotide, grepl, x),
+                   .(Frequency = sum(Frequency), Nucleotide = y),
+                   by = list(Position, Read_Length, Timepoint)]
+  }, combineNucleotides, combinedNames, SIMPLIFY = FALSE))
+
+  # Plot the resulting data
+  print(
+    ggplot(aggregateTable, aes(Position, Frequency, fill = Nucleotide)) +
+      geom_bar(position = "stack", stat = "identity") +
+      labs(title = title, x = xAxisLabel, y = "Nucleotide Frequency") +
+      blankBackground + defaultTextScaling +
+      facet_grid(Read_Length~factor(Timepoint, levels = names(simplifiedTablesByTimepoint))) +
+      theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
+            strip.background = element_rect(color = "black", size = 1),
+            axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+            strip.text.y = element_text(size = 16)) +
+      coord_cartesian(ylim = c(0,1)) +
+      scale_y_continuous(sec.axis = dup_axis(~., name = "Read Length")) +
+      scale_x_continuous(breaks = xAxisBreaks)
+  )
 
 }
 
@@ -307,11 +381,6 @@ plotNucFreqVsReadLengthLinearRegression = function(data, columns, title = "Nucle
 
 }
 
-
-# Plot nucleotide frequencies (overlapping bar plot?) for a series of read lengths.
-plotNucFreqVsReadLengthBarPlot = function() {
-
-}
 
 # Testing resized points and displaying expression text
 testFun = function(data, myExpression, title = "testing") {
