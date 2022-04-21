@@ -79,13 +79,13 @@ sixFourMismatchData = lapply(sixFourMismatchData, function(x) lapply(
   x, function(y) filterResults(y, TRUE, 3, 23, 31)
 ))
 
-# Get the tables of read length vs. GC content
-CPDReadLengthVsGCData = lapply(CPDMismatchData, function(x) lapply(
-  x, getReadLengthAndGCContent
-))
-sixReadLengthVsGCData = lapply(sixFourMismatchData, function(x) lapply(
-  x, getReadLengthAndGCContent
-))
+# # Get the tables of read length vs. GC content
+# CPDReadLengthVsGCData = lapply(CPDMismatchData, function(x) lapply(
+#   x, getReadLengthAndGCContent
+# ))
+# sixReadLengthVsGCData = lapply(sixFourMismatchData, function(x) lapply(
+#   x, getReadLengthAndGCContent
+# ))
 
 # # Extract and simplify tandem C>T mismatches
 # CPDTandemCTMismatches = lapply(CPDMismatchData, function(x) lapply(
@@ -254,7 +254,7 @@ fwrite(sixFourGroupedStats$rep2$five_prime,
 ```
 
 
-```{r plot_position_differences_across_read_lengths, fig.width = 9, fig.height = 5}
+```{r position_differences_across_read_lengths, fig.width = 9, fig.height = 5}
 plotGroupedPositionStats(CPDGroupedStats$rep1$three_prime, CPDGroupedStats$rep1$five_prime, POS_DIFF,
                          title = "CPD C>T Mismatch Pos Diff Rep1",
                          xAxisBreaks = c(23:31))
@@ -271,7 +271,7 @@ plotGroupedPositionStats(sixFourGroupedStats$rep2$three_prime, sixFourGroupedSta
 ```
 
 
-# ```{r plot_position_differences_across_read_lengths, fig.width = 9, fig.height = 5}
+# ```{r plot_stats_across_read_lengths, fig.width = 9, fig.height = 5}
 # plotGroupedPositionStats(CPDGroupedStats$rep1$three_prime, CPDGroupedStats$rep1$five_prime, IQR,
 #                          title = "CPD C>T Mismatch Pos Diff Rep1",
 #                          xAxisBreaks = c(23:31))
@@ -288,76 +288,91 @@ plotGroupedPositionStats(sixFourGroupedStats$rep2$three_prime, sixFourGroupedSta
 # ```
 
 
-# ```{r plot_position_differences_across_read_lengths, fig.width = 9, fig.height = 5}
-# plotGroupedPositionStats(CPDGroupedStats$rep1$three_prime, CPDGroupedStats$rep1$five_prime, STDEV,
-#                          title = "CPD C>T Mismatch Pos Diff Rep1",
-#                          xAxisBreaks = c(23:31))
-# plotGroupedPositionStats(CPDGroupedStats$rep2$three_prime, CPDGroupedStats$rep2$five_prime, STDEV,
-#                          title = "CPD C>T Mismatch Pos Diff Rep2",
-#                          xAxisBreaks = c(23:31))
+```{r purine_vs_pyrimidine_frequencies_across_read_length, fig.width = 11, fig.height = 5}
+
+plotNucFreqVsReadLengthBarPlot(CPDSingleCToTMismatchData$rep1, THREE_PRIME,
+                               title = "CPD Rep1 3' Nuc Freq",
+                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(CPDSingleCToTMismatchData$rep2, THREE_PRIME,
+                               title = "CPD Rep2 3' Nuc Freq",
+                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(CPDSingleCToTMismatchData$rep1, FIVE_PRIME,
+                               title = "CPD Rep1 5' Nuc Freq",
+                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(CPDSingleCToTMismatchData$rep2, FIVE_PRIME,
+                               title = "CPD Rep2 5' Nuc Freq",
+                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+
+plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTMismatchData$rep1, THREE_PRIME,
+                               title = "6-4 Rep1 3' Nuc Freq",
+                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTMismatchData$rep2, THREE_PRIME,
+                               title = "6-4 Rep2 3' Nuc Freq",
+                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTMismatchData$rep1, FIVE_PRIME,
+                               title = "6-4 Rep1 5' Nuc Freq",
+                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTMismatchData$rep2, FIVE_PRIME,
+                               title = "6-4 Rep2 5' Nuc Freq",
+                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+
+```
+
+
+
+# ```{r acquire_and_format_data_2}
+# # Read in the GC content vs. read length data
+# CPDReadLengthAndGCFilePaths = list(rep1 = list(), rep2 = list())
+# CPDReadLengthAndGCFilePaths$rep1 = list(
+#   hr1 = file.path(deaminationDataDirectory, "NHF1_CPD_1h_Rep1_read_length_vs_GC_content.tsv"),
+#   hr8 = file.path(deaminationDataDirectory, "NHF1_CPD_8h_Rep1_read_length_vs_GC_content.tsv"),
+#   hr24 = file.path(deaminationDataDirectory, "NHF1_CPD_24h_Rep1_read_length_vs_GC_content.tsv"),
+#   hr48 = file.path(deaminationDataDirectory, "NHF1_CPD_48h_Rep1_read_length_vs_GC_content.tsv")
+# )
+# CPDReadLengthAndGCFilePaths$rep2 = list(
+#   hr1 = file.path(deaminationDataDirectory, "NHF1_CPD_1h_Rep2_read_length_vs_GC_content.tsv"),
+#   hr8 = file.path(deaminationDataDirectory, "NHF1_CPD_8h_Rep2_read_length_vs_GC_content.tsv"),
+#   hr24 = file.path(deaminationDataDirectory, "NHF1_CPD_24h_Rep2_read_length_vs_GC_content.tsv"),
+#   hr48 = file.path(deaminationDataDirectory, "NHF1_CPD_48h_Rep2_read_length_vs_GC_content.tsv")
+# )
 # 
-# plotGroupedPositionStats(sixFourGroupedStats$rep1$three_prime, sixFourGroupedStats$rep1$five_prime, STDEV,
-#                          title = "6-4 C>T Mismatch Pos Diff Rep1",
-#                          xAxisBreaks = c(23:31))
-# plotGroupedPositionStats(sixFourGroupedStats$rep2$three_prime, sixFourGroupedStats$rep2$five_prime, STDEV,
-#                          title = "6-4 C>T Mismatch Pos Diff Rep2",
-#                          xAxisBreaks = c(23:31))
+# sixFourReadLengthAndGCFilePaths = list(rep1 = list(), rep2 = list())
+# sixFourReadLengthAndGCFilePaths$rep1 = list(
+#   min5 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_5min_Rep1_read_length_vs_GC_content.tsv"),
+#   min20 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_20min_Rep1_read_length_vs_GC_content.tsv"),
+#   hr1 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_1h_Rep1_read_length_vs_GC_content.tsv")
+# )
+# sixFourReadLengthAndGCFilePaths$rep2 = list(
+#   min5 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_5min_Rep2_read_length_vs_GC_content.tsv"),
+#   min20 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_20min_Rep2_read_length_vs_GC_content.tsv"),
+#   hr1 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_1h_Rep2_read_length_vs_GC_content.tsv")
+# )
+# 
+# CPDReadLengthAndGCData = lapply(CPDReadLengthAndGCFilePaths, function(x) lapply(x, fread))
+# sixFourReadLengthAndGCData = lapply(sixFourReadLengthAndGCFilePaths, function(x) lapply(x, fread))
 # ```
 
 
-```{r acquire_and_format_data_2}
-# Read in the GC content vs. read length data
-CPDReadLengthAndGCFilePaths = list(rep1 = list(), rep2 = list())
-CPDReadLengthAndGCFilePaths$rep1 = list(
-  hr1 = file.path(deaminationDataDirectory, "NHF1_CPD_1h_Rep1_read_length_vs_GC_content.tsv"),
-  hr8 = file.path(deaminationDataDirectory, "NHF1_CPD_8h_Rep1_read_length_vs_GC_content.tsv"),
-  hr24 = file.path(deaminationDataDirectory, "NHF1_CPD_24h_Rep1_read_length_vs_GC_content.tsv"),
-  hr48 = file.path(deaminationDataDirectory, "NHF1_CPD_48h_Rep1_read_length_vs_GC_content.tsv")
-)
-CPDReadLengthAndGCFilePaths$rep2 = list(
-  hr1 = file.path(deaminationDataDirectory, "NHF1_CPD_1h_Rep2_read_length_vs_GC_content.tsv"),
-  hr8 = file.path(deaminationDataDirectory, "NHF1_CPD_8h_Rep2_read_length_vs_GC_content.tsv"),
-  hr24 = file.path(deaminationDataDirectory, "NHF1_CPD_24h_Rep2_read_length_vs_GC_content.tsv"),
-  hr48 = file.path(deaminationDataDirectory, "NHF1_CPD_48h_Rep2_read_length_vs_GC_content.tsv")
-)
-
-sixFourReadLengthAndGCFilePaths = list(rep1 = list(), rep2 = list())
-sixFourReadLengthAndGCFilePaths$rep1 = list(
-  min5 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_5min_Rep1_read_length_vs_GC_content.tsv"),
-  min20 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_20min_Rep1_read_length_vs_GC_content.tsv"),
-  hr1 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_1h_Rep1_read_length_vs_GC_content.tsv")
-)
-sixFourReadLengthAndGCFilePaths$rep2 = list(
-  min5 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_5min_Rep2_read_length_vs_GC_content.tsv"),
-  min20 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_20min_Rep2_read_length_vs_GC_content.tsv"),
-  hr1 = file.path(deaminationDataDirectory, "NHF1_6-4-PP_1h_Rep2_read_length_vs_GC_content.tsv")
-)
-
-CPDReadLengthAndGCData = lapply(CPDReadLengthAndGCFilePaths, function(x) lapply(x, fread))
-sixFourReadLengthAndGCData = lapply(sixFourReadLengthAndGCFilePaths, function(x) lapply(x, fread))
-```
-
-
-```{r CPD_read_length_vs_GC_content}
-for (i in 1:length(CPDReadLengthAndGCData)) {
-  for (j in 1:length(CPDReadLengthAndGCData[[i]])) {
-    plotGCContentVsReadLength(CPDReadLengthAndGCData[[i]][[j]],
-                              title = paste("CPD", names(CPDReadLengthAndGCData)[i], 
-                                            names(CPDReadLengthAndGCData[[i]])[j], "GC Content Vs Read Length"))
-  }
-}
-```
-
-
-```{r 6-4_read_length_vs_GC_content}
-for (i in 1:length(sixFourReadLengthAndGCData)) {
-  for (j in 1:length(sixFourReadLengthAndGCData[[i]])) {
-    plotGCContentVsReadLength(sixFourReadLengthAndGCData[[i]][[j]],
-                              title = paste("6-4", names(sixFourReadLengthAndGCData)[i], 
-                                            names(sixFourReadLengthAndGCData[[i]])[j], "GC Content Vs Read Length"))
-  }
-}
-```
+# ```{r CPD_read_length_vs_GC_content}
+# for (i in 1:length(CPDReadLengthAndGCData)) {
+#   for (j in 1:length(CPDReadLengthAndGCData[[i]])) {
+#     plotGCContentVsReadLength(CPDReadLengthAndGCData[[i]][[j]],
+#                               title = paste("CPD", names(CPDReadLengthAndGCData)[i], 
+#                                             names(CPDReadLengthAndGCData[[i]])[j], "GC Content Vs Read Length"))
+#   }
+# }
+# ```
+# 
+# 
+# ```{r 6-4_read_length_vs_GC_content}
+# for (i in 1:length(sixFourReadLengthAndGCData)) {
+#   for (j in 1:length(sixFourReadLengthAndGCData[[i]])) {
+#     plotGCContentVsReadLength(sixFourReadLengthAndGCData[[i]][[j]],
+#                               title = paste("6-4", names(sixFourReadLengthAndGCData)[i], 
+#                                             names(sixFourReadLengthAndGCData[[i]])[j], "GC Content Vs Read Length"))
+#   }
+# }
+# ```
 
 
 ```{r acquire_and_format_data_3}
@@ -416,7 +431,7 @@ parseAndPlotPeriodicity(
 ```
 
 
-```{r acquire_and_format_data_3}
+```{r acquire_and_format_data_4}
 load(file.path(deaminationDataDirectory, "NHF1_TCG_deamination_periodicity_results.rda"))
 dataSetNames = as.list(setNames(nm = mutperiodData$periodicityResults$Data_Set))
 
