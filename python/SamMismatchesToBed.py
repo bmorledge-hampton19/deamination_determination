@@ -8,7 +8,7 @@ from benbiohelpers.DNA_SequenceHandling import reverseCompliment
 
 strandFromIsReverseComplement = {True:'-', False:'+'}
 
-def samMismatchesToBed(samFilePaths: List[str], verbose = False):
+def samMismatchesToBed(samFilePaths: List[str], omitIndels = True, outputDir = None, verbose = False):
     
     for samFilePath in samFilePaths:
 
@@ -17,15 +17,17 @@ def samMismatchesToBed(samFilePaths: List[str], verbose = False):
         gzipped = samFilePath.endswith(".gz")
 
         # Create output file paths (bed file + metadata)
+        if outputDir is None: outputDir = os.path.dirname(samFilePath)
+
         if gzipped:
-            outputBedFilePath = samFilePath.rsplit('.',2)[0] + "_mismatches_by_read.bed"
+            outputBedFileBasename = os.path.basename(samFilePath).rsplit('.',2)[0] + "_mismatches_by_read.bed"
             openFunction = gzip.open
         else:
-            outputBedFilePath = samFilePath.rsplit('.',1)[0] + "_mismatches_by_read.bed"
+            outputBedFileBasename = os.path.basename(samFilePath).rsplit('.',1)[0] + "_mismatches_by_read.bed"
             openFunction = open
+
+        outputBedFilePath = os.path.join(outputDir, outputBedFileBasename)
         metadataFilePath = outputBedFilePath.rsplit('.',1)[0] + ".metadata"
-
-
 
         # Read through the sam file line by line, looking for mismatches and recording them.
         alignedReadsCounter = 0
@@ -67,6 +69,12 @@ def samMismatchesToBed(samFilePaths: List[str], verbose = False):
                         if verbose: print("Skipping read with no mismatches")
                         continue
 
+                    # Get the cigar string and determine if the read should be skipped for the presence of indels.
+                    cigarString = splitLine[5]
+                    if omitIndels and ('I' in cigarString or 'D' in cigarString):
+                        if verbose: print("Skipping read with indel")
+                        continue
+
                     # Get the sequence (and determine if it should actually be the reverse compliment).
                     readSequence = splitLine[9]
                     isReverseCompliment = bool(int(splitLine[1]) & 0b10000)
@@ -74,7 +82,6 @@ def samMismatchesToBed(samFilePaths: List[str], verbose = False):
                     # Next, produce a reference-relative sequence, removing inserted bases and
                     # putting in placeholders for deleted bases.
                     referenceRelativeSequence = ''
-                    cigarString = splitLine[5]
                     readPos = 0
                     alphaPositions = [i for i,char in enumerate(cigarString) if char.isalpha()]
                     lastAlphaPosition = -1
@@ -161,19 +168,25 @@ def samMismatchesToBed(samFilePaths: List[str], verbose = False):
 
 def main():
     # Create the Tkinter dialog.
-    dialog = TkinterDialog(workingDirectory=os.path.join(__file__,"..",".."))
-    dialog.createMultipleFileSelector("Sam Read Files:",0,".sam.gz",("Sam Files",(".sam.gz",".sam")), 
-                                      additionalFileEndings = [".sam"])
-
-    # Run the UI
-    dialog.mainloop()
+    with TkinterDialog(workingDirectory=os.path.join(__file__,"..","..")) as dialog:
+        dialog.createMultipleFileSelector("Sam Read Files:",0,".sam.gz",("Sam Files",(".sam.gz",".sam")), 
+                                        additionalFileEndings = [".sam"])
+        dialog.createCheckbox("Omit reads with indels", 1, 0)
+        with dialog.createDynamicSelector(2, 0) as outputDirDynSel:
+                outputDirDynSel.initCheckboxController("Specify single output dir")
+                outputDirDialog = outputDirDynSel.initDisplay(True, "outputDir")
+                outputDirDialog.createFileSelector("Output Directory:", 0, directory = True)
 
     # If no input was received (i.e. the UI was terminated prematurely), then quit!
     if dialog.selections is None: quit()
 
     # Get the user's input from the dialog.
     selections = dialog.selections
-    samMismatchesToBed(selections.getFilePathGroups()[0])
+
+    if outputDirDynSel.getControllerVar(): outputDir = selections.getIndividualFilePaths("outputDir")[0]
+    else: outputDir = None
+
+    samMismatchesToBed(selections.getFilePathGroups()[0], selections.getToggleStates()[0], outputDir)
 
 
 if __name__ == "__main__": main()
