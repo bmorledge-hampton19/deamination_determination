@@ -289,65 +289,80 @@ plotGroupedPositionStats(sixFourGroupedStats$rep2$three_prime, sixFourGroupedSta
 
 
 ```{r purine_vs_pyrimidine_frequencies_across_read_length, fig.width = 11, fig.height = 5}
-
 plotNucFreqVsReadLengthBarPlot(CPDSingleCToTMismatchData$rep1, THREE_PRIME,
                                title = "CPD Rep1 3' Nuc Freq",
-                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
 plotNucFreqVsReadLengthBarPlot(CPDSingleCToTMismatchData$rep2, THREE_PRIME,
                                title = "CPD Rep2 3' Nuc Freq",
-                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
 plotNucFreqVsReadLengthBarPlot(CPDSingleCToTMismatchData$rep1, FIVE_PRIME,
                                title = "CPD Rep1 5' Nuc Freq",
-                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
 plotNucFreqVsReadLengthBarPlot(CPDSingleCToTMismatchData$rep2, FIVE_PRIME,
                                title = "CPD Rep2 5' Nuc Freq",
-                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
 
 plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTMismatchData$rep1, THREE_PRIME,
                                title = "6-4 Rep1 3' Nuc Freq",
-                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
 plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTMismatchData$rep2, THREE_PRIME,
                                title = "6-4 Rep2 3' Nuc Freq",
-                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
 plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTMismatchData$rep1, FIVE_PRIME,
                                title = "6-4 Rep1 5' Nuc Freq",
-                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
 plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTMismatchData$rep2, FIVE_PRIME,
                                title = "6-4 Rep2 5' Nuc Freq",
-                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
-
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
 ```
+
+
+```{r filter_by_mismatch_pos_and_read_length}
+CPDFilteredSingleCToTMismatchData = lapply(CPDSingleCToTMismatchData, function(x) {
+  lapply(x, filterMismatchesByPositionAndReadLength, HUMAN_THREE_PRIME_POS_CONSTRAINTS)
+})
+sixFourFilteredSingleCToTMismatchData = lapply(sixFourSingleCToTMismatchData, function(x) {
+  lapply(x, filterMismatchesByPositionAndReadLength, HUMAN_THREE_PRIME_POS_CONSTRAINTS)
+})
+```
+
 
 
 ```{r purine_vs_pyrimidine_frequencies_first_quartile_mismatch_pos, fig.width = 11, fig.height = 5}
 
-plotNucFreqVsReadLengthBarPlot(rbindlist(lapply(CPDSingleCToTMismatchData$rep1,
-                               THREE_PRIME, title = "CPD Rep1 3' Nuc Freq",
-                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
-plotNucFreqVsReadLengthBarPlot(CPDSingleCToTMismatchData$rep2,
-                               THREE_PRIME, title = "CPD Rep2 3' Nuc Freq",
-                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
-plotNucFreqVsReadLengthBarPlot(CPDSingleCToTMismatchData$rep1,
-                               FIVE_PRIME, title = "CPD Rep1 5' Nuc Freq",
-                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
-plotNucFreqVsReadLengthBarPlot(CPDSingleCToTMismatchData$rep2,
-                               FIVE_PRIME, title = "CPD Rep2 5' Nuc Freq",
-                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(lapply(CPDFilteredSingleCToTMismatchData$rep1, getFirstPositionQuartile),
+                               THREE_PRIME, title = "CPD Rep1 1st Quartile Nuc Freq",
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(lapply(CPDFilteredSingleCToTMismatchData$rep2, getFirstPositionQuartile),
+                               THREE_PRIME, title = "CPD Rep2 1st Quartile Nuc Freq",
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
 
-plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTMismatchData$rep1, THREE_PRIME,
-                               title = "6-4 Rep1 3' Nuc Freq",
-                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
-plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTMismatchData$rep2, THREE_PRIME,
-                               title = "6-4 Rep2 3' Nuc Freq",
-                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
-plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTMismatchData$rep1, FIVE_PRIME,
-                               title = "6-4 Rep1 5' Nuc Freq",
-                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
-plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTMismatchData$rep2, FIVE_PRIME,
-                               title = "6-4 Rep2 5' Nuc Freq",
-                               combineNucleotides = c("AG","CG"), combinedNames = c("Purine","Pyrimidine"))
-
+plotNucFreqVsReadLengthBarPlot(lapply(sixFourFilteredSingleCToTMismatchData$rep1, getFirstPositionQuartile),
+                               THREE_PRIME, title = "6-4 Rep1 1st Quartile Nuc Freq",
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(lapply(sixFourFilteredSingleCToTMismatchData$rep2, getFirstPositionQuartile),
+                               THREE_PRIME, title = "6-4 Rep2 1st Quartile Nuc Freq",
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
 ```
+
+
+```{r purine_vs_pyrimidine_frequencies_last_quartile_mismatch_pos, fig.width = 11, fig.height = 5}
+
+plotNucFreqVsReadLengthBarPlot(lapply(CPDFilteredSingleCToTMismatchData$rep1, getLastPositionQuartile),
+                               THREE_PRIME, title = "CPD Rep1 4th Quartile Nuc Freq",
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(lapply(CPDFilteredSingleCToTMismatchData$rep2, getLastPositionQuartile),
+                               THREE_PRIME, title = "CPD Rep2 4th Quartile Nuc Freq",
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
+
+plotNucFreqVsReadLengthBarPlot(lapply(sixFourFilteredSingleCToTMismatchData$rep1, getLastPositionQuartile),
+                               THREE_PRIME, title = "6-4 Rep1 4th Quartile Nuc Freq",
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(lapply(sixFourFilteredSingleCToTMismatchData$rep2, getLastPositionQuartile),
+                               THREE_PRIME, title = "6-4 Rep2 4th Quartile Nuc Freq",
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
+```
+
 
 # ```{r acquire_and_format_data_2}
 # # Read in the GC content vs. read length data
