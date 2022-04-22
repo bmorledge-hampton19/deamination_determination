@@ -353,8 +353,45 @@ tabulateNucleotideFrequenciesByPosition = function(sequences, posType = THREE_PR
 }
 
 
+tabulateNucFreqByPosTimepointAndLength = function(simplifiedTablesByTimepoint, posType = THREE_PRIME,
+                                                  combineNucleotides = list(), combinedNames = list()) {
+
+  # First, stratify the data by length and timepoint,
+  # calculating relative nucleotide frequencies within each category.
+  nucFreqTable = rbindlist(lapply(seq_along(simplifiedTablesByTimepoint), function(i) {
+    rbindlist(lapply(unique(simplifiedTablesByTimepoint[[i]]$Read_Length), function(x) {
+      tabulateNucleotideFrequenciesByPosition(simplifiedTablesByTimepoint[[i]][Read_Length == x]$Read_Sequence,
+                                              posType, paddingColNames = c("Read_Length", "Timepoint"),
+                                              paddingInfo = c(x, names(simplifiedTablesByTimepoint)[i]))
+    }))
+  }))
+
+  # Next, perform any transformations on the frequencies as specified by the "combine" parameters.
+  # For example, convert to counts of Purines and pyrimidines.
+  if (length(combineNucleotides) > 0) {
+    nucFreqTable = combineNucleotideFrequencies(nucFreqTable, combineNucleotides, combinedNames)
+  }
+
+  return(nucFreqTable)
+
+}
+
+
+# Calculates frequencies as a combination of individual nucleotide frequencies.
+# For example, calculates purine frequencies by combining 'A' and 'G' nucleotides.
+combineNucleotideFrequencies = function(frequencyData, combineNucleotides = list(), combinedNames = list()) {
+
+  return(rbindlist(mapply(function(x,y) {
+    frequencyData[sapply(Nucleotide, grepl, x),
+                   .(Frequency = sum(Frequency), Nucleotide = y),
+                   by = list(Position, Read_Length, Timepoint)]
+  }, combineNucleotides, combinedNames, SIMPLIFY = FALSE)))
+
+}
+
+
 # Plot nucleotide frequencies (overlapping bar plot?) for a series of read lengths.
-plotNucFreqVsReadLengthBarPlot = function(simplifiedTablesByTimepoint, posType,
+plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
                                           title = "Nuc Freq by Length and Timepoint",
                                           combineNucleotides = list(), combinedNames = list()) {
 
@@ -366,31 +403,16 @@ plotNucFreqVsReadLengthBarPlot = function(simplifiedTablesByTimepoint, posType,
     xAxisBreaks = c(0, 10, 20, 30)
   } else stop("Unrecognized value for posType parameter.")
 
-  # First, stratify the data by length and timepoint,
-  # calculating relative nucleotide frequencies within each category.
-  aggregateTable = rbindlist(lapply(seq_along(simplifiedTablesByTimepoint), function(i) {
-    rbindlist(lapply(unique(simplifiedTablesByTimepoint[[i]]$Read_Length), function(x) {
-      tabulateNucleotideFrequenciesByPosition(simplifiedTablesByTimepoint[[i]][Read_Length == x]$Read_Sequence,
-                                              posType, paddingColNames = c("Read_Length", "Timepoint"),
-                                              paddingInfo = c(x, names(simplifiedTablesByTimepoint)[i]))
-    }))
-  }))
+  if (length(combineNucleotides) > 0) {
+    nucFreqTable = combineNucleotideFrequencies(nucFreqTable, combineNucleotides, combinedNames)
+  }
 
-  # Next, perform any transformations on the frequencies as specified by the "combine" parameters.
-  # For example, convert to counts of Purines and pyrimidines.
-  aggregateTable = rbindlist(mapply(function(x,y) {
-    aggregateTable[sapply(Nucleotide, grepl, x),
-                   .(Frequency = sum(Frequency), Nucleotide = y),
-                   by = list(Position, Read_Length, Timepoint)]
-  }, combineNucleotides, combinedNames, SIMPLIFY = FALSE))
-
-  # Plot the resulting data
   print(
-    ggplot(aggregateTable, aes(Position, Frequency, fill = Nucleotide)) +
+    ggplot(nucFreqTable, aes(Position, Frequency, fill = Nucleotide)) +
       geom_bar(position = "stack", stat = "identity") +
       labs(title = title, x = xAxisLabel, y = "Nucleotide Frequency") +
       blankBackground + defaultTextScaling +
-      facet_grid(Read_Length~factor(Timepoint, levels = names(simplifiedTablesByTimepoint))) +
+      facet_grid(Read_Length~factor(Timepoint, levels = unique(nucFreqTable$Timepoint))) +
       theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
             strip.background = element_rect(color = "black", size = 1),
             axis.text.y = element_blank(), axis.ticks.y = element_blank(),
