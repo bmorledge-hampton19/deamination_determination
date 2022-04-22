@@ -95,6 +95,15 @@ HUMAN_THREE_PRIME_POS_CONSTRAINTS = data.table(Read_Length = c(23, 24, 25, 26, 2
 # HUMAN_FIVE_PRIME_POS_CONSTRAINTS[, Min_Pos := Read_Length + Min_Pos + 1]
 
 
+# The following functions get the first or last quartile of a data.table sorted by position.
+getFirstPositionQuartile = function(table) {
+  return(table[order(Position)][1:(dim(table)[1]/4)])
+}
+getLastPositionQuartile = function(table) {
+  return(table[order(Position)][(dim(table)[1]*3/4):dim(table)[1]])
+}
+
+
 # Determines if the given mismatch position and type data for a single read
 # contains a tandem C>T mutation.
 hasTandemCTMismatch = function(mismatchPositions, mismatchTypes) {
