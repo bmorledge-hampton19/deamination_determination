@@ -140,8 +140,7 @@ for (i in 1:length(CPDMismatchData)) {
   for (j in 1:length(CPDMismatchData[[i]])) {
     plotMismatchPositionFrequencies(CPDMismatchData[[i]][[j]], includedTypes = c("C>T"),
                                     title = paste("CPD", names(CPDMismatchData)[i], 
-                                                  names(CPDMismatchData[[i]])[j], "C>T Mismatch Positions"),
-                                    posType = FIVE_PRIME)
+                                                  names(CPDMismatchData[[i]])[j], "C>T Mismatch Positions"))
     plotMismatchPositionFrequencies(CPDMismatchData[[i]][[j]], omittedTypes = c("C>T"),
                                     title = paste("CPD", names(CPDMismatchData)[i], 
                                                   names(CPDMismatchData[[i]])[j], "!C>T Mismatch Positions"))
