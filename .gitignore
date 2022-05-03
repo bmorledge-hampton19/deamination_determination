@@ -208,5 +208,5 @@ data/
 .Rproj.user
 
 # R markdown output
-R/*DeaminationAnalysis.html
+R/*Analysis.html
 R/deamination_analysis_output/*
