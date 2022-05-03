@@ -44,12 +44,23 @@ filterResults = function(mismatchData, removeRowsWithN = TRUE, maxMismatchesAllo
 # three-column table of positions, sequence context, and read length.
 # NOTE: The Read_Length field is only accurate in the absence of indels. Otherwise, it only represents
 #       the length of the aligned region in the reference genome.
-simplifyTable = function(table, includeReadSequence = FALSE) {
+simplifyTable = function(table, includeReadSequence = FALSE, includeTrinucleotideContext = FALSE) {
 
   returnTable = table[,list(Position = as.numeric(unlist(strsplit(V4, ':'))),
                             Mismatch = unlist(strsplit(V5, ':')),
                             Read_Length = unlist(mapply(rep, V3-V2, lapply(strsplit(V5,':'), length))))]
-  if (includeReadSequence) returnTable[, Read_Sequence := table$V7]
+
+  if (includeReadSequence || includeTrinucleotideContext) {
+    returnTable[, Read_Sequence := unlist(mapply(rep, table$V7, lapply(strsplit(table$V5,':'), length)))]
+  }
+
+  if (includeTrinucleotideContext) {
+    returnTable[abs(Position) > 1 & abs(Position) < Read_Length,
+                Trinuc_Context := paste0(str_sub(Read_Sequence, Position - 1, Position - 1),
+                                         str_sub(Mismatch, 1, 1),
+                                         str_sub(Read_Sequence, Position + 1, Position + 1))]
+    if (!includeReadSequence) returnTable[, Read_Sequence := NULL]
+  }
 
   return(returnTable)
 
@@ -319,6 +330,33 @@ plotGroupedPositionStats = function(threePrimeGroupedStats, fivePrimeGroupedStat
     scale_x_continuous(breaks = xAxisBreaks)
 
   print(groupedStatsPlot)
+
+}
+
+
+# Plots the trinucleotide context for a set of mismatches
+plotTrinucleotideContext = function(simplifiedMismatchTable, includedTypes = list(), omittedTypes = list(),
+                                    title = "Trinucleotide Context") {
+
+  if ( length(includedTypes) > 0 && length(omittedTypes) > 0) {
+    stop("Included types and omitted types given simultaneously")
+  } else if (length(includedTypes) > 0) {
+    simplifiedMismatchTable = simplifiedMismatchTable[Mismatch %in% includedTypes]
+  } else if (length(omittedTypes) > 0) {
+    simplifiedMismatchTable = simplifiedMismatchTable[!(Mismatch %in% omittedTypes)]
+  }
+
+  trinucContextFrequencies = (simplifiedMismatchTable[!is.na(Trinuc_Context), .N, by = Trinuc_Context]
+                                [, Freq := N/sum(N)])
+
+  print(
+    ggplot(trinucContextFrequencies, aes(Trinuc_Context, Freq, fill = str_sub(Trinuc_Context, 1, 1))) +
+      geom_bar(stat = "identity") +
+      labs(title = title, x = "Trinucleotide Context", y = "Frequency") +
+      guides(x = guide_axis(angle = 45)) +
+      theme(legend.position = "none", axis.text.x = element_text(size = 12)) +
+      blankBackground + defaultTextScaling + scale_color_brewer(palette = "Set1")
+  )
 
 }
 
