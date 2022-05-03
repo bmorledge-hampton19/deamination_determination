@@ -31,9 +31,8 @@ source(file.path(bioinformaticsDirectory, "Chromatin_Features_Analysis", "R_scri
 ```
 
 
-
-```{r acquire_and_format_data_1}
-# Read in the mismatch by read data
+```{r get_file_paths_1}
+# Get file paths for the mismatch by read data
 CPDMismatchDataFilePaths = list(rep1 = list(), rep2 = list())
 CPDMismatchDataFilePaths$rep1 = list(
   hr1 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_1h_Rep1_mismatches_by_read.bed"),
@@ -60,6 +59,20 @@ sixFourMismatchDataFilePaths$rep2 = list(
   hr1 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_1h_Rep2_mismatches_by_read.bed")
 )
 
+# Also create a flattened list of file paths for use in caching.
+flattenedMismatchReadsFilePaths = c(unlist(CPDMismatchDataFilePaths), unlist(sixFourMismatchDataFilePaths))
+```
+
+
+```{r setup_caching_1}
+drosophilaMutperiodData = file.path(drosophilaDataDir, "full_color_domain_analysis_combined_5.rda")
+knitr::opts_template$set(mismatchReadsCaching = list(
+  cache = TRUE, cache.extra = na.fail(tools::md5sum(flattenedMismatchReadsFilePaths))
+))
+```
+
+
+```{r acquire_and_format_data_1, opts.label = "mismatchReadsCaching"}
 CPDMismatchData = lapply(CPDMismatchDataFilePaths, function(x) lapply(x, fread))
 sixFourMismatchData = lapply(sixFourMismatchDataFilePaths, function(x) lapply(x, fread))
 
@@ -112,7 +125,7 @@ sixFourSingleCToTMismatchData = lapply(sixFourSingleCToTMismatchData, function(x
 ```
 
 
-```{r CPD_mismatch_type_frequency}
+```{r CPD_mismatch_type_frequency, opts.label = "mismatchReadsCaching"}
 for (i in 1:length(CPDMismatchData)) {
   for (j in 1:length(CPDMismatchData[[i]])) {
     plotMismatchTypeFrequencies(CPDMismatchData[[i]][[j]],
@@ -123,7 +136,7 @@ for (i in 1:length(CPDMismatchData)) {
 ```
 
 
-```{r 6-4_mismatch_type_frequency}
+```{r 6-4_mismatch_type_frequency, opts.label = "mismatchReadsCaching"}
 for (i in 1:length(sixFourMismatchData)) {
   for (j in 1:length(sixFourMismatchData[[i]])) {
     plotMismatchTypeFrequencies(sixFourMismatchData[[i]][[j]],
@@ -135,7 +148,7 @@ for (i in 1:length(sixFourMismatchData)) {
 ```
 
 
-```{r CPD_mismatch_pos_frequency}
+```{r CPD_mismatch_pos_frequency, opts.label = "mismatchReadsCaching"}
 for (i in 1:length(CPDMismatchData)) {
   for (j in 1:length(CPDMismatchData[[i]])) {
     plotMismatchPositionFrequencies(CPDMismatchData[[i]][[j]], includedTypes = c("C>T"),
@@ -149,7 +162,7 @@ for (i in 1:length(CPDMismatchData)) {
 ```
 
 
-```{r 6-4_mismatch_pos_frequency}
+```{r 6-4_mismatch_pos_frequency, opts.label = "mismatchReadsCaching"}
 for (i in 1:length(sixFourMismatchData)) {
   for (j in 1:length(sixFourMismatchData[[i]])) {
     plotMismatchPositionFrequencies(sixFourMismatchData[[i]][[j]], includedTypes = c("C>T"),
@@ -192,7 +205,7 @@ for (i in 1:length(sixFourMismatchData)) {
 # ```
 
 
-```{r facet_mismatch_position_frequencies, fig.width = 9, fig.height = 5}
+```{r facet_mismatch_position_frequencies, fig.width = 9, fig.height = 5, opts.label = "mismatchReadsCaching"}
 plotPositionAcrossTimepointAndReadLength(CPDMismatchData$rep1, includedTypes = c("C>T"),
                                          title = "CPD C>T Mismatch Pos Freq Rep1")
 plotPositionAcrossTimepointAndReadLength(CPDMismatchData$rep2, includedTypes = c("C>T"),
@@ -213,7 +226,7 @@ plotPositionAcrossTimepointAndReadLength(sixFourMismatchData$rep2, includedTypes
 ```
 
 
-```{r facet_mismatch_position_statistics}
+```{r facet_mismatch_position_statistics, opts.label = "mismatchReadsCaching"}
 CPDGroupedStats = list(rep1 = list(), rep2 = list())
 CPDGroupedStats$rep1$three_prime = getGroupedPositionStats(CPDMismatchData$rep1, includedTypes = c("C>T"))
 CPDGroupedStats$rep2$three_prime = getGroupedPositionStats(CPDMismatchData$rep2, includedTypes = c("C>T"))
@@ -253,7 +266,7 @@ fwrite(sixFourGroupedStats$rep2$five_prime,
 ```
 
 
-```{r position_differences_across_read_lengths, fig.width = 9, fig.height = 5}
+```{r position_differences_across_read_lengths, fig.width = 9, fig.height = 5, opts.label = "mismatchReadsCaching"}
 plotGroupedPositionStats(CPDGroupedStats$rep1$three_prime, CPDGroupedStats$rep1$five_prime, POS_DIFF,
                          title = "CPD C>T Mismatch Pos Diff Rep1",
                          xAxisBreaks = c(23:31))
@@ -287,7 +300,7 @@ plotGroupedPositionStats(sixFourGroupedStats$rep2$three_prime, sixFourGroupedSta
 # ```
 
 
-```{r filter_by_mismatch_pos_and_read_length}
+```{r filter_by_mismatch_pos_and_read_length, opts.label = "mismatchReadsCaching"}
 CPDPeakCToTMismatchData = lapply(CPDSingleCToTMismatchData, function(x) {
   lapply(x, filterMismatchesByPositionAndReadLength, HUMAN_THREE_PRIME_POS_CONSTRAINTS)
 })
@@ -310,7 +323,7 @@ sixFourLastQPeakCToTMismatchData = lapply(sixFourPeakCToTMismatchData, function(
 ```
 
 
-```{r generate_frequency_data}
+```{r generate_nucleotide_frequency_data, opts.label = "mismatchReadsCaching"}
 CPDSingleCToTNucFreq = lapply(CPDSingleCToTMismatchData, tabulateNucFreqByPosTimepointAndLength)
 CPDFirstQPeakCToTNucFreq = lapply(CPDFirstQPeakCToTMismatchData, tabulateNucFreqByPosTimepointAndLength)
 CPDLastQPeakCToTNucFreq = lapply(CPDLastQPeakCToTMismatchData, tabulateNucFreqByPosTimepointAndLength)
@@ -322,7 +335,7 @@ sixFourLastQPeakCToTNucFreq = lapply(sixFourLastQPeakCToTMismatchData, tabulateN
 
 
 
-```{r purine_vs_pyrimidine_frequencies_across_read_length, fig.width = 11, fig.height = 5}
+```{r purine_vs_pyrimidine_frequencies_across_read_length, fig.width = 11, fig.height = 5, opts.label = "mismatchReadsCaching"}
 plotNucFreqVsReadLengthBarPlot(CPDSingleCToTNucFreq$rep1, title = "CPD Rep1 3' Nuc Freq",
                                combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
 plotNucFreqVsReadLengthBarPlot(CPDSingleCToTNucFreq$rep2, title = "CPD Rep2 3' Nuc Freq",
@@ -335,7 +348,7 @@ plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTNucFreq$rep2, title = "6-4 Rep2 
 ```
 
 
-```{r purine_vs_pyrimidine_frequencies_first_quartile_mismatch_pos, fig.width = 11, fig.height = 5}
+```{r purine_vs_pyrimidine_frequencies_first_quartile_mismatch_pos, fig.width = 11, fig.height = 5, opts.label = "mismatchReadsCaching"}
 plotNucFreqVsReadLengthBarPlot(CPDFirstQPeakCToTNucFreq$rep1, title = "CPD Rep1 1st Quartile Nuc Freq",
                                combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
 plotNucFreqVsReadLengthBarPlot(CPDFirstQPeakCToTNucFreq$rep2, title = "CPD Rep2 1st Quartile Nuc Freq",
@@ -348,7 +361,7 @@ plotNucFreqVsReadLengthBarPlot(sixFourFirstQPeakCToTNucFreq$rep2, title = "6-4 R
 ```
 
 
-```{r purine_vs_pyrimidine_frequencies_last_quartile_mismatch_pos, fig.width = 11, fig.height = 5}
+```{r purine_vs_pyrimidine_frequencies_last_quartile_mismatch_pos, fig.width = 11, fig.height = 5, opts.label = "mismatchReadsCaching"}
 plotNucFreqVsReadLengthBarPlot(CPDLastQPeakCToTNucFreq$rep1, title = "CPD Rep1 4th Quartile Nuc Freq",
                                combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
 plotNucFreqVsReadLengthBarPlot(CPDLastQPeakCToTNucFreq$rep2, title = "CPD Rep2 4th Quartile Nuc Freq",

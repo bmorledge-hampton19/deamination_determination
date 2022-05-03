@@ -1,0 +1,146 @@
+---
+title: "Human Deamination Periodicity Analysis"
+author: "Ben Morledge-Hampton"
+date: "5/2/2022"
+output: html_document
+params:
+  bioinformaticsDirectory:
+    label: "Bioinformatics Projects Directory"
+    value: C:/Bioinformatics_Projects
+    input: select
+    choices: [C:/Bioinformatics_Projects, F:/Bioinformatics_Projects]
+---
+
+```{r setup_chunk}
+library(knitr)
+opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5, 
+               fig.path = paste0(file.path("deamination_analysis_output","human_analysis_figures"),
+                                 .Platform$file.sep))
+if (interactive()) {
+  bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
+} else {
+  bioinformaticsDirectory = params$bioinformaticsDirectory
+}
+
+deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data", "human")
+```
+
+
+```{r source_functions}
+source(file.path(bioinformaticsDirectory, "Chromatin_Features_Analysis", "R_scripts", "PeriodicityAnalysis.R"))
+```
+
+
+```{r acquire_and_format_data_1}
+load(file.path(deaminationDataDirectory, "periodicity_results", "NHF1_deamination_periodicity_results.rda"))
+dataSetNames = as.list(setNames(nm = mutperiodData$periodicityResults$Data_Set))
+```
+
+
+```{r CPD_rotational_periodicity_trinuc_normalized}
+parseAndPlotPeriodicity(dataSetNames$NHF1_CPD_1h_Rep1_individual_mismatches_MNase_map_intergenic_trinuc_normalized,
+                        title = "CPD 1hr Rep1 Rotational Trinuc Norm")
+parseAndPlotPeriodicity(dataSetNames$NHF1_CPD_24h_Rep1_individual_mismatches_MNase_map_intergenic_trinuc_normalized,
+                        title = "CPD 24hr Rep1 Rotational Trinuc Norm")
+parseAndPlotPeriodicity(dataSetNames$NHF1_CPD_48h_Rep1_individual_mismatches_MNase_map_intergenic_trinuc_normalized,
+                        title = "CPD 48hr Rep1 Rotational Trinuc Norm")
+```
+
+
+```{r CPD_rotational_periodicity_XR-seq_normalized}
+parseAndPlotPeriodicity(
+  dataSetNames$NHF1_CPD_1h_Rep1_individual_mismatches_MNase_map_intergenic_custom_context_normalized,
+  title = "CPD 1hr Rep1 Rotational XR-seq Norm")
+parseAndPlotPeriodicity(
+  dataSetNames$NHF1_CPD_24h_Rep1_individual_mismatches_MNase_map_intergenic_custom_context_normalized,
+  title = "CPD 24hr Rep1 Rotational XR-seq Norm")
+parseAndPlotPeriodicity(
+  dataSetNames$NHF1_CPD_48h_Rep1_individual_mismatches_MNase_map_intergenic_custom_context_normalized,
+  title = "CPD 48hr Rep1 Rotational XR-seq Norm")
+```
+
+
+```{r CPD_translational_periodicity_trinuc_normalized}
+parseAndPlotPeriodicity(
+  dataSetNames$`NHF1_CPD_1h_Rep1_individual_mismatches_MNase_map_intergenic_trinuc_nuc-group_normalized`,
+  title = "CPD 1hr Rep1 Rotational Trinuc Norm")
+parseAndPlotPeriodicity(
+  dataSetNames$`NHF1_CPD_24h_Rep1_individual_mismatches_MNase_map_intergenic_trinuc_nuc-group_normalized`,
+  title = "CPD 24hr Rep1 Rotational Trinuc Norm")
+parseAndPlotPeriodicity(
+  dataSetNames$`NHF1_CPD_48h_Rep1_individual_mismatches_MNase_map_intergenic_trinuc_nuc-group_normalized`,
+  title = "CPD 48hr Rep1 Rotational Trinuc Norm")
+```
+
+
+
+```{r CPD_translational_periodicity_XR-seq_normalized}
+parseAndPlotPeriodicity(
+  dataSetNames$`NHF1_CPD_1h_Rep1_individual_mismatches_MNase_map_intergenic_custom_context_nuc-group_normalized`,
+  title = "CPD 1hr Rep1 Rotational XR-seq Norm")
+parseAndPlotPeriodicity(
+  dataSetNames$`NHF1_CPD_24h_Rep1_individual_mismatches_MNase_map_intergenic_custom_context_nuc-group_normalized`,
+  title = "CPD 24hr Rep1 Rotational XR-seq Norm")
+parseAndPlotPeriodicity(
+  dataSetNames$`NHF1_CPD_48h_Rep1_individual_mismatches_MNase_map_intergenic_custom_context_nuc-group_normalized`,
+  title = "CPD 48hr Rep1 Rotational XR-seq Norm")
+```
+
+
+```{r acquire_and_format_data_2}
+load(file.path(deaminationDataDirectory, "periodicity_results", "NHF1_TCG_deamination_periodicity_results.rda"))
+dataSetNames = as.list(setNames(nm = mutperiodData$periodicityResults$Data_Set))
+
+```
+
+
+```{r TCG_CPD_rotational_periodicity_trinuc_normalized}
+parseAndPlotPeriodicity(
+  dataSetNames$TCG_NHF1_CPD_1h_Rep1_individual_mismatches_MNase_map_intergenic_trinuc_normalized,
+  title = "TCG CPD 1hr Rep1 Rotational Trinuc Norm")
+parseAndPlotPeriodicity(
+  dataSetNames$TCG_NHF1_CPD_24h_Rep1_individual_mismatches_MNase_map_intergenic_trinuc_normalized,
+  title = "TCG CPD 24hr Rep1 Rotational Trinuc Norm")
+parseAndPlotPeriodicity(
+  dataSetNames$TCG_NHF1_CPD_48h_Rep1_individual_mismatches_MNase_map_intergenic_trinuc_normalized,
+  title = "TCG CPD 48hr Rep1 Rotational Trinuc Norm")
+```
+
+
+```{r TCG_CPD_rotational_periodicity_XR-seq_normalized}
+parseAndPlotPeriodicity(
+  dataSetNames$TCG_NHF1_CPD_1h_Rep1_individual_mismatches_MNase_map_intergenic_custom_context_normalized,
+  title = "TCG CPD 1hr Rep1 Rotational XR-seq Norm")
+parseAndPlotPeriodicity(
+  dataSetNames$TCG_NHF1_CPD_24h_Rep1_individual_mismatches_MNase_map_intergenic_custom_context_normalized,
+  title = "TCG CPD 24hr Rep1 Rotational XR-seq Norm")
+parseAndPlotPeriodicity(
+  dataSetNames$TCG_NHF1_CPD_48h_Rep1_individual_mismatches_MNase_map_intergenic_custom_context_normalized,
+  title = "TCG CPD 48hr Rep1 Rotational XR-seq Norm")
+```
+
+
+```{r TCG_CPD_translational_periodicity_trinuc_normalized}
+parseAndPlotPeriodicity(
+  dataSetNames$`TCG_NHF1_CPD_1h_Rep1_individual_mismatches_MNase_map_intergenic_trinuc_nuc-group_normalized`,
+  title = "TCG CPD 1hr Rep1 Rotational Trinuc Norm")
+parseAndPlotPeriodicity(
+  dataSetNames$`TCG_NHF1_CPD_24h_Rep1_individual_mismatches_MNase_map_intergenic_trinuc_nuc-group_normalized`,
+  title = "TCG CPD 24hr Rep1 Rotational Trinuc Norm")
+parseAndPlotPeriodicity(
+  dataSetNames$`TCG_NHF1_CPD_48h_Rep1_individual_mismatches_MNase_map_intergenic_trinuc_nuc-group_normalized`,
+  title = "TCG CPD 48hr Rep1 Rotational Trinuc Norm")
+```
+
+
+```{r TCG_CPD_translational_periodicity_XR-seq_normalized}
+parseAndPlotPeriodicity(
+  dataSetNames$`TCG_NHF1_CPD_1h_Rep1_individual_mismatches_MNase_map_intergenic_custom_context_nuc-group_normalized`,
+  title = "TCG_CPD 1hr Rep1 Rotational XR-seq Norm")
+parseAndPlotPeriodicity(
+  dataSetNames$`TCG_NHF1_CPD_24h_Rep1_individual_mismatches_MNase_map_intergenic_custom_context_nuc-group_normalized`,
+  title = "TCG CPD 24hr Rep1 Rotational XR-seq Norm")
+parseAndPlotPeriodicity(
+  dataSetNames$`TCG_NHF1_CPD_48h_Rep1_individual_mismatches_MNase_map_intergenic_custom_context_nuc-group_normalized`,
+  title = "TCG CPD 48hr Rep1 Rotational XR-seq Norm")
+```

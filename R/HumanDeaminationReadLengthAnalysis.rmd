@@ -1,0 +1,161 @@
+---
+title: "Human Deamination Read Length Analysis"
+author: "Ben Morledge-Hampton"
+date: "5/2/2022"
+output: html_document
+params:
+  bioinformaticsDirectory:
+    label: "Bioinformatics Projects Directory"
+    value: C:/Bioinformatics_Projects
+    input: select
+    choices: [C:/Bioinformatics_Projects, F:/Bioinformatics_Projects]
+---
+
+
+```{r setup_chunk}
+library(knitr)
+opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5, 
+               fig.path = paste0(file.path("deamination_analysis_output","human_analysis_figures"),
+                                 .Platform$file.sep))
+if (interactive()) {
+  bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
+} else {
+  bioinformaticsDirectory = params$bioinformaticsDirectory
+}
+
+deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data", "human")
+```
+
+
+```{r source_functions}
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R', "DeaminationAnalysis.R"))
+```
+
+
+```{r get_file_paths}
+# Get file paths for the mismatch by read data
+CPDMismatchDataFilePaths = list(rep1 = list(), rep2 = list())
+CPDMismatchDataFilePaths$rep1 = list(
+  hr1 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_1h_Rep1_mismatches_by_read.bed"),
+  hr8 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_8h_Rep1_mismatches_by_read.bed"),
+  hr24 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_24h_Rep1_mismatches_by_read.bed"),
+  hr48 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_48h_Rep1_mismatches_by_read.bed")
+)
+CPDMismatchDataFilePaths$rep2 = list(
+  hr1 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_1h_Rep2_mismatches_by_read.bed"),
+  hr8 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_8h_Rep2_mismatches_by_read.bed"),
+  hr24 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_24h_Rep2_mismatches_by_read.bed"),
+  hr48 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_48h_Rep2_mismatches_by_read.bed")
+)
+
+sixFourMismatchDataFilePaths = list(rep1 = list(), rep2 = list())
+sixFourMismatchDataFilePaths$rep1 = list(
+  min5 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_5min_Rep1_mismatches_by_read.bed"),
+  min20 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_20min_Rep1_mismatches_by_read.bed"),
+  hr1 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_1h_Rep1_mismatches_by_read.bed")
+)
+sixFourMismatchDataFilePaths$rep2 = list(
+  min5 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_5min_Rep2_mismatches_by_read.bed"),
+  min20 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_20min_Rep2_mismatches_by_read.bed"),
+  hr1 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_1h_Rep2_mismatches_by_read.bed")
+)
+```
+
+
+```{r acquire_and_format_data}
+CPDMismatchData = lapply(CPDMismatchDataFilePaths, function(x) lapply(x, fread))
+sixFourMismatchData = lapply(sixFourMismatchDataFilePaths, function(x) lapply(x, fread))
+
+# Create a subset of single mismatch C>T reads.
+CPDSingleCToTMismatchData = lapply(CPDMismatchData, function(x) lapply(
+  x, function(y) filterResults(y[V5 == "C>T"], minReadLength = 23, maxReadLength = 31)
+))
+sixFourSingleCToTMismatchData = lapply(sixFourMismatchData, function(x) lapply(
+  x, function(y) filterResults(y[V5 == "C>T"], minReadLength = 23, maxReadLength = 31)
+))
+
+# Simplify the data
+CPDSingleCToTMismatchData = lapply(CPDSingleCToTMismatchData, function(x) lapply(
+  x, function(y) simplifyTable(y, TRUE)
+))
+sixFourSingleCToTMismatchData = lapply(sixFourSingleCToTMismatchData, function(x) lapply(
+  x, function(y) simplifyTable(y, TRUE)
+))
+
+```
+
+
+```{r filter_by_mismatch_pos_and_read_length}
+CPDPeakCToTMismatchData = lapply(CPDSingleCToTMismatchData, function(x) {
+  lapply(x, filterMismatchesByPositionAndReadLength, HUMAN_THREE_PRIME_POS_CONSTRAINTS)
+})
+CPDFirstQPeakCToTMismatchData = lapply(CPDPeakCToTMismatchData, function(x) {
+  lapply(x, getFirstPositionQuartile)
+})
+CPDLastQPeakCToTMismatchData = lapply(CPDPeakCToTMismatchData, function(x) {
+  lapply(x, getLastPositionQuartile)
+})
+
+sixFourPeakCToTMismatchData = lapply(sixFourSingleCToTMismatchData, function(x) {
+  lapply(x, filterMismatchesByPositionAndReadLength, HUMAN_THREE_PRIME_POS_CONSTRAINTS)
+})
+sixFourFirstQPeakCToTMismatchData = lapply(sixFourPeakCToTMismatchData, function(x) {
+  lapply(x, getFirstPositionQuartile)
+})
+sixFourLastQPeakCToTMismatchData = lapply(sixFourPeakCToTMismatchData, function(x) {
+  lapply(x, getLastPositionQuartile)
+})
+```
+
+
+```{r generate_nucleotide_frequency_data}
+CPDSingleCToTNucFreq = lapply(CPDSingleCToTMismatchData, tabulateNucFreqByPosTimepointAndLength)
+CPDFirstQPeakCToTNucFreq = lapply(CPDFirstQPeakCToTMismatchData, tabulateNucFreqByPosTimepointAndLength)
+CPDLastQPeakCToTNucFreq = lapply(CPDLastQPeakCToTMismatchData, tabulateNucFreqByPosTimepointAndLength)
+
+sixFourSingleCToTNucFreq = lapply(sixFourSingleCToTMismatchData, tabulateNucFreqByPosTimepointAndLength)
+sixFourFirstQPeakCToTNucFreq = lapply(sixFourFirstQPeakCToTMismatchData, tabulateNucFreqByPosTimepointAndLength)
+sixFourLastQPeakCToTNucFreq = lapply(sixFourLastQPeakCToTMismatchData, tabulateNucFreqByPosTimepointAndLength)
+```
+
+
+
+```{r purine_vs_pyrimidine_frequencies_across_read_length, fig.width = 11, fig.height = 5}
+plotNucFreqVsReadLengthBarPlot(CPDSingleCToTNucFreq$rep1, title = "CPD Rep1 3' Nuc Freq",
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(CPDSingleCToTNucFreq$rep2, title = "CPD Rep2 3' Nuc Freq",
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
+
+plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTNucFreq$rep1, title = "6-4 Rep1 3' Nuc Freq",
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTNucFreq$rep2, title = "6-4 Rep2 3' Nuc Freq",
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
+```
+
+
+```{r purine_vs_pyrimidine_frequencies_first_quartile_mismatch_pos, fig.width = 11, fig.height = 5}
+plotNucFreqVsReadLengthBarPlot(CPDFirstQPeakCToTNucFreq$rep1, title = "CPD Rep1 1st Quartile Nuc Freq",
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(CPDFirstQPeakCToTNucFreq$rep2, title = "CPD Rep2 1st Quartile Nuc Freq",
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
+
+plotNucFreqVsReadLengthBarPlot(sixFourFirstQPeakCToTNucFreq$rep1, title = "6-4 Rep1 1st Quartile Nuc Freq",
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(sixFourFirstQPeakCToTNucFreq$rep2, title = "6-4 Rep2 1st Quartile Nuc Freq",
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
+```
+
+
+```{r purine_vs_pyrimidine_frequencies_last_quartile_mismatch_pos, fig.width = 11, fig.height = 5}
+plotNucFreqVsReadLengthBarPlot(CPDLastQPeakCToTNucFreq$rep1, title = "CPD Rep1 4th Quartile Nuc Freq",
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(CPDLastQPeakCToTNucFreq$rep2, title = "CPD Rep2 4th Quartile Nuc Freq",
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
+
+plotNucFreqVsReadLengthBarPlot(sixFourLastQPeakCToTNucFreq$rep1, title = "6-4 Rep1 4th Quartile Nuc Freq",
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
+plotNucFreqVsReadLengthBarPlot(sixFourLastQPeakCToTNucFreq$rep2, title = "6-4 Rep2 4th Quartile Nuc Freq",
+                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
+```
+
+
