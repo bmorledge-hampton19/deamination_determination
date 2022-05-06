@@ -41,14 +41,22 @@ filterResults = function(mismatchData, removeRowsWithN = TRUE, maxMismatchesAllo
 
 
 # Simplifies the given table of bed formatted mismatches into a smaller
-# three-column table of positions, sequence context, and read length.
-# NOTE: The Read_Length field is only accurate in the absence of indels. Otherwise, it only represents
-#       the length of the aligned region in the reference genome.
-simplifyTable = function(table, includeReadSequence = FALSE, includeTrinucleotideContext = FALSE) {
+# three-column table of positions, sequence context, and read length and optionally,
+# read sequence and trinuc context.
+# The expansionOffset parameter is used to change the Position and Read_Length values
+# relative to the number of expanded bases for the read. As a result, Read_Length should still reflect the
+# original read length, but Position will change to reflect the mismatch's position in the new sequence
+# NOTE: In the event that the read contains expanded sequence context information, that information
+#       no longer reflects the read sequence and instead reflects an expansion of the corresponding reference
+#       genome sequence. This also means that if the read sequence contained any indels, the Read_Length field will
+#       be inaccurate and the Position field MAY be inaccurate, even with the expansionOffset parameter.
+simplifyTable = function(table, includeReadSequence = FALSE, includeTrinucleotideContext = FALSE,
+                         expansionOffset = 0) {
 
-  returnTable = table[,list(Position = as.numeric(unlist(strsplit(V4, ':'))),
+  returnTable = table[,list(Position = as.numeric(unlist(strsplit(V4, ':'))) - expansionOffset,
                             Mismatch = unlist(strsplit(V5, ':')),
-                            Read_Length = unlist(mapply(rep, V3-V2, lapply(strsplit(V5,':'), length))))]
+                            Read_Length = unlist(mapply(rep, nchar(V7)-2*expansionOffset,
+                                                        lapply(strsplit(V5,':'), length))))]
 
   if (includeReadSequence || includeTrinucleotideContext) {
     returnTable[, Read_Sequence := unlist(mapply(rep, table$V7, lapply(strsplit(table$V5,':'), length)))]
@@ -68,12 +76,12 @@ simplifyTable = function(table, includeReadSequence = FALSE, includeTrinucleotid
 
 
 # Takes a simplified table of mismatches and filters them based on the position of the mismatch
-filterMismatchesByPosition = function(mismatchTable, minPos, maxPos, posType) {
+filterMismatchesByPosition = function(mismatchTable, minPos, maxPos, posType, expansionOffset = 0) {
 
   if (posType == THREE_PRIME) {
-    positions = mismatchTable$Position
+    positions = mismatchTable$Position + expansionOffset
   } else if (posType == FIVE_PRIME) {
-    positions = mismatchTable$Read_Length + mismatchTable$Position + 1
+    positions = mismatchTable$Read_Length + mismatchTable$Position + 1 - expansionOffset
   } else stop("Unrecognized value for posType parameter.")
 
   return(mismatchTable[positions >= minPos & positions <= maxPos])
@@ -85,10 +93,12 @@ filterMismatchesByPosition = function(mismatchTable, minPos, maxPos, posType) {
 # Unlike the filterMismatchesByPosition function, min and max positions are dynamic based on read length.
 # (This function is actually still used under the hood.)
 # See constant tables below for examples of how to format the posConstraintsByReadLength table.
-filterMismatchesByPositionAndReadLength = function(mismatchTable, posConstraintsByReadLength) {
+filterMismatchesByPositionAndReadLength = function(mismatchTable, posConstraintsByReadLength,
+                                                   expansionOffset = 0) {
 
   return(rbindlist(mapply( function(readLength, minPos, maxPos) {
-    filterMismatchesByPosition(mismatchTable[Read_Length == readLength], minPos, maxPos, THREE_PRIME)
+    filterMismatchesByPosition(mismatchTable[Read_Length == readLength],
+                               minPos, maxPos, THREE_PRIME, expansionOffset)
   },
   posConstraintsByReadLength$Read_Length,
   posConstraintsByReadLength$Min_Pos,
@@ -400,7 +410,7 @@ tabulateNucFreqByPosTimepointAndLength = function(simplifiedTablesByTimepoint, p
     rbindlist(lapply(unique(simplifiedTablesByTimepoint[[i]]$Read_Length), function(x) {
       tabulateNucleotideFrequenciesByPosition(simplifiedTablesByTimepoint[[i]][Read_Length == x]$Read_Sequence,
                                               posType, paddingColNames = c("Read_Length", "Timepoint"),
-                                              paddingInfo = c(x, names(simplifiedTablesByTimepoint)[i]))
+                                              paddingInfo = list(x, names(simplifiedTablesByTimepoint)[i]))
     }))
   }))
 
@@ -431,7 +441,11 @@ combineNucleotideFrequencies = function(frequencyData, combineNucleotides = list
 # Plot nucleotide frequencies (overlapping bar plot?) for a series of read lengths.
 plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
                                           title = "Nuc Freq by Length and Timepoint",
-                                          combineNucleotides = list(), combinedNames = list()) {
+                                          yAxisLabel = "Nucleotide Frequency", secondaryYAxisLabel = "Read Length",
+                                          yStripFontSize = 16,
+                                          combineNucleotides = list(), combinedNames = list(),
+                                          showThreePrimeCutSite = FALSE, showFivePrimeCutSite = FALSE,
+                                          expansionOffset = 0) {
 
   if (posType == THREE_PRIME) {
     xAxisLabel = "3' Relative Position"
@@ -445,20 +459,58 @@ plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
     nucFreqTable = combineNucleotideFrequencies(nucFreqTable, combineNucleotides, combinedNames)
   }
 
-  print(
-    ggplot(nucFreqTable, aes(Position, Frequency, fill = Nucleotide)) +
-      geom_bar(position = "stack", stat = "identity") +
-      labs(title = title, x = xAxisLabel, y = "Nucleotide Frequency") +
-      blankBackground + defaultTextScaling +
-      facet_grid(Read_Length~factor(Timepoint, levels = unique(nucFreqTable$Timepoint))) +
-      theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
-            strip.background = element_rect(color = "black", size = 1),
-            axis.text.y = element_blank(), axis.ticks.y = element_blank(),
-            strip.text.y = element_text(size = 16)) +
-      coord_cartesian(ylim = c(0,1)) +
-      scale_y_continuous(sec.axis = dup_axis(~., name = "Read Length")) +
-      scale_x_continuous(breaks = xAxisBreaks)
-  )
+  plot = ggplot(nucFreqTable, aes(Position, Frequency, fill = Nucleotide)) +
+    geom_bar(position = "stack", stat = "identity") +
+    labs(title = title, x = xAxisLabel, y = yAxisLabel) +
+    blankBackground + defaultTextScaling +
+    facet_grid(Read_Length~factor(Timepoint, levels = unique(nucFreqTable$Timepoint))) +
+    theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
+          strip.background = element_rect(color = "black", size = 1),
+          axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+          strip.text.y = element_text(size = yStripFontSize)) +
+    coord_cartesian(ylim = c(0,1)) +
+    scale_y_continuous(sec.axis = dup_axis(~., name = secondaryYAxisLabel)) +
+    scale_x_continuous(breaks = xAxisBreaks)
+
+  if (length(unique(nucFreqTable$Nucleotide)) == 1) {
+    plot = plot + theme(legend.position = "none") + scale_fill_grey()
+  } else {
+    plot = plot + scale_fill_brewer(palette = "Set1")
+  }
+
+  if (showThreePrimeCutSite) {
+    plot = plot + geom_vline(aes(xintercept = Cut_Site_Pos),
+                             nucFreqTable[,.(Cut_Site_Pos = max(Position) - expansionOffset + 0.5),
+                                          by = list(Read_Length, Timepoint)],
+                             linetype = "dashed")
+  }
+  if (showFivePrimeCutSite) {
+    plot = plot + geom_vline(aes(xintercept = Cut_Site_Pos),
+                             nucFreqTable[,.(Cut_Site_Pos = min(Position) + expansionOffset - 0.5),
+                                          by = list(Read_Length, Timepoint)],
+                             linetype = "dashed")
+  }
+
+  print(plot)
+
+}
+
+
+# This function takes a table of mismatch data for whole reads and returns a table of
+# that same data for one side of that data, anchored on the mismatch
+orientDataToMismatch = function(simplifiedTable, posType, expansionOffset = 0) {
+
+  if (posType == THREE_PRIME) {
+    sequences = str_sub(simplifiedTable$Read_Sequence,
+                        -nchar(simplifiedTable$Read_Sequence), simplifiedTable$Position)
+    position = -1
+  } else if (posType == FIVE_PRIME) {
+    sequences = str_sub(simplifiedTable$Read_Sequence, simplifiedTable$Position, -1)
+    position = 1
+  } else stop("Unrecognized value for posType parameter.")
+
+  return(data.table(Position = position, Mismatch = simplifiedTable$Mismatch,
+                    Read_Length = nchar(sequences)-expansionOffset, Read_Sequence = sequences))
 
 }
 
