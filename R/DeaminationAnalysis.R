@@ -213,9 +213,17 @@ plotMismatchPositionFrequencies = function(mismatchTable, includedTypes = list()
 
 }
 
-# Plot mismatch position using a facet plot with timepoint on one dimension and read length on the other
+# Plot mismatch position using a facet plot with timepoint (optional) on one dimension and read length on the other
+# Input should be a list of data.tables with names as timepoint information, or a single data.table
+# to construct a plot without timepoint information.
 plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTypes = list(), omittedTypes = list(),
                                                     title = "Mismatch Position Frequencies", posType = THREE_PRIME) {
+
+  #If passed a single data.table, wrap it in a list.
+  if (is.data.table(simplifiedTablesByTimepoint)) {
+    simplifiedTablesByTimepoint = list(None = simplifiedTablesByTimepoint)
+    noTimepointInfo = TRUE
+  } else noTimepointInfo = FALSE
 
   if (posType == THREE_PRIME) {
     xAxisLabel = "3' Relative Position"
@@ -241,20 +249,27 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
   groupedPositionFrequencies = (aggregateTable[, .N, by = list(Position,Read_Length,Timepoint)]
                                 [, Freq := N/sum(N), by = list(Read_Length, Timepoint)])
 
-  print(
-    ggplot(groupedPositionFrequencies, aes(Position, Freq)) +
-      geom_bar(stat = "identity") +
-      labs(title = title, x = xAxisLabel, y = "Relative Mismatch Frequency") +
-      blankBackground + defaultTextScaling +
-      facet_grid(Read_Length~factor(Timepoint, levels = names(simplifiedTables))) +
-      theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
-            strip.background = element_rect(color = "black", size = 1),
-            axis.text.y = element_blank(), axis.ticks.y = element_blank(),
-            strip.text.y = element_text(size = 16),
-            panel.grid.major.x = element_line(color = "red", size = 0.5, linetype = 2)) +
-      scale_y_continuous(sec.axis = dup_axis(~., name = "Read Length")) +
-      scale_x_continuous(breaks = xAxisBreaks)
-  )
+  plot = ggplot(groupedPositionFrequencies, aes(Position, Freq)) +
+    geom_bar(stat = "identity") +
+    labs(title = title, x = xAxisLabel, y = "Relative Mismatch Frequency") +
+    blankBackground + defaultTextScaling
+
+  if (noTimepointInfo) {
+    plot = plot + facet_grid(rows = vars(Read_Length))
+  } else {
+    plot = plot + facet_grid(Read_Length~factor(Timepoint, levels = names(simplifiedTables)))
+  }
+
+  plot = plot +
+    theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
+          strip.background = element_rect(color = "black", size = 1),
+          axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+          strip.text.y = element_text(size = 16),
+          panel.grid.major.x = element_line(color = "red", size = 0.5, linetype = 2)) +
+    scale_y_continuous(sec.axis = dup_axis(~., name = "Read Length")) +
+    scale_x_continuous(breaks = xAxisBreaks)
+
+  print(plot)
 
 }
 
@@ -269,6 +284,11 @@ getMode = function(values) {
 # Returns a table of the mean, median, and mode positions for each read length at each time point.
 getGroupedPositionStats = function(simplifiedTables, includedTypes = list(),
                                    omittedTypes = list(), posType = THREE_PRIME) {
+
+  #If passed a single data.table, wrap it in a list.
+  if (is.data.table(simplifiedTablesByTimepoint)) {
+    simplifiedTablesByTimepoint = list(None = simplifiedTablesByTimepoint)
+  }
 
   if (posType == FIVE_PRIME) {
     simplifiedTables = lapply(simplifiedTables, copy)
@@ -336,8 +356,13 @@ plotGroupedPositionStats = function(threePrimeGroupedStats, fivePrimeGroupedStat
   }
 
   groupedStatsPlot = groupedStatsPlot + blankBackground + defaultTextScaling +
-    labs(title = title, x = "Read Length", y = stat) + scale_color_brewer(palette = "Set1") +
+    labs(title = title, x = "Read Length", y = stat) +
     scale_x_continuous(breaks = xAxisBreaks)
+
+  if (all(aggregateData$Timepoint == None)) {
+    groupedStatsPlot = groupedStatsPlot +
+      scale_color_grey() + theme(legend.position = "none")
+  } else groupedStatsPlot = groupedStatsPlot + scale_color_brewer(palette = "Set1")
 
   print(groupedStatsPlot)
 
@@ -404,13 +429,27 @@ tabulateNucleotideFrequenciesByPosition = function(sequences, posType = THREE_PR
 tabulateNucFreqByPosTimepointAndLength = function(simplifiedTablesByTimepoint, posType = THREE_PRIME,
                                                   combineNucleotides = list(), combinedNames = list()) {
 
-  # First, stratify the data by length and timepoint,
+  #If passed a single data.table, wrap it in a list.
+  if (is.data.table(simplifiedTablesByTimepoint)){
+    simplifiedTablesByTimepoint = list(simplifiedTablesByTimepoint)
+    noTimepoints = TRUE
+  } else noTimepoints = FALSE
+
+  # First, stratify the data by length and timepoint (optional),
   # calculating relative nucleotide frequencies within each category.
   nucFreqTable = rbindlist(lapply(seq_along(simplifiedTablesByTimepoint), function(i) {
     rbindlist(lapply(unique(simplifiedTablesByTimepoint[[i]]$Read_Length), function(x) {
+
+      if (noTimepoints) {
+        paddingInfo = list(x, NA)
+      } else {
+        paddingInfo = list(x, names(simplifiedTablesByTimepoint)[i])
+      }
+
       tabulateNucleotideFrequenciesByPosition(simplifiedTablesByTimepoint[[i]][Read_Length == x]$Read_Sequence,
                                               posType, paddingColNames = c("Read_Length", "Timepoint"),
-                                              paddingInfo = list(x, names(simplifiedTablesByTimepoint)[i]))
+                                              paddingInfo = paddingInfo)
+
     }))
   }))
 
@@ -438,7 +477,7 @@ combineNucleotideFrequencies = function(frequencyData, combineNucleotides = list
 }
 
 
-# Plot nucleotide frequencies (overlapping bar plot?) for a series of read lengths.
+# Plot nucleotide frequencies for a series of read lengths.
 plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
                                           title = "Nuc Freq by Length and Timepoint",
                                           yAxisLabel = "Nucleotide Frequency", secondaryYAxisLabel = "Read Length",
@@ -462,8 +501,15 @@ plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
   plot = ggplot(nucFreqTable, aes(Position, Frequency, fill = Nucleotide)) +
     geom_bar(position = "stack", stat = "identity") +
     labs(title = title, x = xAxisLabel, y = yAxisLabel) +
-    blankBackground + defaultTextScaling +
-    facet_grid(Read_Length~factor(Timepoint, levels = unique(nucFreqTable$Timepoint))) +
+    blankBackground + defaultTextScaling
+
+  if (all(is.na(nucFreqTable$Timepoint))) {
+    plot = plot + facet_grid(rows = vars(Read_Length))
+  } else {
+    plot = plot + facet_grid(Read_Length~factor(Timepoint, levels = unique(nucFreqTable$Timepoint)))
+  }
+
+  plot = plot +
     theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
           strip.background = element_rect(color = "black", size = 1),
           axis.text.y = element_blank(), axis.ticks.y = element_blank(),
