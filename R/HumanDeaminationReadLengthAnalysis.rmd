@@ -32,180 +32,55 @@ source(file.path(bioinformaticsDirectory, "deamination_determination", 'R', "Dea
 ```
 
 
-```{r get_file_paths_1}
-# Get file paths for the mismatch by read data
-CPDMismatchDataFilePaths = list(rep1 = list(), rep2 = list())
-CPDMismatchDataFilePaths$rep1 = list(
-  hr1 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_1h_Rep1_mismatches_by_read.bed"),
-  hr8 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_8h_Rep1_mismatches_by_read.bed"),
-  hr24 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_24h_Rep1_mismatches_by_read.bed"),
-  hr48 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_48h_Rep1_mismatches_by_read.bed")
-)
-CPDMismatchDataFilePaths$rep2 = list(
-  hr1 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_1h_Rep2_mismatches_by_read.bed"),
-  hr8 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_8h_Rep2_mismatches_by_read.bed"),
-  hr24 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_24h_Rep2_mismatches_by_read.bed"),
-  hr48 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_48h_Rep2_mismatches_by_read.bed")
-)
+```{r get_file_paths}
+expansionOffset = 10
 
-sixFourMismatchDataFilePaths = list(rep1 = list(), rep2 = list())
-sixFourMismatchDataFilePaths$rep1 = list(
-  min5 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_5min_Rep1_mismatches_by_read.bed"),
-  min20 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_20min_Rep1_mismatches_by_read.bed"),
-  hr1 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_1h_Rep1_mismatches_by_read.bed")
-)
-sixFourMismatchDataFilePaths$rep2 = list(
-  min5 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_5min_Rep2_mismatches_by_read.bed"),
-  min20 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_20min_Rep2_mismatches_by_read.bed"),
-  hr1 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_1h_Rep2_mismatches_by_read.bed")
-)
-```
-
-
-```{r acquire_and_format_data_1}
-CPDMismatchData = lapply(CPDMismatchDataFilePaths, function(x) lapply(x, fread))
-sixFourMismatchData = lapply(sixFourMismatchDataFilePaths, function(x) lapply(x, fread))
-
-# Create a subset of single mismatch C>T reads.
-CPDSingleCToTMismatchData = lapply(CPDMismatchData, function(x) lapply(
-  x, function(y) filterResults(y[V5 == "C>T"], minReadLength = 23, maxReadLength = 31)
-))
-sixFourSingleCToTMismatchData = lapply(sixFourMismatchData, function(x) lapply(
-  x, function(y) filterResults(y[V5 == "C>T"], minReadLength = 23, maxReadLength = 31)
-))
-
-# Simplify the data
-CPDSingleCToTMismatchData = lapply(CPDSingleCToTMismatchData, function(x) lapply(
-  x, function(y) simplifyTable(y, TRUE)
-))
-sixFourSingleCToTMismatchData = lapply(sixFourSingleCToTMismatchData, function(x) lapply(
-  x, function(y) simplifyTable(y, TRUE)
-))
-
-```
-
-
-```{r filter_by_mismatch_pos_and_read_length_1}
-CPDPeakCToTMismatchData = lapply(CPDSingleCToTMismatchData, function(x) {
-  lapply(x, filterMismatchesByPositionAndReadLength, HUMAN_THREE_PRIME_POS_CONSTRAINTS)
-})
-CPDFirstQPeakCToTMismatchData = lapply(CPDPeakCToTMismatchData, function(x) {
-  lapply(x, getFirstPositionQuartile)
-})
-CPDLastQPeakCToTMismatchData = lapply(CPDPeakCToTMismatchData, function(x) {
-  lapply(x, getLastPositionQuartile)
-})
-
-sixFourPeakCToTMismatchData = lapply(sixFourSingleCToTMismatchData, function(x) {
-  lapply(x, filterMismatchesByPositionAndReadLength, HUMAN_THREE_PRIME_POS_CONSTRAINTS)
-})
-sixFourFirstQPeakCToTMismatchData = lapply(sixFourPeakCToTMismatchData, function(x) {
-  lapply(x, getFirstPositionQuartile)
-})
-sixFourLastQPeakCToTMismatchData = lapply(sixFourPeakCToTMismatchData, function(x) {
-  lapply(x, getLastPositionQuartile)
-})
-```
-
-
-```{r generate_nucleotide_frequency_data_1}
-CPDSingleCToTNucFreq = lapply(CPDSingleCToTMismatchData, tabulateNucFreqByPosTimepointAndLength)
-CPDFirstQPeakCToTNucFreq = lapply(CPDFirstQPeakCToTMismatchData, tabulateNucFreqByPosTimepointAndLength)
-CPDLastQPeakCToTNucFreq = lapply(CPDLastQPeakCToTMismatchData, tabulateNucFreqByPosTimepointAndLength)
-
-sixFourSingleCToTNucFreq = lapply(sixFourSingleCToTMismatchData, tabulateNucFreqByPosTimepointAndLength)
-sixFourFirstQPeakCToTNucFreq = lapply(sixFourFirstQPeakCToTMismatchData, tabulateNucFreqByPosTimepointAndLength)
-sixFourLastQPeakCToTNucFreq = lapply(sixFourLastQPeakCToTMismatchData, tabulateNucFreqByPosTimepointAndLength)
-```
-
-
-```{r purine_vs_pyrimidine_frequencies_across_read_length, fig.width = 11, fig.height = 5}
-plotNucFreqVsReadLengthBarPlot(CPDSingleCToTNucFreq$rep1, title = "CPD Rep1 3' Nuc Freq",
-                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
-plotNucFreqVsReadLengthBarPlot(CPDSingleCToTNucFreq$rep2, title = "CPD Rep2 3' Nuc Freq",
-                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
-
-plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTNucFreq$rep1, title = "6-4 Rep1 3' Nuc Freq",
-                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
-plotNucFreqVsReadLengthBarPlot(sixFourSingleCToTNucFreq$rep2, title = "6-4 Rep2 3' Nuc Freq",
-                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
-```
-
-
-```{r purine_vs_pyrimidine_frequencies_first_quartile_mismatch_pos, fig.width = 11, fig.height = 5}
-plotNucFreqVsReadLengthBarPlot(CPDFirstQPeakCToTNucFreq$rep1, title = "CPD Rep1 1st Quartile Nuc Freq",
-                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
-plotNucFreqVsReadLengthBarPlot(CPDFirstQPeakCToTNucFreq$rep2, title = "CPD Rep2 1st Quartile Nuc Freq",
-                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
-
-plotNucFreqVsReadLengthBarPlot(sixFourFirstQPeakCToTNucFreq$rep1, title = "6-4 Rep1 1st Quartile Nuc Freq",
-                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
-plotNucFreqVsReadLengthBarPlot(sixFourFirstQPeakCToTNucFreq$rep2, title = "6-4 Rep2 1st Quartile Nuc Freq",
-                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
-```
-
-
-```{r purine_vs_pyrimidine_frequencies_last_quartile_mismatch_pos, fig.width = 11, fig.height = 5}
-plotNucFreqVsReadLengthBarPlot(CPDLastQPeakCToTNucFreq$rep1, title = "CPD Rep1 4th Quartile Nuc Freq",
-                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
-plotNucFreqVsReadLengthBarPlot(CPDLastQPeakCToTNucFreq$rep2, title = "CPD Rep2 4th Quartile Nuc Freq",
-                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
-
-plotNucFreqVsReadLengthBarPlot(sixFourLastQPeakCToTNucFreq$rep1, title = "6-4 Rep1 4th Quartile Nuc Freq",
-                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
-plotNucFreqVsReadLengthBarPlot(sixFourLastQPeakCToTNucFreq$rep2, title = "6-4 Rep2 4th Quartile Nuc Freq",
-                               combineNucleotides = c("AG","CT"), combinedNames = c("Purine","Pyrimidine"))
-```
-
-
-```{r get_file_paths_2}
 # Get file paths for the expanded mismatch by read data
 expandedCPDMismatchDataFilePaths = list(rep1 = list(), rep2 = list())
 expandedCPDMismatchDataFilePaths$rep1 = list(
   hr1 = file.path(deaminationDataDirectory, "mismatches_by_read",
-                  "NHF1_CPD_1h_Rep1_mismatches_by_read_3bp_expanded.bed"),
+                  paste0("NHF1_CPD_1h_Rep1_mismatches_by_read_",expansionOffset,"bp_expanded.bed")),
   hr8 = file.path(deaminationDataDirectory, "mismatches_by_read",
-                  "NHF1_CPD_8h_Rep1_mismatches_by_read_3bp_expanded.bed"),
+                  paste0("NHF1_CPD_8h_Rep1_mismatches_by_read_",expansionOffset,"bp_expanded.bed")),
   hr24 = file.path(deaminationDataDirectory, "mismatches_by_read",
-                   "NHF1_CPD_24h_Rep1_mismatches_by_read_3bp_expanded.bed"),
+                   paste0("NHF1_CPD_24h_Rep1_mismatches_by_read_",expansionOffset,"bp_expanded.bed")),
   hr48 = file.path(deaminationDataDirectory, "mismatches_by_read",
-                   "NHF1_CPD_48h_Rep1_mismatches_by_read_3bp_expanded.bed")
+                   paste0("NHF1_CPD_48h_Rep1_mismatches_by_read_",expansionOffset,"bp_expanded.bed"))
 )
 expandedCPDMismatchDataFilePaths$rep2 = list(
   hr1 = file.path(deaminationDataDirectory, "mismatches_by_read",
-                  "NHF1_CPD_1h_Rep2_mismatches_by_read_3bp_expanded.bed"),
+                  paste0("NHF1_CPD_1h_Rep2_mismatches_by_read_",expansionOffset,"bp_expanded.bed")),
   hr8 = file.path(deaminationDataDirectory, "mismatches_by_read",
-                  "NHF1_CPD_8h_Rep2_mismatches_by_read_3bp_expanded.bed"),
+                  paste0("NHF1_CPD_8h_Rep2_mismatches_by_read_",expansionOffset,"bp_expanded.bed")),
   hr24 = file.path(deaminationDataDirectory, "mismatches_by_read",
-                   "NHF1_CPD_24h_Rep2_mismatches_by_read_3bp_expanded.bed"),
+                   paste0("NHF1_CPD_24h_Rep2_mismatches_by_read_",expansionOffset,"bp_expanded.bed")),
   hr48 = file.path(deaminationDataDirectory, "mismatches_by_read",
-                   "NHF1_CPD_48h_Rep2_mismatches_by_read_3bp_expanded.bed")
+                   paste0("NHF1_CPD_48h_Rep2_mismatches_by_read_",expansionOffset,"bp_expanded.bed"))
 )
 
 expandedSixFourMismatchDataFilePaths = list(rep1 = list(), rep2 = list())
 expandedSixFourMismatchDataFilePaths$rep1 = list(
   min5 = file.path(deaminationDataDirectory, "mismatches_by_read",
-                   "NHF1_6-4-PP_5min_Rep1_mismatches_by_read_3bp_expanded.bed"),
+                   paste0("NHF1_6-4-PP_5min_Rep1_mismatches_by_read_",expansionOffset,"bp_expanded.bed")),
   min20 = file.path(deaminationDataDirectory, "mismatches_by_read",
-                    "NHF1_6-4-PP_20min_Rep1_mismatches_by_read_3bp_expanded.bed"),
+                    paste0("NHF1_6-4-PP_20min_Rep1_mismatches_by_read_",expansionOffset,"bp_expanded.bed")),
   hr1 = file.path(deaminationDataDirectory, "mismatches_by_read",
-                  "NHF1_6-4-PP_1h_Rep1_mismatches_by_read_3bp_expanded.bed")
+                  paste0("NHF1_6-4-PP_1h_Rep1_mismatches_by_read_",expansionOffset,"bp_expanded.bed"))
 )
 expandedSixFourMismatchDataFilePaths$rep2 = list(
   min5 = file.path(deaminationDataDirectory, "mismatches_by_read",
-                   "NHF1_6-4-PP_5min_Rep2_mismatches_by_read_3bp_expanded.bed"),
+                   paste0("NHF1_6-4-PP_5min_Rep2_mismatches_by_read_",expansionOffset,"bp_expanded.bed")),
   min20 = file.path(deaminationDataDirectory, "mismatches_by_read",
-                    "NHF1_6-4-PP_20min_Rep2_mismatches_by_read_3bp_expanded.bed"),
+                    paste0("NHF1_6-4-PP_20min_Rep2_mismatches_by_read_",expansionOffset,"bp_expanded.bed")),
   hr1 = file.path(deaminationDataDirectory, "mismatches_by_read",
-                  "NHF1_6-4-PP_1h_Rep2_mismatches_by_read_3bp_expanded.bed")
+                  paste0("NHF1_6-4-PP_1h_Rep2_mismatches_by_read_",expansionOffset,"bp_expanded.bed"))
 )
 ```
 
 
-```{r acquire_and_format_data_2}
+```{r acquire_and_format_data}
 expandedCPDSingleCToTMismatchData = lapply(expandedCPDMismatchDataFilePaths, function(x) lapply(x, fread))
 expandedSixFourSingleCToTMismatchData = lapply(expandedSixFourMismatchDataFilePaths, function(x) lapply(x, fread))
-expansionOffset = 3
 
 # Create a subset of single mismatch C>T reads.
 expandedCPDSingleCToTMismatchData = lapply(expandedCPDSingleCToTMismatchData, function(x) lapply(
@@ -251,7 +126,7 @@ fivePrimeMismatchAnchoredSixFourData = lapply(expandedSixFourSingleCToTMismatchD
 ```
 
 
-```{r generate_nucleotide_frequency_data_2}
+```{r generate_nucleotide_frequency_data}
 threePrimeMismatchCPDNucFreq = lapply(threePrimeMismatchAnchoredCPDData, tabulateNucFreqByPosTimepointAndLength)
 fivePrimeMismatchCPDNucFreq = lapply(fivePrimeMismatchAnchoredCPDData,
                                      tabulateNucFreqByPosTimepointAndLength, posType = FIVE_PRIME)
@@ -309,3 +184,129 @@ plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchCPDNucFreq$rep2,
                                posType = FIVE_PRIME, showThreePrimeCutSite = TRUE, expansionOffset = expansionOffset)
 ```
 
+
+```{r CPD_mismatch__anchored_nucleotide_frequencies, fig.width = 11, fig.height = 7}
+plotNucFreqVsReadLengthBarPlot(threePrimeMismatchSixFourNucFreq$rep1, 
+                               title = "6-4 3' Anchored Nucleotide Frequencies Rep1",
+                               secondaryYAxisLabel = "5' Cut Site Distance",
+                               posType = THREE_PRIME, showFivePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+plotNucFreqVsReadLengthBarPlot(threePrimeMismatchSixFourNucFreq$rep2, 
+                               title = "6-4 3' Anchored Nucleotide Frequencies Rep2",
+                               secondaryYAxisLabel = "5' Cut Site Distance",
+                               posType = THREE_PRIME, showFivePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+
+plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchSixFourNucFreq$rep1, 
+                               title = "6-4 5' Anchored Nucleotide Frequencies Rep1",
+                               yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "3' Cut Site Distance",
+                               posType = FIVE_PRIME, showThreePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchSixFourNucFreq$rep2, 
+                               title = "6-4 5' Anchored Nucleotide Frequencies Rep2",
+                               yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "3' Cut Site Distance",
+                               posType = FIVE_PRIME, showThreePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+```
+
+
+```{r CPD_mismatch_anchored_purine_frequencies, fig.width = 11, fig.height = 7}
+plotNucFreqVsReadLengthBarPlot(threePrimeMismatchSixFourNucFreq$rep1, 
+                               title = "6-4 3' Anchored Purine Frequencies Rep1",
+                               yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "5' Cut Site Distance",
+                               combineNucleotides = c("AG"), combinedNames = c("Purine"),
+                               posType = THREE_PRIME, showFivePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+plotNucFreqVsReadLengthBarPlot(threePrimeMismatchSixFourNucFreq$rep2, 
+                               title = "6-4 3' Anchored Purine Frequencies Rep2",
+                               yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "5' Cut Site Distance",
+                               combineNucleotides = c("AG"), combinedNames = c("Purine"),
+                               posType = THREE_PRIME, showFivePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+
+plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchSixFourNucFreq$rep1, 
+                               title = "6-4 5' Anchored Purine Frequencies Rep1",
+                               yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "3' Cut Site Distance",
+                               combineNucleotides = c("AG"), combinedNames = c("Purine"),
+                               posType = FIVE_PRIME, showThreePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchSixFourNucFreq$rep2, 
+                               title = "6-4 5' Anchored Purine Frequencies Rep2",
+                               yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "3' Cut Site Distance",
+                               combineNucleotides = c("AG"), combinedNames = c("Purine"),
+                               posType = FIVE_PRIME, showThreePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+```
+
+
+```{r compute_sequence_enrichment}
+threePrimeMMAnchoredCPDEnrichment = mapply(function(mismatchDataRep, nucFreqRep) {
+  setNames(lapply(seq_along(mismatchDataRep), function(i) {
+    getSequenceEnrichmentByReadLengthAndPos(mismatchDataRep[[i]],
+                                            nucFreqRep[Timepoint == names(mismatchDataRep)[i]],
+                                            c("CG","CA","TG","TA"))
+  }), names(mismatchDataRep))
+}, threePrimeMismatchAnchoredCPDData, threePrimeMismatchCPDNucFreq, SIMPLIFY = FALSE)
+
+fivePrimeMMAnchoredCPDEnrichment = mapply(function(mismatchDataRep, nucFreqRep) {
+  setNames(lapply(seq_along(mismatchDataRep), function(i) {
+    getSequenceEnrichmentByReadLengthAndPos(mismatchDataRep[[i]],
+                                            nucFreqRep[Timepoint == names(mismatchDataRep)[i]],
+                                            c("TGG"), posType = FIVE_PRIME)
+  }), names(mismatchDataRep))
+}, fivePrimeMismatchAnchoredCPDData, fivePrimeMismatchCPDNucFreq, SIMPLIFY = FALSE)
+
+
+threePrimeMMAnchoredSixFourEnrichment = mapply(function(mismatchDataRep, nucFreqRep) {
+  setNames(lapply(seq_along(mismatchDataRep), function(i) {
+    getSequenceEnrichmentByReadLengthAndPos(mismatchDataRep[[i]],
+                                            nucFreqRep[Timepoint == names(mismatchDataRep)[i]],
+                                            c("CG","CA","TG","TA"))
+  }), names(mismatchDataRep))
+}, threePrimeMismatchAnchoredSixFourData, threePrimeMismatchSixFourNucFreq, SIMPLIFY = FALSE)
+
+fivePrimeMMAnchoredSixFourEnrichment = mapply(function(mismatchDataRep, nucFreqRep) {
+  setNames(lapply(seq_along(mismatchDataRep), function(i) {
+    getSequenceEnrichmentByReadLengthAndPos(mismatchDataRep[[i]],
+                                            nucFreqRep[Timepoint == names(mismatchDataRep)[i]],
+                                            c("TGG"), posType = FIVE_PRIME)
+  }), names(mismatchDataRep))
+}, fivePrimeMismatchAnchoredSixFourData, fivePrimeMismatchSixFourNucFreq, SIMPLIFY = FALSE)
+```
+
+
+```{r plot_CPD_sequence_enrichment, fig.width = 11, fig.height = 7}
+plotSequenceEnrichment(threePrimeMMAnchoredCPDEnrichment$rep1,
+                       title = "CPD 3' Anchored YR Enrichment Rep1", secondaryYAxisLabel = "5' Cut Site Distance",
+                       showFivePrimeCutSite = TRUE, expansionOffset = expansionOffset,
+                       querySequences = c("CG","CA","TG","TA"))
+plotSequenceEnrichment(threePrimeMMAnchoredCPDEnrichment$rep2,
+                       title = "CPD 3' Anchored YR Enrichment Rep2", secondaryYAxisLabel = "5' Cut Site Distance",
+                       showFivePrimeCutSite = TRUE, expansionOffset = expansionOffset,
+                       querySequences = c("CG","CA","TG","TA"))
+
+plotSequenceEnrichment(fivePrimeMMAnchoredCPDEnrichment$rep1,
+                       title = "CPD 5' Anchored TGG Enrichment Rep1", secondaryYAxisLabel = "3' Cut Site Distance",
+                       showThreePrimeCutSite = TRUE, expansionOffset = expansionOffset, posType = FIVE_PRIME,
+                       querySequences = c("TGG"))
+plotSequenceEnrichment(fivePrimeMMAnchoredCPDEnrichment$rep2,
+                       title = "CPD 5' Anchored TGG Enrichment Rep2", secondaryYAxisLabel = "3' Cut Site Distance",
+                       showThreePrimeCutSite = TRUE, expansionOffset = expansionOffset, posType = FIVE_PRIME,
+                       querySequences = c("TGG"))
+```
+
+
+```{r enrichment_test_1}
+for (i in 1:5) {
+  testTable = data.table(Read_Length = 9,
+                         Read_Sequence = replicate(1000, paste0(sample(c('A','C','G','T'), 9, TRUE), collapse = '')))
+  testTableNucFreq = tabulateNucFreqByPosTimepointAndLength(testTable)
+  testEnrichment = getSequenceEnrichmentByReadLengthAndPos(testTable, testTableNucFreq, c("CG","CA","TG","TA"))
+  plotSequenceEnrichment(testEnrichment, title = "CPD 3' Anchored YR Enrichment Rep1")
+}
+```
+
+
+```{r enrichment_test_2}
+for (i in 1:5) {
+  testTable = data.table(Read_Length = 9,
+                         Read_Sequence = replicate(1000,
+                                                   paste0(sample(c(rep('A',6),rep('C',4),rep('G',4),rep('T',6)),
+                                                                 9, TRUE), collapse = '')))
+  testTableNucFreq = tabulateNucFreqByPosTimepointAndLength(testTable)
+  testEnrichment = getSequenceEnrichmentByReadLengthAndPos(testTable, testTableNucFreq, c("CG","CA","TG","TA"))
+  plotSequenceEnrichment(testEnrichment, title = "CPD 3' Anchored YR Enrichment Rep1")
+}
+```
