@@ -561,6 +561,124 @@ orientDataToMismatch = function(simplifiedTable, posType, expansionOffset = 0) {
 }
 
 
+# Given a specific nucleotide sequence, determine its observed vs. expected frequency in a set of reads
+# based on their sequences and position-specific nucleotide frequencies (may need to be subset by timepoint)
+getSequenceEnrichmentByReadLengthAndPos = function(readSequencesTable, expectedNucleotideFrequencies,
+                                                   querySequences, posType = THREE_PRIME) {
+
+  maxQueryLength = max(nchar(querySequences))
+
+  # Iterate through all the different read lengths present in the given table(s),
+  # Calculating expected and observed frequencies across all the query sequences at each position
+  # NOTE: In order to determine what positions to iterate through, the following code assumes that
+  #       all read sequences under a specific read length actually have that length.
+  return(rbindlist(lapply(unique(readSequencesTable$Read_Length), function(readLength) {
+
+    sequences = readSequencesTable[Read_Length == readLength]$Read_Sequence
+    readLengthSpecificNucFreq = expectedNucleotideFrequencies[Read_Length == readLength]
+    if (posType == THREE_PRIME) {
+      positions = -nchar(sequences[1]):(-1 - maxQueryLength + 1)
+    } else if (posType == FIVE_PRIME) {
+      positions = 1:(nchar(sequences[1]) - maxQueryLength + 1)
+    } else stop("Unrecognized value for posType parameter.")
+
+    enrichmentValues = sapply(positions, function(position) {
+
+      expectedFrequency = sum(sapply(querySequences, function(querySequence) {
+        prod(sapply(1:nchar(querySequence), function(i) {
+          readLengthSpecificNucFreq[Position == position + i - 1 &
+                                    Nucleotide == str_sub(querySequence, i, i)]$Frequency
+        }))
+      }))
+
+      observedFrequency = sum(sapply(querySequences, function(querySequence) {
+        sum(str_sub(sequences, position, position + nchar(querySequence) - 1) == querySequence)/length(sequences)
+      }))
+
+      # Add pseudo counts to avoid dividing by or taking the log (during plotting) of 0.
+      pseudoCount = 1/length(sequences)
+      observedFrequency = observedFrequency + pseudoCount
+      expectedFrequency = expectedFrequency + pseudoCount
+
+      return(observedFrequency/expectedFrequency)
+
+
+    })
+
+    return(data.table(Position = positions, Read_Length = readLength, Enrichment = enrichmentValues))
+
+  })))
+
+}
+
+
+# Plots sequence enrichment values in a barplot, similar to nucleotide frequencies
+plotSequenceEnrichment = function(enrichmentTablesByTimepoint, posType = THREE_PRIME,
+                                  title = "Sequence Enrichment by Length and Timepoint",
+                                  yAxisLabel = expression("log"[2]*"(Enrichment)"),
+                                  secondaryYAxisLabel = "Read Length", yStripFontSize = 16, yAxisTickTextSize = 8,
+                                  showThreePrimeCutSite = FALSE, showFivePrimeCutSite = FALSE,
+                                  querySequences = list('A'), expansionOffset = 0) {
+
+  if (posType == THREE_PRIME) {
+    xAxisLabel = "3' Relative Position"
+    xAxisBreaks = c(0, -10, -20, -30, -40)
+  } else if (posType == FIVE_PRIME) {
+    xAxisLabel = "5' Relative Position"
+    xAxisBreaks = c(0, 10, 20, 30, 40)
+  } else stop("Unrecognized value for posType parameter.")
+
+  # If passed a single data.table, no timepoint information is present.
+  # Otherwise, combine the given tables into one agggregate table.
+  if (is.data.table(enrichmentTablesByTimepoint)) {
+    fullEnrichmentTable = copy(enrichmentTablesByTimepoint)[,Timepoint := NA]
+  } else {
+    fullEnrichmentTable = rbindlist(lapply(seq_along(enrichmentTablesByTimepoint), function(i) {
+      copy(enrichmentTablesByTimepoint[[i]])[,Timepoint := names(enrichmentTablesByTimepoint)[i]]
+    }))
+  }
+
+  maxQueryLength = max(nchar(querySequences))
+
+  plot = ggplot(fullEnrichmentTable, aes(Position, log2(Enrichment))) +
+    geom_bar(position = "stack", stat = "identity") +
+    labs(title = title, x = xAxisLabel, y = yAxisLabel) +
+    blankBackground + defaultTextScaling
+
+  if (all(is.na(fullEnrichmentTable$Timepoint))) {
+    plot = plot + facet_grid(rows = vars(Read_Length))
+  } else {
+    plot = plot + facet_grid(Read_Length~factor(Timepoint, levels = unique(fullEnrichmentTable$Timepoint)))
+  }
+
+  plot = plot +
+    theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
+          strip.background = element_rect(color = "black", size = 1),
+          axis.text.y = element_text(size = yAxisTickTextSize),
+          axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),
+          strip.text.y = element_text(size = yStripFontSize)) +
+    #coord_cartesian(ylim = c(0,1)) +
+    scale_y_continuous(sec.axis = dup_axis(~., name = secondaryYAxisLabel)) +
+    scale_x_continuous(breaks = xAxisBreaks) + geom_hline(yintercept = 0)
+
+  if (showThreePrimeCutSite) {
+    plot = plot + geom_vline(aes(xintercept = Cut_Site_Pos),
+                             fullEnrichmentTable[,.(Cut_Site_Pos = max(Position) - expansionOffset + 1.5),
+                                                 by = list(Read_Length, Timepoint)],
+                             linetype = "dashed")
+  }
+  if (showFivePrimeCutSite) {
+    plot = plot + geom_vline(aes(xintercept = Cut_Site_Pos),
+                             fullEnrichmentTable[,.(Cut_Site_Pos = min(Position) + expansionOffset - 0.5),
+                                                 by = list(Read_Length, Timepoint)],
+                             linetype = "dashed")
+  }
+
+  print(plot)
+
+}
+
+
 # Plot a scatter and accompanying trend line for the frequency of given nucleotides vs. read length.
 plotNucFreqVsReadLengthLinearRegression = function(data, columns, title = "Nucleotides Vs. Read Length") {
 
