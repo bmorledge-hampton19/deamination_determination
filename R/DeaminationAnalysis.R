@@ -628,7 +628,7 @@ plotSequenceEnrichment = function(enrichmentTablesByTimepoint, posType = THREE_P
                                   yAxisLabel = expression("log"[2]*"(Enrichment)"),
                                   secondaryYAxisLabel = "Read Length", yStripFontSize = 16, yAxisTickTextSize = 8,
                                   showThreePrimeCutSite = FALSE, showFivePrimeCutSite = FALSE,
-                                  querySequences = list('A'), expansionOffset = 0) {
+                                  querySequences = c("TGG"), expansionOffset = 0) {
 
   if (posType == THREE_PRIME) {
     xAxisLabel = "3' Relative Position"
@@ -673,7 +673,8 @@ plotSequenceEnrichment = function(enrichmentTablesByTimepoint, posType = THREE_P
 
   if (showThreePrimeCutSite) {
     plot = plot + geom_vline(aes(xintercept = Cut_Site_Pos),
-                             fullEnrichmentTable[,.(Cut_Site_Pos = max(Position) - expansionOffset + 1.5),
+                             fullEnrichmentTable[,.(Cut_Site_Pos = max(Position) - expansionOffset +
+                                                                   maxQueryLength - 0.5),
                                                  by = list(Read_Length, Timepoint)],
                              linetype = "dashed")
   }
