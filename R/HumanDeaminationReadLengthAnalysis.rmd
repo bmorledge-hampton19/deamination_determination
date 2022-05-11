@@ -314,7 +314,7 @@ for (i in 1:5) {
   testTable = data.table(Read_Length = 9,
                          Read_Sequence = replicate(1000, paste0(sample(c('A','C','G','T'), 9, TRUE), collapse = '')))
   testTableNucFreq = tabulateNucFreqByPosTimepointAndLength(testTable)
-  testEnrichment = getSequenceEnrichmentByReadLengthAndPos(testTable, testTableNucFreq, c("CG","CA","TG","TA"))
+  testEnrichment = getSequenceFreqByReadLengthAndPos(testTable, testTableNucFreq, c("CG","CA","TG","TA"))
   plotSequenceEnrichment(testEnrichment, title = "CPD 3' Anchored YR Enrichment Rep1")
 }
 ```
@@ -327,7 +327,7 @@ for (i in 1:5) {
                                                    paste0(sample(c(rep('A',6),rep('C',4),rep('G',4),rep('T',6)),
                                                                  9, TRUE), collapse = '')))
   testTableNucFreq = tabulateNucFreqByPosTimepointAndLength(testTable)
-  testEnrichment = getSequenceEnrichmentByReadLengthAndPos(testTable, testTableNucFreq, c("CG","CA","TG","TA"))
+  testEnrichment = getSequenceFreqByReadLengthAndPos(testTable, testTableNucFreq, c("CG","CA","TG","TA"))
   plotSequenceEnrichment(testEnrichment, title = "CPD 3' Anchored YR Enrichment Rep1")
 }
 ```
