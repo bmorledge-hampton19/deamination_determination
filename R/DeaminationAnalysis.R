@@ -561,10 +561,11 @@ orientDataToMismatch = function(simplifiedTable, posType, expansionOffset = 0) {
 }
 
 
-# Given a specific nucleotide sequence, determine its observed vs. expected frequency in a set of reads
-# based on their sequences and position-specific nucleotide frequencies (may need to be subset by timepoint)
-getSequenceEnrichmentByReadLengthAndPos = function(readSequencesTable, expectedNucleotideFrequencies,
-                                                   querySequences, posType = THREE_PRIME) {
+# Given one or more nucleotide sequences, determine their frequency in a set of reads
+# across position and read length (may need to be subset by timepoint).
+# Optionally, a table of nucleotide frequencies may be provided to normalize by.
+getSequenceFreqByReadLengthAndPos = function(readSequencesTable, expectedNucleotideFrequencies = NULL,
+                                             querySequences = c("TGG"), posType = THREE_PRIME) {
 
   maxQueryLength = max(nchar(querySequences))
 
@@ -575,37 +576,46 @@ getSequenceEnrichmentByReadLengthAndPos = function(readSequencesTable, expectedN
   return(rbindlist(lapply(unique(readSequencesTable$Read_Length), function(readLength) {
 
     sequences = readSequencesTable[Read_Length == readLength]$Read_Sequence
-    readLengthSpecificNucFreq = expectedNucleotideFrequencies[Read_Length == readLength]
+    if (!is.null(expectedNucleotideFrequencies)) {
+      readLengthSpecificNucFreq = expectedNucleotideFrequencies[Read_Length == readLength]
+    }
     if (posType == THREE_PRIME) {
       positions = -nchar(sequences[1]):(-1 - maxQueryLength + 1)
     } else if (posType == FIVE_PRIME) {
       positions = 1:(nchar(sequences[1]) - maxQueryLength + 1)
     } else stop("Unrecognized value for posType parameter.")
 
-    enrichmentValues = sapply(positions, function(position) {
-
-      expectedFrequency = sum(sapply(querySequences, function(querySequence) {
-        prod(sapply(1:nchar(querySequence), function(i) {
-          readLengthSpecificNucFreq[Position == position + i - 1 &
-                                    Nucleotide == str_sub(querySequence, i, i)]$Frequency
-        }))
-      }))
+    frequencies = sapply(positions, function(position) {
 
       observedFrequency = sum(sapply(querySequences, function(querySequence) {
         sum(str_sub(sequences, position, position + nchar(querySequence) - 1) == querySequence)/length(sequences)
       }))
 
-      # Add pseudo counts to avoid dividing by or taking the log (during plotting) of 0.
-      pseudoCount = 1/length(sequences)
-      observedFrequency = observedFrequency + pseudoCount
-      expectedFrequency = expectedFrequency + pseudoCount
+      if (!is.null(expectedNucleotideFrequencies)) {
+        expectedFrequency = sum(sapply(querySequences, function(querySequence) {
+          prod(sapply(1:nchar(querySequence), function(i) {
+            readLengthSpecificNucFreq[Position == position + i - 1 &
+                                        Nucleotide == str_sub(querySequence, i, i)]$Frequency
+          }))
+        }))
 
-      return(observedFrequency/expectedFrequency)
+        # Add pseudo counts to avoid dividing by or taking the log (during plotting) of 0.
+        pseudoCount = 1/length(sequences)
+        observedFrequency = observedFrequency + pseudoCount
+        expectedFrequency = expectedFrequency + pseudoCount
 
+        return(observedFrequency/expectedFrequency)
+      } else {
+        return(observedFrequency)
+      }
 
     })
 
-    return(data.table(Position = positions, Read_Length = readLength, Enrichment = enrichmentValues))
+    if (!is.null(expectedNucleotideFrequencies)) {
+      return(data.table(Position = positions, Read_Length = readLength, Enrichment = frequencies))
+    } else {
+      return(data.table(Position = positions, Read_Length = readLength, Frequency = frequencies))
+    }
 
   })))
 
@@ -671,6 +681,72 @@ plotSequenceEnrichment = function(enrichmentTablesByTimepoint, posType = THREE_P
     plot = plot + geom_vline(aes(xintercept = Cut_Site_Pos),
                              fullEnrichmentTable[,.(Cut_Site_Pos = min(Position) + expansionOffset - 0.5),
                                                  by = list(Read_Length, Timepoint)],
+                             linetype = "dashed")
+  }
+
+  print(plot)
+
+}
+
+
+# Plot nucleotide frequencies for a series of read lengths.
+plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRIME,
+                                   title = "Seq Freq by Length and Timepoint", yAxisLabel = "Sequence Frequency",
+                                   secondaryYAxisLabel = "Read Length", yStripFontSize = 16,
+                                   showThreePrimeCutSite = FALSE, showFivePrimeCutSite = FALSE,
+                                   expansionOffset = 0, querySequences = c("TGG")) {
+
+  if (posType == THREE_PRIME) {
+    xAxisLabel = "3' Relative Position"
+    xAxisBreaks = c(0, -10, -20, -30)
+  } else if (posType == FIVE_PRIME) {
+    xAxisLabel = "5' Relative Position"
+    xAxisBreaks = c(0, 10, 20, 30)
+  } else stop("Unrecognized value for posType parameter.")
+
+  # If passed a single data.table, no timepoint information is present.
+  # Otherwise, combine the given tables into one agggregate table.
+  if (is.data.table(seqFreqTablesByTimepoint)) {
+    fullFrequencyTable = copy(seqFreqTablesByTimepoint)[,Timepoint := NA]
+  } else {
+    fullFrequencyTable = rbindlist(lapply(seq_along(seqFreqTablesByTimepoint), function(i) {
+      copy(seqFreqTablesByTimepoint[[i]])[,Timepoint := names(seqFreqTablesByTimepoint)[i]]
+    }))
+  }
+
+  maxQueryLength = max(nchar(querySequences))
+
+  plot = ggplot(fullFrequencyTable, aes(Position, Frequency)) +
+    geom_bar(stat = "identity") +
+    labs(title = title, x = xAxisLabel, y = yAxisLabel) +
+    blankBackground + defaultTextScaling
+
+  if (all(is.na(fullFrequencyTable$Timepoint))) {
+    plot = plot + facet_grid(rows = vars(Read_Length))
+  } else {
+    plot = plot + facet_grid(Read_Length~factor(Timepoint, levels = unique(fullFrequencyTable$Timepoint)))
+  }
+
+  plot = plot +
+    theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
+          strip.background = element_rect(color = "black", size = 1),
+          axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+          strip.text.y = element_text(size = yStripFontSize)) +
+    coord_cartesian(ylim = c(0,1)) +
+    scale_y_continuous(sec.axis = dup_axis(~., name = secondaryYAxisLabel)) +
+    scale_x_continuous(breaks = xAxisBreaks)
+
+  if (showThreePrimeCutSite) {
+    plot = plot + geom_vline(aes(xintercept = Cut_Site_Pos),
+                             fullFrequencyTable[,.(Cut_Site_Pos = max(Position) - expansionOffset +
+                                                                  maxQueryLength - 0.5),
+                                                by = list(Read_Length, Timepoint)],
+                             linetype = "dashed")
+  }
+  if (showFivePrimeCutSite) {
+    plot = plot + geom_vline(aes(xintercept = Cut_Site_Pos),
+                             fullFrequencyTable[,.(Cut_Site_Pos = min(Position) + expansionOffset - 0.5),
+                                                by = list(Read_Length, Timepoint)],
                              linetype = "dashed")
   }
 
