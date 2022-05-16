@@ -93,7 +93,46 @@ filterMismatchesByPositionAndReadLength = function(mismatchTable, posConstraints
   posConstraintsByReadLength$Min_Pos,
   posConstraintsByReadLength$Max_Pos,
   SIMPLIFY = FALSE)))
-  
+
+}
+
+
+# This function determines peak mismatch regions by read length.
+# This is achieved by using the first 10 positions from the 5' end (generally devoid of lesion sites) as
+# background and then defining peak positions as any that differ by at least 4 standard deviations above the
+# background distribution mean and are adjacent to either the maximum frequency position or another peak position.
+# NOTE: Positions are assumed to be given relative to the three prime end (negative values)
+getPeakPositionsByReadLength = function(simplifiedMismatchData, expansionOffset) {
+
+  # First, get position frequencies for each read length.
+  mismatchPositionFrequencies = simplifiedMismatchData[, .N, by = list(Position,Read_Length)]
+  mismatchPositionFrequencies[, Frequency := N/sum(N), by = list(Read_Length)]
+  mismatchPositionFrequencies[,Position := Position + expansionOffset] # Adjust position for expansion offset
+
+  # Next, iterate through read lengths, determining peak regions for each.
+  return(rbindlist(lapply(unique(mismatchPositionFrequencies$Read_Length), function(readLength) {
+
+    # Determine the cutoff value based on the background.
+    relevantPositionFrequencies = mismatchPositionFrequencies[Read_Length == readLength]
+    background = relevantPositionFrequencies[Position >= -readLength & Position <= -readLength + 10, Frequency]
+    cutoff = mean(background) + 4*sd(background)
+
+    # Seed the peak region at the maximum frequency position and extend it in either direction until
+    # a position's frequency no longer meets the cutoff value.
+    minPeakPos = maxPeakPos = relevantPositionFrequencies[which.max(Frequency), Position]
+    while(maxPeakPos + 1 < 0 &&
+          relevantPositionFrequencies[Position == maxPeakPos + 1, Frequency] > cutoff) {
+      maxPeakPos = maxPeakPos + 1
+    }
+    while(minPeakPos - 1 >= -readLength &&
+          relevantPositionFrequencies[Position == minPeakPos - 1, Frequency] > cutoff) {
+      minPeakPos = minPeakPos - 1
+    }
+
+    return(data.table(Read_Length = readLength, Max_Pos = maxPeakPos, Min_Pos = minPeakPos))
+
+  })))
+
 }
 
 
