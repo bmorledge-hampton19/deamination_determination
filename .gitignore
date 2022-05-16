@@ -209,4 +209,5 @@ data/
 
 # R markdown output
 R/*Analysis.html
+R/*Generation.html
 R/deamination_analysis_output/*
