@@ -1,5 +1,5 @@
 ---
-title: "Human Deamination Periodicity Analysis"
+title: "NHF1 Deamination Periodicity Analysis"
 author: "Ben Morledge-Hampton"
 date: "5/2/2022"
 output: html_document
@@ -13,8 +13,12 @@ params:
 
 ```{r setup_chunk}
 library(knitr)
+
+cellType = "NHF1"
+
 opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5, 
-               fig.path = paste0(file.path("deamination_analysis_output","human_analysis_figures"),
+               fig.path = paste0(file.path("deamination_analysis_output", cellType,
+                                           "deamination_periodicity_figures"),
                                  .Platform$file.sep))
 if (interactive()) {
   bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
@@ -22,17 +26,21 @@ if (interactive()) {
   bioinformaticsDirectory = params$bioinformaticsDirectory
 }
 
-deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data", "human")
+deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data", cellType)
+deaminationPeriodicityDataDirectory = file.path(deaminationDataDirectory, "nucleosome_periodicity")
 ```
 
 
 ```{r source_functions}
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "UsefulFileSystemFunctions.R"))
 source(file.path(bioinformaticsDirectory, "Chromatin_Features_Analysis", "R_scripts", "PeriodicityAnalysis.R"))
 ```
 
 
-```{r acquire_and_format_data_1}
-load(file.path(deaminationDataDirectory, "periodicity_results", "NHF1_deamination_periodicity_results.rda"))
+```{r read_periodicity_data_1}
+load(generateFilePath(deaminationPeriodicityDataDirectory, dataTypeStrings$nucleosomePeriodicity, ".rda",
+                      cellType = cellType))
 dataSetNames = as.list(setNames(nm = mutperiodData$periodicityResults$Data_Set))
 ```
 
@@ -88,9 +96,9 @@ parseAndPlotPeriodicity(
 
 
 ```{r acquire_and_format_data_2}
-load(file.path(deaminationDataDirectory, "periodicity_results", "NHF1_TCG_deamination_periodicity_results.rda"))
+load(generateFilePath(deaminationPeriodicityDataDirectory, dataTypeStrings$nucleosomePeriodicity, ".rda",
+                      cellType = cellType, includedMismatches = "TCG"))
 dataSetNames = as.list(setNames(nm = mutperiodData$periodicityResults$Data_Set))
-
 ```
 
 

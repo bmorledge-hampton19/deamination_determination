@@ -1,5 +1,5 @@
 ---
-title: "Human Deamination Positioning Analysis"
+title: "NHF1 Deamination Sequence and Position Figure Generation"
 author: "Ben Morledge-Hampton"
 date: "5/2/2022"
 output: html_document
@@ -14,8 +14,14 @@ params:
 
 ```{r setup_chunk}
 library(knitr)
+
+cellType = "NHF1"
+CPDTimepoints = list(`1h` = NULL, `8h` = NULL, `24h` = NULL, `48h` = NULL)
+sixFourTimepoints = list(`5min` = NULL, `20min` = NULL, `1h` = NULL)
+
 opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5, 
-               fig.path = paste0(file.path("deamination_analysis_output","human_analysis_figures"),
+               fig.path = paste0(file.path("deamination_analysis_output",cellType,
+                                           "deamination_sequence_and_position_figures"),
                                  .Platform$file.sep))
 if (interactive()) {
   bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
@@ -23,64 +29,44 @@ if (interactive()) {
   bioinformaticsDirectory = params$bioinformaticsDirectory
 }
 
-deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data", "human")
+deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data", cellType)
+deaminationSequenceAndPositionDataDirectory = file.path(deaminationDataDirectory,"sequence_and_position_analysis")
 ```
 
 
 ```{r source_functions}
-source(file.path(bioinformaticsDirectory, "deamination_determination", 'R', "DeaminationAnalysis.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "UsefulFileSystemFunctions.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "DeaminationSequenceAndPositionAnalysis.R"))
 ```
 
 
-```{r get_file_paths}
+```{r read_simplified_mismatch_data}
 # Get file paths for the mismatch by read data
-CPDMismatchDataFilePaths = list(rep1 = list(), rep2 = list())
-CPDMismatchDataFilePaths$rep1 = list(
-  hr1 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_1h_Rep1_mismatches_by_read.bed"),
-  hr8 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_8h_Rep1_mismatches_by_read.bed"),
-  hr24 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_24h_Rep1_mismatches_by_read.bed"),
-  hr48 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_48h_Rep1_mismatches_by_read.bed")
-)
-CPDMismatchDataFilePaths$rep2 = list(
-  hr1 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_1h_Rep2_mismatches_by_read.bed"),
-  hr8 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_8h_Rep2_mismatches_by_read.bed"),
-  hr24 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_24h_Rep2_mismatches_by_read.bed"),
-  hr48 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_CPD_48h_Rep2_mismatches_by_read.bed")
-)
+CPDMismatchData = list(rep1 = CPDTimepoints,
+                       rep2 = CPDTimepoints)
+for (i in seq_along(CPDMismatchData)) {
+  for (j in seq_along(CPDMismatchData[[i]])) {
+    CPDMismatchData[[i]][[j]] = fread(generateFilePath(
+      deaminationSequenceAndPositionDataDirectory, dataTypeStrings$simplifiedMismatches, ".tsv",
+      cellType = cellType, lesion = "CPD", timepoint = names(CPDMismatchData[[i]])[j],
+      repitition = names(CPDMismatchData)[i]
+    ))
+  }
+}
 
-sixFourMismatchDataFilePaths = list(rep1 = list(), rep2 = list())
-sixFourMismatchDataFilePaths$rep1 = list(
-  min5 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_5min_Rep1_mismatches_by_read.bed"),
-  min20 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_20min_Rep1_mismatches_by_read.bed"),
-  hr1 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_1h_Rep1_mismatches_by_read.bed")
-)
-sixFourMismatchDataFilePaths$rep2 = list(
-  min5 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_5min_Rep2_mismatches_by_read.bed"),
-  min20 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_20min_Rep2_mismatches_by_read.bed"),
-  hr1 = file.path(deaminationDataDirectory, "mismatches_by_read", "NHF1_6-4-PP_1h_Rep2_mismatches_by_read.bed")
-)
-```
-
-
-```{r acquire_and_format_data}
-CPDMismatchData = lapply(CPDMismatchDataFilePaths, function(x) lapply(x, fread))
-sixFourMismatchData = lapply(sixFourMismatchDataFilePaths, function(x) lapply(x, fread))
-
-# Perform general filtering on the data
-CPDMismatchData = lapply(CPDMismatchData, function(x) lapply(
-  x, function(y) filterResults(y, TRUE, 3, 23, 31)
-))
-sixFourMismatchData = lapply(sixFourMismatchData, function(x) lapply(
-  x, function(y) filterResults(y, TRUE, 3, 23, 31)
-))
-
-# Simplify the data
-CPDMismatchData = lapply(CPDMismatchData, function(x) lapply(
-  x, function(y) simplifyTable(y, includeTrinucleotideContext = TRUE)
-))
-sixFourMismatchData = lapply(sixFourMismatchData, function(x) lapply(
-  x, function(y) simplifyTable(y, includeTrinucleotideContext = TRUE)
-))
+sixFourMismatchData = list(rep1 = sixFourTimepoints,
+                           rep2 = sixFourTimepoints)
+for (i in seq_along(sixFourMismatchData)) {
+  for (j in seq_along(sixFourMismatchData[[i]])) {
+    sixFourMismatchData[[i]][[j]] = fread(generateFilePath(
+      deaminationSequenceAndPositionDataDirectory, dataTypeStrings$simplifiedMismatches, ".tsv",
+      cellType = cellType, lesion = "6-4", timepoint = names(sixFourMismatchData[[i]])[j],
+      repitition = names(sixFourMismatchData)[i]
+    ))
+  }
+}
 ```
 
 
@@ -126,11 +112,6 @@ for (i in 1:length(sixFourMismatchData)) {
     plotMismatchPositionFrequencies(sixFourMismatchData[[i]][[j]], includedTypes = c("C>T"),
                                     title = paste("6-4", names(sixFourMismatchData)[i], 
                                                   names(sixFourMismatchData[[i]])[j], "C>T Mismatch Positions"))
-    plotMismatchPositionFrequencies(sixFourMismatchData[[i]][[j]], includedTypes = c("C>T"),
-                                    title = paste("6-4", names(sixFourMismatchData)[i], 
-                                                  names(sixFourMismatchData[[i]])[j], "C>T Mismatch Positions"),
-                                    posType = FIVE_PRIME)
-    
     plotMismatchPositionFrequencies(sixFourMismatchData[[i]][[j]], omittedTypes = c("C>T"),
                                     title = paste("6-4", names(sixFourMismatchData)[i], 
                                                   names(sixFourMismatchData[[i]])[j], "!C>T Mismatch Positions"))
@@ -161,7 +142,7 @@ for (i in 1:length(sixFourMismatchData)) {
 ```
 
 
-```{r facet_mismatch_position_frequencies, fig.width = 9, fig.height = 5}
+```{r CPD_mismatch_position_frequencies_by_read_length, fig.width = 9, fig.height = 5}
 plotPositionAcrossTimepointAndReadLength(CPDMismatchData$rep1, includedTypes = c("C>T"),
                                          title = "CPD C>T Mismatch Pos Freq Rep1")
 plotPositionAcrossTimepointAndReadLength(CPDMismatchData$rep2, includedTypes = c("C>T"),
@@ -170,7 +151,10 @@ plotPositionAcrossTimepointAndReadLength(CPDMismatchData$rep1, includedTypes = c
                                          title = "CPD C>T Mismatch Pos Freq Rep1", posType = FIVE_PRIME)
 plotPositionAcrossTimepointAndReadLength(CPDMismatchData$rep2, includedTypes = c("C>T"),
                                          title = "CPD C>T Mismatch Pos Freq Rep2", posType = FIVE_PRIME)
+```
 
+
+```{r 6-4_mismatch_position_frequencies_by_read_length, fig.width = 9, fig.height = 5}
 plotPositionAcrossTimepointAndReadLength(sixFourMismatchData$rep1, includedTypes = c("C>T"),
                                          title = "6-4 C>T Mismatch Pos Freq Rep1")
 plotPositionAcrossTimepointAndReadLength(sixFourMismatchData$rep2, includedTypes = c("C>T"),
@@ -182,54 +166,44 @@ plotPositionAcrossTimepointAndReadLength(sixFourMismatchData$rep2, includedTypes
 ```
 
 
-```{r facet_mismatch_position_statistics}
-CPDGroupedStats = list(rep1 = list(), rep2 = list())
-CPDGroupedStats$rep1$three_prime = getGroupedPositionStats(CPDMismatchData$rep1, includedTypes = c("C>T"))
-CPDGroupedStats$rep2$three_prime = getGroupedPositionStats(CPDMismatchData$rep2, includedTypes = c("C>T"))
-CPDGroupedStats$rep1$five_prime =
-  getGroupedPositionStats(CPDMismatchData$rep1, includedTypes = c("C>T"), posType = FIVE_PRIME)
-CPDGroupedStats$rep2$five_prime =
-  getGroupedPositionStats(CPDMismatchData$rep2, includedTypes = c("C>T"), posType = FIVE_PRIME)
+```{r read_mismatch_position_statistics}
+CPDGroupedStats = list(rep1 = list(three_prime = NULL, five_prime = NULL),
+                       rep2 = list(three_prime = NULL, five_prime = NULL))
+for (i in seq_along(CPDGroupedStats)) {
+  for (j in seq_along(CPDGroupedStats[[i]])) {
+    CPDGroupedStats[[i]][[j]] = fread(generateFilePath(
+      deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
+      cellType = cellType, lesion = "CPD", repitition = names(CPDGroupedStats)[i],
+      strandPolarity = names(CPDGroupedStats[[i]])[j]
+    ))
+  }
+}
 
-sixFourGroupedStats = list(rep1 = list(), rep2 = list())
-sixFourGroupedStats$rep1$three_prime = getGroupedPositionStats(sixFourMismatchData$rep1, includedTypes = c("C>T"))
-sixFourGroupedStats$rep2$three_prime = getGroupedPositionStats(sixFourMismatchData$rep2, includedTypes = c("C>T"))
-sixFourGroupedStats$rep1$five_prime =
-  getGroupedPositionStats(sixFourMismatchData$rep1, includedTypes = c("C>T"), posType = FIVE_PRIME)
-sixFourGroupedStats$rep2$five_prime =
-  getGroupedPositionStats(sixFourMismatchData$rep2, includedTypes = c("C>T"), posType = FIVE_PRIME)
-
-tableOutputDir = file.path("deamination_analysis_output","human_analysis_tables")
-dir.create(tableOutputDir, recursive = TRUE)
-
-fwrite(CPDGroupedStats$rep1$three_prime,
-       file.path(tableOutputDir, "CPD_mismatch_three_prime_position_stats_rep1.tsv"),sep = '\t')
-fwrite(CPDGroupedStats$rep2$three_prime,
-       file.path(tableOutputDir, "CPD_mismatch_three_prime_position_stats_rep2.tsv"),sep = '\t')
-fwrite(CPDGroupedStats$rep1$five_prime,
-       file.path(tableOutputDir, "CPD_mismatch_five_prime_position_stats_rep1.tsv"),sep = '\t')
-fwrite(CPDGroupedStats$rep2$five_prime,
-       file.path(tableOutputDir, "CPD_mismatch_five_prime_position_stats_rep2.tsv"),sep = '\t')
-
-fwrite(sixFourGroupedStats$rep1$three_prime,
-       file.path(tableOutputDir, "6-4_mismatch_three_prime_position_stats_rep1.tsv"), sep = '\t')
-fwrite(sixFourGroupedStats$rep2$three_prime,
-       file.path(tableOutputDir, "6-4_mismatch_three_prime_position_stats_rep2.tsv"), sep = '\t')
-fwrite(sixFourGroupedStats$rep1$five_prime,
-       file.path(tableOutputDir, "6-4_mismatch_five_prime_position_stats_rep1.tsv"), sep = '\t')
-fwrite(sixFourGroupedStats$rep2$five_prime,
-       file.path(tableOutputDir, "6-4_mismatch_five_prime_position_stats_rep2.tsv"), sep = '\t')
+sixFourGroupedStats = list(rep1 = list(three_prime = NULL, five_prime = NULL),
+                           rep2 = list(three_prime = NULL, five_prime = NULL))
+for (i in seq_along(sixFourGroupedStats)) {
+  for (j in seq_along(sixFourGroupedStats[[i]])) {
+    sixFourGroupedStats[[i]][[j]] = fread(generateFilePath(
+      deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
+      cellType = cellType, lesion = "6-4", repitition = names(sixFourGroupedStats)[i],
+      strandPolarity = names(sixFourGroupedStats[[i]])[j]
+    ))
+  }
+}
 ```
 
 
-```{r position_differences_across_read_lengths, fig.width = 9, fig.height = 5}
+```{r CPD_position_differences_across_read_lengths, fig.width = 9, fig.height = 5}
 plotGroupedPositionStats(CPDGroupedStats$rep1$three_prime, CPDGroupedStats$rep1$five_prime, POS_DIFF,
                          title = "CPD C>T Mismatch Pos Diff Rep1",
                          xAxisBreaks = c(23:31))
 plotGroupedPositionStats(CPDGroupedStats$rep2$three_prime, CPDGroupedStats$rep2$five_prime, POS_DIFF,
                          title = "CPD C>T Mismatch Pos Diff Rep2",
                          xAxisBreaks = c(23:31))
+```
 
+
+```{r 6-4_position_differences_across_read_lengths, fig.width = 9, fig.height = 5}
 plotGroupedPositionStats(sixFourGroupedStats$rep1$three_prime, sixFourGroupedStats$rep1$five_prime, POS_DIFF,
                          title = "6-4 C>T Mismatch Pos Diff Rep1",
                          xAxisBreaks = c(23:31))
