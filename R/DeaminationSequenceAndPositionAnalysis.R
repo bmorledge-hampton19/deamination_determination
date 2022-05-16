@@ -74,8 +74,8 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
                                                     title = "Mismatch Position Frequencies", posType = THREE_PRIME) {
   
   #If passed a single data.table, wrap it in a list.
-  if (is.data.table(simplifiedTablesByTimepoint)) {
-    simplifiedTablesByTimepoint = list(None = simplifiedTablesByTimepoint)
+  if (is.data.table(simplifiedTables)) {
+    simplifiedTables = list(None = simplifiedTables)
     noTimepointInfo = TRUE
   } else noTimepointInfo = FALSE
   
@@ -140,8 +140,8 @@ getGroupedPositionStats = function(simplifiedTables, includedTypes = list(),
                                    omittedTypes = list(), posType = THREE_PRIME) {
   
   #If passed a single data.table, wrap it in a list.
-  if (is.data.table(simplifiedTablesByTimepoint)) {
-    simplifiedTablesByTimepoint = list(None = simplifiedTablesByTimepoint)
+  if (is.data.table(simplifiedTables)) {
+    simplifiedTables = list(None = simplifiedTables)
   }
   
   if (posType == FIVE_PRIME) {
