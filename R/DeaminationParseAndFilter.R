@@ -1,31 +1,31 @@
 library(data.table)
 library(stringr)
 
-THREE_PRIME = 3
-FIVE_PRIME = 5
+THREE_PRIME = "three_prime"
+FIVE_PRIME = "five_prime"
 
 
 # Filters the given mismatch data based the presence of 'N', the number of mismatches per read,
 # and read length.
 filterResults = function(mismatchData, removeRowsWithN = TRUE, maxMismatchesAllowed = NA,
                          minReadLength = NA, maxReadLength = NA) {
-  
+
   if (removeRowsWithN) mismatchData = mismatchData[!grepl('N', V5)]
-  
+
   if (!is.na(maxMismatchesAllowed)) {
     mismatchData = mismatchData[str_count(V4, ':') < maxMismatchesAllowed]
   }
-  
+
   if (!is.na(minReadLength)) {
     mismatchData = mismatchData[V3-V2 >= minReadLength]
   }
-  
+
   if (!is.na(maxReadLength)) {
     mismatchData = mismatchData[V3-V2 <= maxReadLength]
   }
-  
+
   return(mismatchData)
-  
+
 }
 
 
@@ -41,16 +41,16 @@ filterResults = function(mismatchData, removeRowsWithN = TRUE, maxMismatchesAllo
 #       be inaccurate and the Position field MAY be inaccurate, even with the expansionOffset parameter.
 simplifyTable = function(table, includeReadSequence = FALSE, includeTrinucleotideContext = FALSE,
                          expansionOffset = 0) {
-  
+
   returnTable = table[,list(Position = as.numeric(unlist(strsplit(V4, ':'))) - expansionOffset,
                             Mismatch = unlist(strsplit(V5, ':')),
                             Read_Length = unlist(mapply(rep, nchar(V7)-2*expansionOffset,
                                                         lapply(strsplit(V5,':'), length))))]
-  
+
   if (includeReadSequence || includeTrinucleotideContext) {
     returnTable[, Read_Sequence := unlist(mapply(rep, table$V7, lapply(strsplit(table$V5,':'), length)))]
   }
-  
+
   if (includeTrinucleotideContext) {
     returnTable[abs(Position) > 1 & abs(Position) < Read_Length,
                 Trinuc_Context := paste0(str_sub(Read_Sequence, Position - 1, Position - 1),
@@ -58,23 +58,23 @@ simplifyTable = function(table, includeReadSequence = FALSE, includeTrinucleotid
                                          str_sub(Read_Sequence, Position + 1, Position + 1))]
     if (!includeReadSequence) returnTable[, Read_Sequence := NULL]
   }
-  
+
   return(returnTable)
-  
+
 }
 
 
 # Takes a simplified table of mismatches and filters them based on the position of the mismatch
 filterMismatchesByPosition = function(mismatchTable, minPos, maxPos, posType, expansionOffset = 0) {
-  
+
   if (posType == THREE_PRIME) {
     positions = mismatchTable$Position + expansionOffset
   } else if (posType == FIVE_PRIME) {
     positions = mismatchTable$Read_Length + mismatchTable$Position + 1 - expansionOffset
   } else stop("Unrecognized value for posType parameter.")
-  
+
   return(mismatchTable[positions >= minPos & positions <= maxPos])
-  
+
 }
 
 
@@ -84,7 +84,7 @@ filterMismatchesByPosition = function(mismatchTable, minPos, maxPos, posType, ex
 # See constant tables below for examples of how to format the posConstraintsByReadLength table.
 filterMismatchesByPositionAndReadLength = function(mismatchTable, posConstraintsByReadLength,
                                                    expansionOffset = 0) {
-  
+
   return(rbindlist(mapply( function(readLength, minPos, maxPos) {
     filterMismatchesByPosition(mismatchTable[Read_Length == readLength],
                                minPos, maxPos, THREE_PRIME, expansionOffset)
@@ -153,19 +153,22 @@ getLastPositionQuartile = function(table) {
 }
 
 
+
+
+
 # Determines if the given mismatch position and type data for a single read
 # contains a tandem C>T mutation.
 hasTandemCTMismatch = function(mismatchPositions, mismatchTypes) {
-  
+
   if (length(mismatchPositions) < 2) return(NA)
-  
+
   for (i in 2:length(mismatchPositions)) {
     if (abs(mismatchPositions[i] - mismatchPositions[i-1]) == 1 &&
         mismatchTypes[i] == "C>T" && mismatchTypes[i-1] == "C>T") return(TRUE)
   }
-  
+
   return(FALSE)
-  
+
 }
 
 
@@ -173,7 +176,7 @@ hasTandemCTMismatch = function(mismatchPositions, mismatchTypes) {
 # Can also filter results by boundary conditions (e.g. a threePrimeBoundary of -4 will filter out
 # tandem mismatches that extend into the -3, -2, or -1 positions.)
 getTandemCTMismatches = function(table, threePrimeBoundary = NA, fivePrimeBoundary = NA) {
-  
+
   multiMismatchReads = table[grepl(':', V4)]
   tandemCTMismatches = multiMismatchReads[mapply(hasTandemCTMismatch,
                                                  lapply(V4, function(x) as.numeric(unlist(strsplit(x,':')))),
@@ -187,5 +190,5 @@ getTandemCTMismatches = function(table, threePrimeBoundary = NA, fivePrimeBounda
                                                    function(x) min(as.numeric(x)) > fivePrimeBoundary)]
   }
   return(tandemCTMismatches)
-  
+
 }
