@@ -11,7 +11,8 @@ from benbiohelpers.InputParsing.ParseToIterable import parseToIterable
 from benbiohelpers.CustomErrors import UserInputError
 
 
-def filterOnExpandedContext(expandedContextFilePaths: List[str], threePrimeBlacklist = list(), fivePrimeBlacklist = list(), customSuffix = ''):
+def filterOnExpandedContext(expandedContextFilePaths: List[str], threePrimeBlacklist = list(), fivePrimeBlacklist = list(),
+                            customSuffix = ''):
     
     for expandedContextFilePath in expandedContextFilePaths:
         expandedBasename = os.path.basename(expandedContextFilePath)
@@ -31,14 +32,15 @@ def filterOnExpandedContext(expandedContextFilePaths: List[str], threePrimeBlack
         expansionContext = int(expansionContext)
         maxBlacklistSequenceLength = max(len(sequence) for sequence in threePrimeBlacklist + fivePrimeBlacklist)
         if expansionContext < maxBlacklistSequenceLength:
-            raise UserInputError(f"Expansion context is insufficient for blacklisted sequence length: {maxBlacklistSequenceLength}")
+            raise UserInputError(f"Expansion context is insufficient for blacklisted "
+                                 f"sequence length: {maxBlacklistSequenceLength}")
 
         outputDirectory = os.path.dirname(expandedContextFilePath)
         expandedContextOutputFilePath = os.path.join(outputDirectory, expandedBasename.rsplit('.',1)[0] + customSuffix + ".bed")
         unexpandedOutputFilePath = os.path.join(outputDirectory, unexpandedBasename.rsplit('.',1)[0] + customSuffix + ".bed")
 
-        # Read through the files in tandem, searching for lines with the blacklisted sequences to be filtered and writing the rest
-        # to the new output files.
+        # Read through the files in tandem, searching for lines with the blacklisted sequences to be filtered and writing
+        # the rest to the new output files.
         print("Searching for blacklisted sequences just outside cut-sites...")
         with open(expandedContextFilePath, 'r') as expandedContextFile:
             with open(unexpandedFilePath, 'r') as unexpandedFile:
@@ -60,15 +62,19 @@ def filterOnExpandedContext(expandedContextFilePaths: List[str], threePrimeBlack
                             expandedReadSequence = splitExpandedLine[6]
                             blacklist = False
                             for blacklistSequence in threePrimeBlacklist:
-                                if len(blacklistSequence) == expansionContext: slicedReadSequence = expandedReadSequence[-expansionContext:]
-                                else: slicedReadSequence = expandedReadSequence[-expansionContext + len(blacklistSequence)]
+                                if len(blacklistSequence) == expansionContext: 
+                                    slicedReadSequence = expandedReadSequence[-expansionContext:]
+                                else: 
+                                    slicedReadSequence =expandedReadSequence[-expansionContext:
+                                                                             -expansionContext + len(blacklistSequence)]
                                 if blacklistSequence == slicedReadSequence:
                                     blacklist = True
                                     break
 
                             if not blacklist:
                                 for blacklistSequence in fivePrimeBlacklist:
-                                    slicedReadSequence = expandedReadSequence[expansionContext - len(blacklistSequence):expansionContext]
+                                    slicedReadSequence = expandedReadSequence[expansionContext - len(blacklistSequence):
+                                                                              expansionContext]
                                     if blacklistSequence == slicedReadSequence:
                                         blacklist = True
                                         break
