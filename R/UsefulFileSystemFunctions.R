@@ -8,13 +8,14 @@ dataTypeStrings =
        nucleosomePeriodicity = "deamination_periodicity_results",
        nucleotideFrequencyData = "nucleotide_frequencies",
        sequenceEnrichment = "sequence_enrichment",
-       sequenceFrequency = "sequence_frequency")
+       sequenceFrequency = "sequence_frequency",
+       alignedReads = "aligned_reads")
 
 generateFilePath = function(directory, dataTypeString, fileExtension,
                             cellType = NA, lesion = NA, timepoint = NA, repitition = NA,
                             includedMismatches = character(), omittedMismatches = character(),
                             strandPolarity = NA, anchored = F, sequence = NA, expansionNum = NA,
-                            additionalInformation = character()) {
+                            additionalInformation = character(), filterText = NA) {
 
   if ( length(includedMismatches) > 0 && length(omittedMismatches) > 0) {
     stop("Included mismatches and omitted mismatches given simultaneously")
@@ -30,7 +31,8 @@ generateFilePath = function(directory, dataTypeString, fileExtension,
   else anchoredText = NA
 
   basenameParts = c(cellType, lesion, timepoint, repitition, includedMismatches, omittedMismatches, "omitted",
-                    strandPolarity, anchoredText, sequence, additionalInformation, dataTypeString, expansionText)
+                    strandPolarity, anchoredText, sequence, additionalInformation, dataTypeString, expansionText,
+                    filterText)
   if (length(omittedMismatches) == 0) basenameParts[5+length(includedMismatches)] = NA
   basenameParts = basenameParts[!is.na(basenameParts)]
 
