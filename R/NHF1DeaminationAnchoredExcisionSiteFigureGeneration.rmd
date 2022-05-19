@@ -19,6 +19,7 @@ expansionOffset = 10
 cellType = "NHF1"
 CPDTimepoints = list(`1h` = NULL, `8h` = NULL, `24h` = NULL, `48h` = NULL)
 sixFourTimepoints = list(`5min` = NULL, `20min` = NULL, `1h` = NULL)
+filtering = character()
 
 opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5, 
                fig.path = paste0(file.path("deamination_analysis_output", cellType,

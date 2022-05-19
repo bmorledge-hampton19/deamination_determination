@@ -128,6 +128,48 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
 }
 
 
+# Plot read length frequencies across timepoint (optional).
+# Input should be a list of data.tables with names as timepoint information, or a single data.table
+# to construct a plot without timepoint information.
+plotReadLengthFrequencies = function(simplifiedTables, title = "Read Length Frequencies") {
+
+  xAxisBreaks = c(23,27,31)
+
+  #If passed a single data.table, wrap it in a list.
+  if (is.data.table(simplifiedTables)) {
+    simplifiedTables = list(None = simplifiedTables)
+    noTimepointInfo = TRUE
+  } else noTimepointInfo = FALSE
+
+  aggregateTable = rbindlist(lapply(seq_along(simplifiedTables),
+                                    function(i) simplifiedTables[[i]][,Timepoint := names(simplifiedTables)[i]]))
+
+  readLengthFrequencies = (aggregateTable[, .N, by = list(Read_Length,Timepoint)]
+                                         [, Freq := N/sum(N), by = list(Timepoint)])
+  maxFrequency = round(max(readLengthFrequencies$Freq), digits = 2)
+  yAxisBreaks = c(0, maxFrequency/2, maxFrequency)
+
+  plot = ggplot(readLengthFrequencies, aes(Read_Length, Freq)) +
+    geom_bar(stat = "identity") +
+    labs(title = title, x = "Read_Length", y = "Frequency") +
+    blankBackground + defaultTextScaling
+
+  if (!noTimepointInfo) {
+    plot = plot + facet_grid(cols = vars(Timepoint))
+  }
+
+  plot = plot +
+    theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
+          strip.background = element_rect(color = "black", size = 1),
+          axis.text.y = element_text(size = 16), strip.text.y = element_text(size = 16)) +
+    scale_x_continuous(breaks = xAxisBreaks) +
+    scale_y_continuous(breaks = yAxisBreaks)
+
+  print(plot)
+
+}
+
+
 # Gets the mode. (Why isn't there a base R function for this?)
 getMode = function(values) {
   frequencyTable = table(values)

@@ -166,6 +166,18 @@ plotPositionAcrossTimepointAndReadLength(sixFourMismatchData$rep2, includedTypes
 ```
 
 
+```{r CPD_read_length_distributions}
+plotReadLengthFrequencies(CPDMismatchData$rep1, title = "CPD Read Length Freq Rep 1")
+plotReadLengthFrequencies(CPDMismatchData$rep2, title = "CPD Read Length Freq Rep 2")
+```
+
+
+```{r 6-4_read_length_distributions}
+plotReadLengthFrequencies(sixFourMismatchData$rep1, title = "6-4 Read Length Freq Rep 1")
+plotReadLengthFrequencies(sixFourMismatchData$rep2, title = "6-4 Read Length Freq Rep 2")
+```
+
+
 ```{r read_mismatch_position_statistics}
 CPDGroupedStats = list(rep1 = list(three_prime = NULL, five_prime = NULL),
                        rep2 = list(three_prime = NULL, five_prime = NULL))

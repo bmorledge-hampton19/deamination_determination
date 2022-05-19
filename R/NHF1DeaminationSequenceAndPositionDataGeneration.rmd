@@ -24,6 +24,7 @@ if (interactive()) {
 } else {
   bioinformaticsDirectory = params$bioinformaticsDirectory
 }
+if (is.na(bioinformaticsDirectory)) stop("No bioinformatics directory given.")
 
 deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data", cellType)
 mismatchesByReadDirectory = file.path(deaminationDataDirectory, "mismatches_by_read")
