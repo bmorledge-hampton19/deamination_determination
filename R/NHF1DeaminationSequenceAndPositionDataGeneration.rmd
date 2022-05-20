@@ -9,6 +9,11 @@ params:
     value: C:/Bioinformatics_Projects
     input: select
     choices: [C:/Bioinformatics_Projects, F:/Bioinformatics_Projects]
+  filtering:
+    label: "Filtering"
+    value: NONE
+    input: select
+    choices: [NONE, TGG_filtered]
 ---
 
 
@@ -18,11 +23,16 @@ library(knitr)
 cellType = "NHF1"
 CPDTimepoints = list(`1h` = NULL, `8h` = NULL, `24h` = NULL, `48h` = NULL)
 sixFourTimepoints = list(`5min` = NULL, `20min` = NULL, `1h` = NULL)
+expansionOffset = 0
 
 if (interactive()) {
   bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
+  filtering = readline("Filtering identifier (Input nothing for no filtering):")
+  if (filtering == '') filtering = character()
 } else {
   bioinformaticsDirectory = params$bioinformaticsDirectory
+  filtering = params$filtering
+  if (filtering == "NONE") filtering = character()
 }
 if (is.na(bioinformaticsDirectory)) stop("No bioinformatics directory given.")
 
@@ -52,7 +62,7 @@ for (i in 1:length(CPDMismatchData)) {
     CPDMismatchData[[i]][[j]] = fread(generateFilePath(
       mismatchesByReadDirectory, dataTypeStrings$mismatchesByRead, ".bed",
       cellType = cellType, lesion = "CPD", timepoint = names(CPDMismatchData[[i]])[j],
-      repitition = names(CPDMismatchData)[i]
+      repitition = names(CPDMismatchData)[i], filtering = filtering
       ))
   }
 }
@@ -64,7 +74,7 @@ for (i in 1:length(sixFourMismatchData)) {
     sixFourMismatchData[[i]][[j]] = fread(generateFilePath(
       mismatchesByReadDirectory, dataTypeStrings$mismatchesByRead, ".bed",
       cellType = cellType, lesion = "6-4-PP", timepoint = names(sixFourMismatchData[[i]])[j],
-      repitition = names(sixFourMismatchData)[i]
+      repitition = names(sixFourMismatchData)[i], filtering = filtering
       ))
   }
 }
@@ -88,13 +98,14 @@ sixFourMismatchData = lapply(sixFourMismatchData, function(x) lapply(
   x, function(y) simplifyTable(y, includeTrinucleotideContext = TRUE)
 ))
 
+# Write the simplified mismatch data
 for (i in 1:length(CPDMismatchData)) {
   for (j in 1:length(CPDMismatchData[[i]])) {
     fwrite(CPDMismatchData[[i]][[j]], sep = '\t',
            file = generateFilePath(
              deaminationSequenceAndPositionDataDirectory, dataTypeStrings$simplifiedMismatches, ".tsv",
              cellType = cellType, lesion = "CPD", timepoint = names(CPDMismatchData[[i]])[j],
-             repitition = names(CPDMismatchData)[i]
+             repitition = names(CPDMismatchData)[i], filtering = filtering
            ))
   }
 }
@@ -105,8 +116,43 @@ for (i in 1:length(sixFourMismatchData)) {
            file = generateFilePath(
              deaminationSequenceAndPositionDataDirectory, dataTypeStrings$simplifiedMismatches, ".tsv",
              cellType = cellType, lesion = "6-4", timepoint = names(sixFourMismatchData[[i]])[j],
-             repitition = names(sixFourMismatchData)[i]
+             repitition = names(sixFourMismatchData)[i], filtering = filtering
            ))
+  }
+}
+```
+
+
+```{r generate_and_write_mismatch_frequency_z-scores}
+# Don't forget to subset by C>T mismatches!
+CPDMMFreqZScores = lapply(CPDMismatchData, function(x) lapply(
+  x, function(y) {
+    getMismatchFrequencyZScoreByPosAndReadLength(y[Mismatch == "C>T"], expansionOffset)
+  }
+))
+sixFourMMFreqZScores = lapply(sixFourMismatchData, function(x) lapply(
+  x, function(y) {
+    getMismatchFrequencyZScoreByPosAndReadLength(y[Mismatch == "C>T"], expansionOffset)
+  }
+))
+
+for (i in seq_along(CPDMMFreqZScores)) {
+  for (j in seq_along(CPDMMFreqZScores[[i]])) {
+    fwrite(CPDMMFreqZScores[[i]][[j]], sep = '\t', file = generateFilePath(
+      directory = deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
+      cellType = cellType, lesion = "CPD", repitition = names(CPDMMFreqZScores)[i],
+      timepoint = names(CPDMMFreqZScores[[i]])[j], filtering = filtering, includedMismatches = c("C>T")
+    ))
+  }
+}
+
+for (i in seq_along(sixFourMMFreqZScores)) {
+  for (j in seq_along(sixFourMMFreqZScores[[i]])) {
+    fwrite(sixFourMMFreqZScores[[i]][[j]], sep = '\t', file = generateFilePath(
+      directory = deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
+      cellType = cellType, lesion = "6-4", repitition = names(sixFourMMFreqZScores)[i],
+      timepoint = names(sixFourMMFreqZScores[[i]])[j], filtering = filtering, includedMismatches = c("C>T")
+    ))
   }
 }
 ```
@@ -135,7 +181,7 @@ for (i in seq_along(CPDGroupedStats)) {
            file = generateFilePath(
              deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
              cellType = cellType, lesion = "CPD", repitition = names(CPDGroupedStats)[i],
-             strandPolarity = names(CPDGroupedStats[[i]])[j]
+             strandPolarity = names(CPDGroupedStats[[i]])[j], filtering = filtering
            ))
   }
 }
@@ -146,7 +192,7 @@ for (i in seq_along(sixFourGroupedStats)) {
            file = generateFilePath(
              deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
              cellType = cellType, lesion = "6-4", repitition = names(sixFourGroupedStats)[i],
-             strandPolarity = names(sixFourGroupedStats[[i]])[j]
+             strandPolarity = names(sixFourGroupedStats[[i]])[j], filtering = filtering
            ))
   }
 }

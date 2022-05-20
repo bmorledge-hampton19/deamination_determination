@@ -1,9 +1,19 @@
 library(data.table)
 library(stringr)
+library(ggplot2)
 
 THREE_PRIME = "three_prime"
 FIVE_PRIME = "five_prime"
 
+# Default text scaling
+defaultTextScaling = theme(plot.title = element_text(size = 22, hjust = 0.5),
+                           axis.title = element_text(size = 22), axis.text = element_text(size = 18),
+                           legend.title = element_text(size = 22), legend.text = element_text(size = 18),
+                           strip.text = element_text(size = 22))
+
+# Blank background theme
+blankBackground = theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                        panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
 # Filters the given mismatch data based the presence of 'N', the number of mismatches per read,
 # and read length.
@@ -64,45 +74,26 @@ simplifyTable = function(table, includeReadSequence = FALSE, includeTrinucleotid
 }
 
 
-# Takes a simplified table of mismatches and filters them based on the position of the mismatch
-filterMismatchesByPosition = function(mismatchTable, minPos, maxPos, posType, expansionOffset = 0) {
-
-  if (posType == THREE_PRIME) {
-    positions = mismatchTable$Position + expansionOffset
-  } else if (posType == FIVE_PRIME) {
-    positions = mismatchTable$Read_Length + mismatchTable$Position + 1 - expansionOffset
-  } else stop("Unrecognized value for posType parameter.")
-
-  return(mismatchTable[positions >= minPos & positions <= maxPos])
-
-}
-
-
 # Takes a simplified table of mismatches and filters them based on the position of the mismatch.
-# Unlike the filterMismatchesByPosition function, min and max positions are dynamic based on read length.
-# (This function is actually still used under the hood.)
-# See constant tables below for examples of how to format the posConstraintsByReadLength table.
-filterMismatchesByPositionAndReadLength = function(mismatchTable, posConstraintsByReadLength,
-                                                   expansionOffset = 0) {
+# Valid positions are defined using a zscore table that is stratified by both position and read length.
+# NOTE: Position is assumed to be three-prime oriented (negative position values)
+filterMismatchesByPositionAndReadLength = function(mismatchTable, posZScoreByReadLength,
+                                                   zScoreCutoff = 4, expansionOffset = 0) {
 
-  return(rbindlist(mapply( function(readLength, minPos, maxPos) {
-    filterMismatchesByPosition(mismatchTable[Read_Length == readLength],
-                               minPos, maxPos, THREE_PRIME, expansionOffset)
-  },
-  posConstraintsByReadLength$Read_Length,
-  posConstraintsByReadLength$Min_Pos,
-  posConstraintsByReadLength$Max_Pos,
-  SIMPLIFY = FALSE)))
+  return(rbindlist(lapply(unique(posZScoreByReadLength$Read_Length), function(readLength) {
+    relevantMismatches = mismatchTable[Read_Length == readLength]
+    validPositions = posZScoreByReadLength[Read_Length == readLength & Z_Score >= zScoreCutoff, Position]
+    return(relevantMismatches[(Position + expansionOffset) %in% validPositions])
+  })))
 
 }
 
 
-# This function determines peak mismatch regions by read length.
-# This is achieved by using the first 10 positions from the 5' end (generally devoid of lesion sites) as
-# background and then defining peak positions as any that differ by at least 4 standard deviations above the
-# background distribution mean and are adjacent to either the maximum frequency position or another peak position.
+# This function gets a z-score for mismatch frequency at every read position, stratified by read length.
+# Z scores are calculated relative to a background defined as the first 10 positions on the 5' end (which
+# should just be noise).
 # NOTE: Positions are assumed to be given relative to the three prime end (negative values)
-getPeakPositionsByReadLength = function(simplifiedMismatchData, expansionOffset) {
+getMismatchFrequencyZScoreByPosAndReadLength = function(simplifiedMismatchData, expansionOffset) {
 
   # First, get position frequencies for each read length.
   mismatchPositionFrequencies = simplifiedMismatchData[, .N, by = list(Position,Read_Length)]
@@ -114,31 +105,75 @@ getPeakPositionsByReadLength = function(simplifiedMismatchData, expansionOffset)
 
     # Determine the cutoff value based on the background.
     relevantPositionFrequencies = mismatchPositionFrequencies[Read_Length == readLength]
-    background = relevantPositionFrequencies[Position >= -readLength & Position <= -readLength + 10, Frequency]
-    cutoff = mean(background) + 4*sd(background)
+    background = relevantPositionFrequencies[Position >= -readLength & Position < -readLength + 10, Frequency]
+    backgroundMean = mean(background)
+    backgroundSD = sd(background)
 
-    # Seed the peak region at the maximum frequency position and extend it in either direction until
-    # a position's frequency no longer meets the cutoff value.
-    minPeakPos = maxPeakPos = relevantPositionFrequencies[which.max(Frequency), Position]
-    while(maxPeakPos + 1 < 0 &&
-          relevantPositionFrequencies[Position == maxPeakPos + 1, Frequency] > cutoff) {
-      maxPeakPos = maxPeakPos + 1
-    }
-    while(minPeakPos - 1 >= -readLength &&
-          relevantPositionFrequencies[Position == minPeakPos - 1, Frequency] > cutoff) {
-      minPeakPos = minPeakPos - 1
-    }
-
-    return(data.table(Read_Length = readLength, Max_Pos = maxPeakPos, Min_Pos = minPeakPos))
+    return(data.table(Read_Length = readLength,
+                      Position = relevantPositionFrequencies$Position,
+                      Frequency = relevantPositionFrequencies$Frequency,
+                      Z_Score = (relevantPositionFrequencies$Frequency - backgroundMean) / backgroundSD))
 
   })))
 
 }
 
 
-HUMAN_THREE_PRIME_POS_CONSTRAINTS = data.table(Read_Length = c(23, 24, 25, 26, 27, 28, 29, 30, 31),
-                                               Max_Pos = c(-3, -3, -4, -5, -5, -6, -6, -6, -6),
-                                               Min_Pos = c(-9, -9, -10, -10, -10, -11, -11, -12, -12))
+# Plot mismatch frequency z-score using a facet plot with timepoint (optional) on one dimension and read length on the other
+# Input should be a list of data.tables with names as timepoint information, or a single data.table
+# to construct a plot without timepoint information.
+# DON'T USE THIS IT LOOKS BAD :(
+plotZScoreAcrossTimepointAndReadLength = function(zScoreTables, title = "Mismatch Position Frequencies",
+                                                  zScoreCutoff = 4) {
+
+  #If passed a single data.table, wrap it in a list.
+  if (is.data.table(zScoreTables)) {
+    zScoreTables = list(NONE = zScoreTables)
+  }
+  noTimepointInfo = all(names(zScoreTables) == "NONE")
+
+  xAxisLabel = "3' Relative Position"
+  xAxisBreaks = c(0, -10, -20, -30)
+
+  aggregateZScoreTable = rbindlist(lapply(seq_along(zScoreTables),
+                                          function(i) zScoreTables[[i]][,Timepoint := names(zScoreTables)[i]]))
+  # aggregateZScoreTable[,Log_10_Z_Score := log10(Z_Score)]
+  # maxLog10ZScore = round(max(aggregateZScoreTable$Log_10_Z_Score), digits = 2)
+  # yAxisBreaks = c(0, maxLog10ZScore/2, maxLog10ZScore)
+  # zScoreCutoff = log10(zScoreCutoff)
+  maxZScore = round(max(aggregateZScoreTable$Z_Score), digits = 2)
+  yAxisBreaks = c(0, maxZScore/2, maxZScore)
+
+  plot = ggplot(aggregateZScoreTable, aes(Position, Z_Score, fill = Z_Score >= zScoreCutoff)) +
+    geom_bar(stat = "identity") +
+    scale_fill_manual(values = c("TRUE" = "red", "FALSE" = "black"), guide = "none") +
+    labs(title = title, x = xAxisLabel, y = expression("log"[10]*"(Mismatch Frequency Z-Score)")) +
+    blankBackground + defaultTextScaling
+
+  if (noTimepointInfo) {
+    plot = plot + facet_grid(rows = vars(Read_Length)) +
+      scale_y_continuous(breaks = yAxisBreaks)
+  } else {
+    plot = plot + facet_grid(Read_Length~factor(Timepoint, levels = names(zScoreTables))) +
+      scale_y_continuous(sec.axis = dup_axis(~., name = "Read Length"), breaks = yAxisBreaks)
+  }
+
+  plot = plot +
+    theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
+          strip.background = element_rect(color = "black", size = 1),
+          axis.text.y = element_text(size = 12), strip.text.y = element_text(size = 16),
+          axis.text.y.right = element_blank(), axis.ticks.y.right = element_blank()) +
+    scale_x_continuous(breaks = xAxisBreaks) +
+    geom_hline(yintercept = zScoreCutoff, linetype = 2, size = 0.5)
+
+  print(plot)
+
+}
+
+
+# HUMAN_THREE_PRIME_POS_CONSTRAINTS = data.table(Read_Length = c(23, 24, 25, 26, 27, 28, 29, 30, 31),
+#                                                Max_Pos = c(-3, -3, -4, -5, -5, -6, -6, -6, -6),
+#                                                Min_Pos = c(-9, -9, -10, -10, -10, -11, -11, -12, -12))
 # HUMAN_FIVE_PRIME_POS_CONSTRAINTS = copy(HUMAN_THREE_PRIME_POS_CONSTRAINTS)
 # HUMAN_FIVE_PRIME_POS_CONSTRAINTS[, Max_Pos := Read_Length + Max_Pos + 1]
 # HUMAN_FIVE_PRIME_POS_CONSTRAINTS[, Min_Pos := Read_Length + Min_Pos + 1]
@@ -151,9 +186,6 @@ getFirstPositionQuartile = function(table) {
 getLastPositionQuartile = function(table) {
   return(table[order(Position)][(dim(table)[1]*3/4):dim(table)[1]])
 }
-
-
-
 
 
 # Determines if the given mismatch position and type data for a single read

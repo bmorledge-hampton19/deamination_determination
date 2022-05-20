@@ -10,13 +10,14 @@ dataTypeStrings =
        nucleotideFrequencyData = "nucleotide_frequencies",
        sequenceEnrichment = "sequence_enrichment",
        sequenceFrequency = "sequence_frequency",
-       alignedReads = "aligned_reads")
+       alignedReads = "aligned_reads",
+       mismatchFrequencyZScores = "mismatch_frequency_z-scores")
 
 generateFilePath = function(directory, dataTypeString, fileExtension,
                             cellType = NA, lesion = NA, timepoint = NA, repitition = NA,
                             includedMismatches = character(), omittedMismatches = character(),
                             strandPolarity = NA, anchored = F, sequence = NA, expansionNum = NA,
-                            additionalInformation = character(), filterText = NA) {
+                            additionalInformation = character(), filtering = NA) {
 
   if ( length(includedMismatches) > 0 && length(omittedMismatches) > 0) {
     stop("Included mismatches and omitted mismatches given simultaneously")
@@ -25,7 +26,7 @@ generateFilePath = function(directory, dataTypeString, fileExtension,
   includedMismatches = lapply(includedMismatches, function(x) str_replace(x, '>', "_to_"))
   omittedMismatches = lapply(omittedMismatches, function(x) str_replace(x, '>', "_to_"))
 
-  if (!is.na(expansionNum)) expansionText = paste0(expansionNum,"bp_expanded")
+  if (!is.na(expansionNum) && expansionNum > 0) expansionText = paste0(expansionNum,"bp_expanded")
   else expansionText = NA
 
   if (anchored) anchoredText = "anchored"
@@ -33,7 +34,7 @@ generateFilePath = function(directory, dataTypeString, fileExtension,
 
   basenameParts = c(cellType, lesion, timepoint, repitition, includedMismatches, omittedMismatches, "omitted",
                     strandPolarity, anchoredText, sequence, additionalInformation, dataTypeString, expansionText,
-                    filterText)
+                    filtering)
   if (length(omittedMismatches) == 0) basenameParts[5+length(includedMismatches)] = NA
   basenameParts = basenameParts[!is.na(basenameParts)]
 

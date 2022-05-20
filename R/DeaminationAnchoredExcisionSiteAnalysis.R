@@ -6,7 +6,7 @@ THREE_PRIME = "three_prime"
 FIVE_PRIME = "five_prime"
 
 # Default text scaling
-defaultTextScaling = theme(plot.title = element_text(size = 26, hjust = 0.5),
+defaultTextScaling = theme(plot.title = element_text(size = 22, hjust = 0.5),
                            axis.title = element_text(size = 22), axis.text = element_text(size = 18),
                            legend.title = element_text(size = 22), legend.text = element_text(size = 18),
                            strip.text = element_text(size = 22))
@@ -261,7 +261,7 @@ plotSequenceEnrichment = function(enrichmentTablesByTimepoint, posType = THREE_P
   # If passed a single data.table, no timepoint information is present.
   # Otherwise, combine the given tables into one agggregate table.
   if (is.data.table(enrichmentTablesByTimepoint)) {
-    fullEnrichmentTable = copy(enrichmentTablesByTimepoint)[,Timepoint := NA]
+    fullEnrichmentTable = copy(enrichmentTablesByTimepoint)[,Timepoint := "NONE"]
   } else {
     fullEnrichmentTable = rbindlist(lapply(seq_along(enrichmentTablesByTimepoint), function(i) {
       copy(enrichmentTablesByTimepoint[[i]])[,Timepoint := names(enrichmentTablesByTimepoint)[i]]
@@ -275,7 +275,7 @@ plotSequenceEnrichment = function(enrichmentTablesByTimepoint, posType = THREE_P
     labs(title = title, x = xAxisLabel, y = yAxisLabel) +
     blankBackground + defaultTextScaling
 
-  if (all(is.na(fullEnrichmentTable$Timepoint))) {
+  if (all(fullEnrichmentTable$Timepoint == "NONE")) {
     plot = plot + facet_grid(rows = vars(Read_Length))
   } else {
     plot = plot + facet_grid(Read_Length~factor(Timepoint, levels = unique(fullEnrichmentTable$Timepoint)))
@@ -328,7 +328,7 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
   # If passed a single data.table, no timepoint information is present.
   # Otherwise, combine the given tables into one agggregate table.
   if (is.data.table(seqFreqTablesByTimepoint)) {
-    fullFrequencyTable = copy(seqFreqTablesByTimepoint)[,Timepoint := NA]
+    fullFrequencyTable = copy(seqFreqTablesByTimepoint)[,Timepoint := "NONE"]
   } else {
     fullFrequencyTable = rbindlist(lapply(seq_along(seqFreqTablesByTimepoint), function(i) {
       copy(seqFreqTablesByTimepoint[[i]])[,Timepoint := names(seqFreqTablesByTimepoint)[i]]
@@ -342,7 +342,7 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
     labs(title = title, x = xAxisLabel, y = yAxisLabel) +
     blankBackground + defaultTextScaling
 
-  if (all(is.na(fullFrequencyTable$Timepoint))) {
+  if (all(fullFrequencyTable$Timepoint == "NONE")) {
     plot = plot + facet_grid(rows = vars(Read_Length))
   } else {
     plot = plot + facet_grid(Read_Length~factor(Timepoint, levels = unique(fullFrequencyTable$Timepoint)))

@@ -9,6 +9,11 @@ params:
     value: C:/Bioinformatics_Projects
     input: select
     choices: [C:/Bioinformatics_Projects, F:/Bioinformatics_Projects]
+  filtering:
+    label: "Filtering"
+    value: NONE
+    input: select
+    choices: [NONE, TGG_filtered]
 ---
 
 
@@ -20,19 +25,20 @@ cellType = "NHF1"
 CPDTimepoints = list(`1h` = NULL, `8h` = NULL, `24h` = NULL, `48h` = NULL)
 sixFourTimepoints = list(`5min` = NULL, `20min` = NULL, `1h` = NULL)
 
-opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5,
-               fig.path = paste0(file.path("deamination_analysis_output", cellType,
-                                           "deamination_anchored_excision_site_figures"),
-                                 .Platform$file.sep))
 if (interactive()) {
   bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
+  filtering = readline("Filtering identifier (Input nothing for no filtering):")
+  if (filtering == '') filtering = character()
 } else {
   bioinformaticsDirectory = params$bioinformaticsDirectory
+  filtering = params$filtering
+  if (filtering == "NONE") filtering = character()
 }
 if (is.na(bioinformaticsDirectory)) stop("No bioinformatics directory given.")
 
 deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data", cellType)
 mismatchesByReadDirectory = file.path(deaminationDataDirectory, "mismatches_by_read")
+deaminationSequenceAndPositionDataDirectory = file.path(deaminationDataDirectory,"sequence_and_position_analysis")
 deaminationExcisionSiteDataDirectory = file.path(deaminationDataDirectory, "excision_site_analysis")
 dir.create(deaminationExcisionSiteDataDirectory, showWarnings = FALSE, recursive = TRUE)
 ```
@@ -57,7 +63,7 @@ for (i in 1:length(CPDMismatchData)) {
     CPDMismatchData[[i]][[j]] = fread(generateFilePath(
       mismatchesByReadDirectory, dataTypeStrings$mismatchesByRead, ".bed",
       cellType = cellType, lesion = "CPD", timepoint = names(CPDMismatchData[[i]])[j],
-      repitition = names(CPDMismatchData)[i], expansionNum = expansionOffset
+      repitition = names(CPDMismatchData)[i], expansionNum = expansionOffset, filtering = filtering
       ))
   }
 }
@@ -69,7 +75,7 @@ for (i in 1:length(sixFourMismatchData)) {
     sixFourMismatchData[[i]][[j]] = fread(generateFilePath(
       mismatchesByReadDirectory, dataTypeStrings$mismatchesByRead, ".bed",
       cellType = cellType, lesion = "6-4-PP", timepoint = names(sixFourMismatchData[[i]])[j],
-      repitition = names(sixFourMismatchData)[i], expansionNum = expansionOffset
+      repitition = names(sixFourMismatchData)[i], expansionNum = expansionOffset, filtering = filtering
       ))
   }
 }
@@ -93,23 +99,38 @@ sixFourMismatchData = lapply(sixFourMismatchData, function(x) lapply(
   x, function(y) simplifyTable(y, TRUE, expansionOffset = expansionOffset)
 ))
 
-# Determine the peak positions to filter on for each read length in each data set.
-CPDPeakPositions = lapply(CPDMismatchData, function(x) lapply(
-  x, getPeakPositionsByReadLength, expansionOffset
-))
-sixFourPeakPositions = lapply(sixFourMismatchData, function(x) lapply(
-  x, getPeakPositionsByReadLength, expansionOffset
-))
+# Read mismatch frequency z-scores.
+CPDMMFreqZScores = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints)
+for (i in seq_along(CPDMMFreqZScores)) {
+  for (j in seq_along(CPDMMFreqZScores[[i]])) {
+    CPDMMFreqZScores[[i]][[j]] = fread(generateFilePath(
+      directory = deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
+      cellType = cellType, lesion = "CPD", repitition = names(CPDMMFreqZScores)[i],
+      timepoint = names(CPDMMFreqZScores[[i]])[j], filtering = filtering, includedMismatches = c("C>T")
+    ))
+  }
+}
+
+sixFourMMFreqZScores = list(rep1 = sixFourTimepoints, rep2 = sixFourTimepoints)
+for (i in seq_along(sixFourMMFreqZScores)) {
+  for (j in seq_along(sixFourMMFreqZScores[[i]])) {
+    sixFourMMFreqZScores[[i]][[j]] = fread(generateFilePath(
+      directory = deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
+      cellType = cellType, lesion = "6-4", repitition = names(sixFourMMFreqZScores)[i],
+      timepoint = names(sixFourMMFreqZScores[[i]])[j], filtering = filtering, includedMismatches = c("C>T")
+    ))
+  }
+}
 
 # Further filter data by read position based on length
-CPDMismatchData = mapply(function(CPDMismatchDataRep, CPDPeakPositionsRep) mapply(
-  filterMismatchesByPositionAndReadLength, CPDMismatchDataRep, CPDPeakPositionsRep,
-  expansionOffset, SIMPLIFY = FALSE
-), CPDMismatchData, CPDPeakPositions, SIMPLIFY = FALSE)
-sixFourMismatchData = mapply(function(sixFourMismatchDataRep, sixFourPeakPositionsRep) mapply(
-  filterMismatchesByPositionAndReadLength, sixFourMismatchDataRep, sixFourPeakPositionsRep,
-  expansionOffset, SIMPLIFY = FALSE
-), sixFourMismatchData, sixFourPeakPositions, SIMPLIFY = FALSE)
+CPDMismatchData = mapply(function(CPDMismatchDataRep, CPDMMFreqZScoreRep) mapply(
+  filterMismatchesByPositionAndReadLength, CPDMismatchDataRep, CPDMMFreqZScoreRep,
+  expansionOffset = expansionOffset, SIMPLIFY = FALSE
+), CPDMismatchData, CPDMMFreqZScores, SIMPLIFY = FALSE)
+sixFourMismatchData = mapply(function(sixFourMismatchDataRep, sixFourMMFreqZScoreRep) mapply(
+  filterMismatchesByPositionAndReadLength, sixFourMismatchDataRep, sixFourMMFreqZScoreRep,
+  expansionOffset = expansionOffset, SIMPLIFY = FALSE
+), sixFourMismatchData, sixFourMMFreqZScores, SIMPLIFY = FALSE)
 ```
 
 
@@ -140,7 +161,7 @@ for (i in seq_along(threePrimeMismatchCPDNucFreq)) {
   fwrite(threePrimeMismatchCPDNucFreq[[i]], sep = '\t', file = generateFilePath(
     directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
     cellType = cellType, lesion = "CPD", repitition = names(threePrimeMismatchCPDNucFreq)[i],
-    strandPolarity = "three_prime", anchored = TRUE
+    strandPolarity = "three_prime", anchored = TRUE, filtering = filtering
   ))
 }
 
@@ -150,7 +171,7 @@ for (i in seq_along(fivePrimeMismatchCPDNucFreq)) {
   fwrite(fivePrimeMismatchCPDNucFreq[[i]], sep = '\t', file = generateFilePath(
     directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
     cellType = cellType, lesion = "CPD", repitition = names(fivePrimeMismatchCPDNucFreq)[i],
-    strandPolarity = "five_prime", anchored = TRUE
+    strandPolarity = "five_prime", anchored = TRUE, filtering = filtering
   ))
 }
 
@@ -161,7 +182,7 @@ for (i in seq_along(threePrimeMismatchSixFourNucFreq)) {
   fwrite(threePrimeMismatchSixFourNucFreq[[i]], sep = '\t', file = generateFilePath(
     directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
     cellType = cellType, lesion = "6-4", repitition = names(threePrimeMismatchSixFourNucFreq)[i],
-    strandPolarity = "three_prime", anchored = TRUE
+    strandPolarity = "three_prime", anchored = TRUE, filtering = filtering
   ))
 }
 
@@ -171,7 +192,7 @@ for (i in seq_along(fivePrimeMismatchSixFourNucFreq)) {
   fwrite(fivePrimeMismatchSixFourNucFreq[[i]], sep = '\t', file = generateFilePath(
     directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
     cellType = cellType, lesion = "6-4", repitition = names(fivePrimeMismatchSixFourNucFreq)[i],
-    strandPolarity = "five_prime", anchored = TRUE
+    strandPolarity = "five_prime", anchored = TRUE, filtering = filtering
   ))
 }
 ```
@@ -191,7 +212,7 @@ for (i in seq_along(threePrimeMMAnchoredCPDEnrichment)) {
       directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$sequenceEnrichment, ".tsv",
       cellType = cellType, lesion = "CPD", repitition = names(threePrimeMMAnchoredCPDEnrichment)[i],
       timepoint = names(threePrimeMMAnchoredCPDEnrichment[[i]])[j], strandPolarity = "three_prime",
-      anchored = TRUE, sequence = "YR"
+      anchored = TRUE, sequence = "YR", filtering = filtering
     ))
   }
 }
@@ -209,7 +230,7 @@ for (i in seq_along(fivePrimeMMAnchoredCPDEnrichment)) {
       directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$sequenceEnrichment, ".tsv",
       cellType = cellType, lesion = "CPD", repitition = names(fivePrimeMMAnchoredCPDEnrichment)[i],
       timepoint = names(fivePrimeMMAnchoredCPDEnrichment[[i]])[j], strandPolarity = "five_prime",
-      anchored = TRUE, sequence = "TGG"
+      anchored = TRUE, sequence = "TGG", filtering = filtering
     ))
   }
 }
@@ -228,7 +249,7 @@ for (i in seq_along(threePrimeMMAnchoredSixFourEnrichment)) {
       directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$sequenceEnrichment, ".tsv",
       cellType = cellType, lesion = "6-4", repitition = names(threePrimeMMAnchoredSixFourEnrichment)[i],
       timepoint = names(threePrimeMMAnchoredSixFourEnrichment[[i]])[j], strandPolarity = "three_prime",
-      anchored = TRUE, sequence = "YR"
+      anchored = TRUE, sequence = "YR", filtering = filtering
     ))
   }
 }
@@ -246,7 +267,7 @@ for (i in seq_along(fivePrimeMMAnchoredSixFourEnrichment)) {
       directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$sequenceEnrichment, ".tsv",
       cellType = cellType, lesion = "6-4", repitition = names(fivePrimeMMAnchoredSixFourEnrichment)[i],
       timepoint = names(fivePrimeMMAnchoredSixFourEnrichment[[i]])[j], strandPolarity = "five_prime",
-      anchored = TRUE, sequence = "TGG"
+      anchored = TRUE, sequence = "TGG", filtering = filtering
     ))
   }
 }
@@ -265,7 +286,7 @@ for (i in seq_along(threePrimeMMAnchoredCPDSeqFreq)) {
       directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
       cellType = cellType, lesion = "CPD", repitition = names(threePrimeMMAnchoredCPDSeqFreq)[i],
       timepoint = names(threePrimeMMAnchoredCPDSeqFreq[[i]])[j], strandPolarity = "three_prime",
-      anchored = TRUE, sequence = "YR"
+      anchored = TRUE, sequence = "YR", filtering = filtering
     ))
   }
 }
@@ -281,7 +302,7 @@ for (i in seq_along(fivePrimeMMAnchoredCPDSeqFreq)) {
       directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
       cellType = cellType, lesion = "CPD", repitition = names(fivePrimeMMAnchoredCPDSeqFreq)[i],
       timepoint = names(fivePrimeMMAnchoredCPDSeqFreq[[i]])[j], strandPolarity = "five_prime",
-      anchored = TRUE, sequence = "TGG"
+      anchored = TRUE, sequence = "TGG", filtering = filtering
     ))
   }
 }
@@ -298,7 +319,7 @@ for (i in seq_along(threePrimeMMAnchoredSixFourSeqFreq)) {
       directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
       cellType = cellType, lesion = "6-4", repitition = names(threePrimeMMAnchoredSixFourSeqFreq)[i],
       timepoint = names(threePrimeMMAnchoredSixFourSeqFreq[[i]])[j], strandPolarity = "three_prime",
-      anchored = TRUE, sequence = "YR"
+      anchored = TRUE, sequence = "YR", filtering = filtering
     ))
   }
 }
@@ -314,7 +335,7 @@ for (i in seq_along(fivePrimeMMAnchoredSixFourSeqFreq)) {
       directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
       cellType = cellType, lesion = "6-4", repitition = names(fivePrimeMMAnchoredSixFourSeqFreq)[i],
       timepoint = names(fivePrimeMMAnchoredSixFourSeqFreq[[i]])[j], strandPolarity = "five_prime",
-      anchored = TRUE, sequence = "TGG"
+      anchored = TRUE, sequence = "TGG", filtering = filtering
     ))
   }
 }

@@ -6,7 +6,7 @@ THREE_PRIME = "three_prime"
 FIVE_PRIME = "five_prime"
 
 # Default text scaling
-defaultTextScaling = theme(plot.title = element_text(size = 26, hjust = 0.5),
+defaultTextScaling = theme(plot.title = element_text(size = 22, hjust = 0.5),
                            axis.title = element_text(size = 22), axis.text = element_text(size = 18),
                            legend.title = element_text(size = 22), legend.text = element_text(size = 18),
                            strip.text = element_text(size = 22))
@@ -71,13 +71,22 @@ plotMismatchPositionFrequencies = function(mismatchTable, includedTypes = list()
 # Input should be a list of data.tables with names as timepoint information, or a single data.table
 # to construct a plot without timepoint information.
 plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTypes = list(), omittedTypes = list(),
-                                                    title = "Mismatch Position Frequencies", posType = THREE_PRIME) {
+                                                    title = "Mismatch Position Frequencies", posType = THREE_PRIME,
+                                                    zScoreTables = NULL, zScoreCutoff = 4) {
 
   #If passed a single data.table, wrap it in a list.
   if (is.data.table(simplifiedTables)) {
-    simplifiedTables = list(None = simplifiedTables)
-    noTimepointInfo = TRUE
-  } else noTimepointInfo = FALSE
+    simplifiedTables = list(NONE = simplifiedTables)
+  }
+  simplifiedTables = lapply(simplifiedTables, copy)
+  noTimepointInfo = all(names(simplifiedTables) == "NONE")
+
+  if (!is.null(zScoreTables)) {
+    zScoreTables = lapply(zScoreTables, copy)
+    if (is.data.table(zScoreTables)) {
+      zScoreTables = list(None = zScoreTables)
+    }
+  }
 
   if (posType == THREE_PRIME) {
     xAxisLabel = "3' Relative Position"
@@ -87,26 +96,44 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
     xAxisBreaks = c(0, 10, 20)
     simplifiedTables = lapply(simplifiedTables, copy)
     lapply(simplifiedTables, function(x) x[, Position := Read_Length + Position + 1])
+    if (!is.null(zScoreTables)) {
+      lapply(zScoreTables, function(x) x[, Position := Read_Length + Position + 1])
+    }
   } else stop("Unrecognized value for posType parameter.")
 
-  aggregateTable = rbindlist(lapply(seq_along(simplifiedTables),
-                                    function(i) simplifiedTables[[i]][,Timepoint := names(simplifiedTables)[i]]))
+  aggregateMismatchesTable = rbindlist(lapply(seq_along(simplifiedTables),
+                                       function(i) simplifiedTables[[i]][,Timepoint := names(simplifiedTables)[i]]))
 
   if ( length(includedTypes) > 0 && length(omittedTypes) > 0) {
     stop("Included types and omitted types given simultaneously")
   } else if (length(includedTypes) > 0) {
-    aggregateTable = aggregateTable[Mismatch %in% includedTypes]
+    aggregateMismatchesTable = aggregateMismatchesTable[Mismatch %in% includedTypes]
   } else if (length(omittedTypes) > 0) {
-    aggregateTable = aggregateTable[!(Mismatch %in% omittedTypes)]
+    aggregateMismatchesTable = aggregateMismatchesTable[!(Mismatch %in% omittedTypes)]
   }
 
-  groupedPositionFrequencies = (aggregateTable[, .N, by = list(Position,Read_Length,Timepoint)]
-                                [, Freq := N/sum(N), by = list(Read_Length, Timepoint)])
+  groupedPositionFrequencies = (aggregateMismatchesTable[, .N, by = list(Position,Read_Length,Timepoint)]
+                                [, Frequency := N/sum(N), by = list(Read_Length, Timepoint)])
+  if (!is.null(zScoreTables)) {
+    aggregateZScoreTable = rbindlist(lapply(seq_along(zScoreTables),
+                                            function(i) zScoreTables[[i]][,Timepoint := names(zScoreTables)[i]]))
+    setkey(groupedPositionFrequencies,Position,Read_Length,Timepoint)
+    setkey(aggregateZScoreTable,Position,Read_Length,Timepoint)
+    groupedPositionFrequencies = groupedPositionFrequencies[aggregateZScoreTable]
+    groupedPositionFrequencies[,Meets_Cutoff := Z_Score >= zScoreCutoff]
+  }
 
-  plot = ggplot(groupedPositionFrequencies, aes(Position, Freq)) +
-    geom_bar(stat = "identity") +
+  plot = ggplot(groupedPositionFrequencies, aes(Position, Frequency)) +
     labs(title = title, x = xAxisLabel, y = "Relative Mismatch Frequency") +
     blankBackground + defaultTextScaling
+
+  if (!is.null(zScoreTables)) {
+    plot = plot +
+      geom_bar(aes(fill = Meets_Cutoff), stat = "identity") +
+      scale_fill_manual(values = c("TRUE" = "red", "FALSE" = "black"), guide = "none")
+  } else {
+    plot = plot + geom_bar(stat = "identity")
+  }
 
   if (noTimepointInfo) {
     plot = plot + facet_grid(rows = vars(Read_Length))
@@ -114,12 +141,13 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
     plot = plot + facet_grid(Read_Length~factor(Timepoint, levels = names(simplifiedTables)))
   }
 
+
   plot = plot +
     theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
           strip.background = element_rect(color = "black", size = 1),
           axis.text.y = element_blank(), axis.ticks.y = element_blank(),
           strip.text.y = element_text(size = 16),
-          panel.grid.major.x = element_line(color = "red", size = 0.5, linetype = 2)) +
+          panel.grid.major.x = element_line(color = "black", size = 0.5, linetype = 2)) +
     scale_y_continuous(sec.axis = dup_axis(~., name = "Read Length")) +
     scale_x_continuous(breaks = xAxisBreaks)
 
