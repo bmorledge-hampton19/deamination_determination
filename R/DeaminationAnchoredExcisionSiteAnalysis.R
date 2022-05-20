@@ -335,6 +335,9 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
     }))
   }
 
+  maxFrequency = round(max(fullFrequencyTable$Frequency),digits = 2)
+  yAxisBreaks = c(0, maxFrequency/2, maxFrequency)
+
   maxQueryLength = max(nchar(querySequences))
 
   plot = ggplot(fullFrequencyTable, aes(Position, Frequency)) +
@@ -351,10 +354,10 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
   plot = plot +
     theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
           strip.background = element_rect(color = "black", size = 1),
-          axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+          axis.text.y = element_text(size = 12),
           strip.text.y = element_text(size = yStripFontSize)) +
-    coord_cartesian(ylim = c(0,1)) +
-    scale_y_continuous(sec.axis = dup_axis(~., name = secondaryYAxisLabel)) +
+    coord_cartesian(ylim = c(0,maxFrequency*1.2)) +
+    scale_y_continuous(sec.axis = dup_axis(~., name = secondaryYAxisLabel), breaks = yAxisBreaks) +
     scale_x_continuous(breaks = xAxisBreaks)
 
   if (showThreePrimeCutSite) {
