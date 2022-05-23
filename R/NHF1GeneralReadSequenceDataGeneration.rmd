@@ -50,7 +50,7 @@ singleFileFullAnalysis = function(lesion, repitition, timepoint) {
     repitition = repitition, expansionNum = expansionOffset
   ))
   readData = data.table(Read_Length = nchar(readData$V7)-expansionOffset*2, Read_Sequence = readData$V7)
-  readData = readData[Read_Length >= 23 & Read_Length <= 31]
+  readData = readData[Read_Length >= 20 & Read_Length <= 31]
   
   for (sequence in c("TGG","CGA")) {
     seqFreq = getSequenceFreqByReadLengthAndPos(readData, querySequences = c(sequence))

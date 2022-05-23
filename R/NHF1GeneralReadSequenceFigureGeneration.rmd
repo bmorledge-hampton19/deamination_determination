@@ -41,6 +41,8 @@ generalReadSequenceDataDirectory = file.path(deaminationDataDirectory, "general_
 source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
                  "UsefulFileSystemFunctions.R"))
 source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "DeaminationSequenceAndPositionAnalysis.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
                  "DeaminationAnchoredExcisionSiteAnalysis.R"))
 ```
 
@@ -132,5 +134,41 @@ plotSequenceFrequencies(sixFourCGASeqFreq$rep2,
                         title = "6-4 CGA Frequencies Rep2", expansionOffset = expansionOffset,
                         showThreePrimeCutSite = TRUE, showFivePrimeCutSite = TRUE,
                         querySequences = c("CGA"))
+```
+
+
+```{r read_length_frequencies_plotting_function}
+readAndPlotReadLengthFrequencies = function(lesion, repitition, timepoints) {
+  
+  readData = timepoints
+  for (i in seq_along(readData)) {
+    readData[[i]] = fread(generateFilePath(
+      generalReadSequenceDataDirectory, dataTypeStrings$alignedReads, ".bed",
+      cellType = cellType, lesion = lesion, timepoint = names(readData)[i],
+      repitition = repitition, expansionNum = expansionOffset
+    ))
+    readData[[i]] = data.table(Read_Length = nchar(readData[[i]]$V7)-expansionOffset*2,
+                               Timepoint = names(readData)[i])
+    readData[[i]] = readData[[i]][Read_Length >= 20 & Read_Length <= 31]
+  }
+  
+  plotReadLengthFrequencies(readData,
+                            title = paste(c(lesion, "Read Length Freq",
+                                            tools::toTitleCase(repitition)),
+                                          collapse = ' '))
+  
+}
+```
+
+
+```{r CPD_read_length_frequencies}
+readAndPlotReadLengthFrequencies("CPD", "rep1", CPDTimepoints)
+readAndPlotReadLengthFrequencies("CPD", "rep2", CPDTimepoints)
+```
+
+
+```{r 6-4_read_length_frequencies}
+plotReadLengthFrequencies("6-4", "rep1", sixFourTimepoints)
+plotReadLengthFrequencies("6-4", "rep2", sixFourTimepoints)
 ```
 
