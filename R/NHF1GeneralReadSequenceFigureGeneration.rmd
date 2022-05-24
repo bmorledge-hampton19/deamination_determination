@@ -95,7 +95,7 @@ for (i in seq_along(sixFourCGASeqFreq)) {
 ```
 
 
-```{r CPD_sequence_frequencies, fig.width = 11, fig.height = 7}
+```{r CPD_sequence_frequencies, fig.width = 11, fig.height = 10}
 plotSequenceFrequencies(CPDTGGSeqFreq$rep1,
                         title = "CPD TGG Frequencies Rep1", expansionOffset = expansionOffset,
                         showThreePrimeCutSite = TRUE, showFivePrimeCutSite = TRUE,
@@ -116,7 +116,7 @@ plotSequenceFrequencies(CPDCGASeqFreq$rep2,
 ```
 
 
-```{r 6-4_sequence_frequencies, fig.width = 11, fig.height = 7}
+```{r 6-4_sequence_frequencies, fig.width = 11, fig.height = 10}
 plotSequenceFrequencies(sixFourTGGSeqFreq$rep1,
                         title = "6-4 TGG Frequencies Rep1", expansionOffset = expansionOffset,
                         showThreePrimeCutSite = TRUE, showFivePrimeCutSite = TRUE,
@@ -149,7 +149,7 @@ readAndPlotReadLengthFrequencies = function(lesion, repitition, timepoints) {
     ))
     readData[[i]] = data.table(Read_Length = nchar(readData[[i]]$V7)-expansionOffset*2,
                                Timepoint = names(readData)[i])
-    readData[[i]] = readData[[i]][Read_Length >= 20 & Read_Length <= 31]
+    readData[[i]] = readData[[i]][Read_Length >= 15 & Read_Length <= 31]
   }
   
   plotReadLengthFrequencies(readData,
@@ -168,7 +168,7 @@ readAndPlotReadLengthFrequencies("CPD", "rep2", CPDTimepoints)
 
 
 ```{r 6-4_read_length_frequencies}
-plotReadLengthFrequencies("6-4", "rep1", sixFourTimepoints)
-plotReadLengthFrequencies("6-4", "rep2", sixFourTimepoints)
+readAndPlotReadLengthFrequencies("6-4", "rep1", sixFourTimepoints)
+readAndPlotReadLengthFrequencies("6-4", "rep2", sixFourTimepoints)
 ```
 
