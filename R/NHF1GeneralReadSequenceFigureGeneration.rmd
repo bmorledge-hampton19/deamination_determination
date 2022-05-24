@@ -19,6 +19,7 @@ expansionOffset = 10
 cellType = "NHF1"
 CPDTimepoints = list(`1h` = NULL, `8h` = NULL, `24h` = NULL, `48h` = NULL)
 sixFourTimepoints = list(`5min` = NULL, `20min` = NULL, `1h` = NULL)
+minReadLength = 22; maxReadLength = 30
 
 opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5,
                fig.path = paste0(file.path("deamination_analysis_output", cellType,
@@ -149,7 +150,7 @@ readAndPlotReadLengthFrequencies = function(lesion, repitition, timepoints) {
     ))
     readData[[i]] = data.table(Read_Length = nchar(readData[[i]]$V7)-expansionOffset*2,
                                Timepoint = names(readData)[i])
-    readData[[i]] = readData[[i]][Read_Length >= 15 & Read_Length <= 31]
+    readData[[i]] = readData[[i]][Read_Length >= minReadLength-7 & Read_Length <= maxReadLength]
   }
   
   plotReadLengthFrequencies(readData,

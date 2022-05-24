@@ -24,6 +24,7 @@ expansionOffset = 10
 cellType = "NHF1"
 CPDTimepoints = list(`1h` = NULL, `8h` = NULL, `24h` = NULL, `48h` = NULL)
 sixFourTimepoints = list(`5min` = NULL, `20min` = NULL, `1h` = NULL)
+minReadLength = 22; maxReadLength = 30
 
 if (interactive()) {
   bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
@@ -85,10 +86,10 @@ for (i in 1:length(sixFourMismatchData)) {
 ```{r generate_simplified_and_filtered_mismatch_data}
 # Filter the reads by length and mismatch type (single C>T).
 CPDMismatchData = lapply(CPDMismatchData, function(x) lapply(
-  x, function(y) filterResults(y[V5 == "C>T"], minReadLength = 23, maxReadLength = 31)
+  x, function(y) filterResults(y[V5 == "C>T"], minReadLength = minReadLength, maxReadLength = maxReadLength)
 ))
 sixFourMismatchData = lapply(sixFourMismatchData, function(x) lapply(
-  x, function(y) filterResults(y[V5 == "C>T"], minReadLength = 23, maxReadLength = 31)
+  x, function(y) filterResults(y[V5 == "C>T"], minReadLength = minReadLength, maxReadLength = maxReadLength)
 ))
 
 # Simplify the data

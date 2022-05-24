@@ -23,6 +23,7 @@ library(knitr)
 cellType = "NHF1"
 CPDTimepoints = list(`1h` = NULL, `8h` = NULL, `24h` = NULL, `48h` = NULL)
 sixFourTimepoints = list(`5min` = NULL, `20min` = NULL, `1h` = NULL)
+minReadLength = 22; maxReadLength = 30
 
 if (interactive()) {
   bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
@@ -274,20 +275,20 @@ for (i in seq_along(sixFourGroupedStats)) {
 ```{r CPD_position_differences_across_read_lengths, fig.width = 9, fig.height = 5}
 plotGroupedPositionStats(CPDGroupedStats$rep1$three_prime, CPDGroupedStats$rep1$five_prime, POS_DIFF,
                          title = paste(c("CPD", titleCaseFiltering, "C>T Mismatch Pos Diff Rep1"), collapse = ' '),
-                         xAxisBreaks = c(23:31))
+                         xAxisBreaks = c(minReadLength:maxReadLength))
 plotGroupedPositionStats(CPDGroupedStats$rep2$three_prime, CPDGroupedStats$rep2$five_prime, POS_DIFF,
                          title = paste(c("CPD", titleCaseFiltering, "C>T Mismatch Pos Diff Rep2"), collapse = ' '),
-                         xAxisBreaks = c(23:31))
+                         xAxisBreaks = c(minReadLength:maxReadLength))
 ```
 
 
 ```{r 6-4_position_differences_across_read_lengths, fig.width = 9, fig.height = 5}
 plotGroupedPositionStats(sixFourGroupedStats$rep1$three_prime, sixFourGroupedStats$rep1$five_prime, POS_DIFF,
                          title = paste(c("6-4", titleCaseFiltering, "C>T Mismatch Pos Diff Rep1"), collapse = ' '),
-                         xAxisBreaks = c(23:31))
+                         xAxisBreaks = c(minReadLength:maxReadLength))
 plotGroupedPositionStats(sixFourGroupedStats$rep2$three_prime, sixFourGroupedStats$rep2$five_prime, POS_DIFF,
                          title = paste(c("6-4", titleCaseFiltering, "C>T Mismatch Pos Diff Rep2"), collapse = ' '),
-                         xAxisBreaks = c(23:31))
+                         xAxisBreaks = c(minReadLength:maxReadLength))
 ```
 
 
