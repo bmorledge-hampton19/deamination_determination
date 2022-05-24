@@ -161,8 +161,6 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
 # to construct a plot without timepoint information.
 plotReadLengthFrequencies = function(simplifiedTables, title = "Read Length Frequencies") {
 
-  xAxisBreaks = c(23,27,31)
-
   #If passed a single data.table, wrap it in a list.
   if (is.data.table(simplifiedTables)) {
     simplifiedTables = list(None = simplifiedTables)
@@ -190,7 +188,6 @@ plotReadLengthFrequencies = function(simplifiedTables, title = "Read Length Freq
     theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
           strip.background = element_rect(color = "black", size = 1),
           axis.text.y = element_text(size = 16), strip.text.y = element_text(size = 16)) +
-    scale_x_continuous(breaks = xAxisBreaks) +
     scale_y_continuous(breaks = yAxisBreaks)
 
   print(plot)

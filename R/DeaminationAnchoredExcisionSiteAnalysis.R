@@ -355,6 +355,7 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
     theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
           strip.background = element_rect(color = "black", size = 1),
           axis.text.y = element_text(size = 12),
+          axis.text.y.right = element_blank(), axis.ticks.y.right = element_blank(),
           strip.text.y = element_text(size = yStripFontSize)) +
     coord_cartesian(ylim = c(0,maxFrequency*1.2)) +
     scale_y_continuous(sec.axis = dup_axis(~., name = secondaryYAxisLabel), breaks = yAxisBreaks) +
