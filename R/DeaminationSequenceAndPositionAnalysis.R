@@ -72,7 +72,7 @@ plotMismatchPositionFrequencies = function(mismatchTable, includedTypes = list()
 # to construct a plot without timepoint information.
 plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTypes = list(), omittedTypes = list(),
                                                     title = "Mismatch Position Frequencies", posType = THREE_PRIME,
-                                                    zScoreTables = NULL, zScoreCutoff = 4) {
+                                                    zScoreTables = NULL, zScoreCutoff = 4, xAxisBreaks = -3:3*10) {
 
   #If passed a single data.table, wrap it in a list.
   if (is.data.table(simplifiedTables)) {
@@ -90,10 +90,8 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
 
   if (posType == THREE_PRIME) {
     xAxisLabel = "3' Relative Position"
-    xAxisBreaks = c(0, -10, -20)
   } else if (posType == FIVE_PRIME) {
     xAxisLabel = "5' Relative Position"
-    xAxisBreaks = c(0, 10, 20)
     simplifiedTables = lapply(simplifiedTables, copy)
     lapply(simplifiedTables, function(x) x[, Position := Read_Length + Position + 1])
     if (!is.null(zScoreTables)) {
@@ -114,6 +112,8 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
 
   groupedPositionFrequencies = (aggregateMismatchesTable[, .N, by = list(Position,Read_Length,Timepoint)]
                                 [, Frequency := N/sum(N), by = list(Read_Length, Timepoint)])
+  modePosition = getMode(aggregateMismatchesTable$Position)
+
   if (!is.null(zScoreTables)) {
     aggregateZScoreTable = rbindlist(lapply(seq_along(zScoreTables),
                                             function(i) zScoreTables[[i]][,Timepoint := names(zScoreTables)[i]]))
@@ -146,8 +146,8 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
     theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
           strip.background = element_rect(color = "black", size = 1),
           axis.text.y = element_blank(), axis.ticks.y = element_blank(),
-          strip.text.y = element_text(size = 16),
-          panel.grid.major.x = element_line(color = "black", size = 0.5, linetype = 2)) +
+          strip.text.y = element_text(size = 16)) +
+    geom_vline(xintercept = modePosition) +
     scale_y_continuous(sec.axis = dup_axis(~., name = "Read Length")) +
     scale_x_continuous(breaks = xAxisBreaks)
 
@@ -177,7 +177,7 @@ plotReadLengthFrequencies = function(simplifiedTables, title = "Read Length Freq
 
   plot = ggplot(readLengthFrequencies, aes(Read_Length, Freq)) +
     geom_bar(stat = "identity") +
-    labs(title = title, x = "Read_Length", y = "Frequency") +
+    labs(title = title, x = "Read Length", y = "Frequency") +
     blankBackground + defaultTextScaling
 
   if (!noTimepointInfo) {
@@ -187,7 +187,7 @@ plotReadLengthFrequencies = function(simplifiedTables, title = "Read Length Freq
   plot = plot +
     theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
           strip.background = element_rect(color = "black", size = 1),
-          axis.text.y = element_text(size = 16), strip.text.y = element_text(size = 16)) +
+          axis.text = element_text(size = 15), strip.text.y = element_text(size = 16)) +
     scale_y_continuous(breaks = yAxisBreaks)
 
   print(plot)

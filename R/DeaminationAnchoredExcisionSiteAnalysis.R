@@ -104,14 +104,12 @@ plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
                                           yStripFontSize = 16,
                                           combineNucleotides = list(), combinedNames = list(),
                                           showThreePrimeCutSite = FALSE, showFivePrimeCutSite = FALSE,
-                                          expansionOffset = 0) {
+                                          expansionOffset = 0, xAxisBreaks = -3:3*10) {
 
   if (posType == THREE_PRIME) {
     xAxisLabel = "3' Relative Position"
-    xAxisBreaks = c(0, -10, -20, -30)
   } else if (posType == FIVE_PRIME) {
     xAxisLabel = "5' Relative Position"
-    xAxisBreaks = c(0, 10, 20, 30)
   } else stop("Unrecognized value for posType parameter.")
 
   if (length(combineNucleotides) > 0) {
@@ -132,10 +130,11 @@ plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
   plot = plot +
     theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
           strip.background = element_rect(color = "black", size = 1),
-          axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+          axis.text.y.right = element_blank(), axis.ticks.y.right = element_blank(),
+          axis.text.y.left = element_text(size = 10),
           strip.text.y = element_text(size = yStripFontSize)) +
-    coord_cartesian(ylim = c(0,1)) +
-    scale_y_continuous(sec.axis = dup_axis(~., name = secondaryYAxisLabel)) +
+    coord_cartesian(ylim = c(0,1.2)) +
+    scale_y_continuous(sec.axis = dup_axis(~., name = secondaryYAxisLabel), breaks = c(0, 0.5, 1)) +
     scale_x_continuous(breaks = xAxisBreaks)
 
   if (length(unique(nucFreqTable$Nucleotide)) == 1) {
@@ -248,14 +247,12 @@ plotSequenceEnrichment = function(enrichmentTablesByTimepoint, posType = THREE_P
                                   yAxisLabel = expression("log"[2]*"(Enrichment)"),
                                   secondaryYAxisLabel = "Read Length", yStripFontSize = 16, yAxisTickTextSize = 8,
                                   showThreePrimeCutSite = FALSE, showFivePrimeCutSite = FALSE,
-                                  querySequences = c("TGG"), expansionOffset = 0) {
+                                  querySequences = c("TGG"), expansionOffset = 0, xAxisBreaks = -3:3*10) {
 
   if (posType == THREE_PRIME) {
     xAxisLabel = "3' Relative Position"
-    xAxisBreaks = c(0, -10, -20, -30, -40)
   } else if (posType == FIVE_PRIME) {
     xAxisLabel = "5' Relative Position"
-    xAxisBreaks = c(0, 10, 20, 30, 40)
   } else stop("Unrecognized value for posType parameter.")
 
   # If passed a single data.table, no timepoint information is present.
@@ -315,14 +312,12 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
                                    title = "Seq Freq by Length and Timepoint", yAxisLabel = "Sequence Frequency",
                                    secondaryYAxisLabel = "Read Length", yStripFontSize = 16,
                                    showThreePrimeCutSite = FALSE, showFivePrimeCutSite = FALSE,
-                                   expansionOffset = 0, querySequences = c("TGG")) {
+                                   expansionOffset = 0, querySequences = c("TGG"), xAxisBreaks = -3:3*10) {
 
   if (posType == THREE_PRIME) {
     xAxisLabel = "3' Relative Position"
-    xAxisBreaks = c(0, -10, -20, -30)
   } else if (posType == FIVE_PRIME) {
     xAxisLabel = "5' Relative Position"
-    xAxisBreaks = c(0, 10, 20, 30)
   } else stop("Unrecognized value for posType parameter.")
 
   # If passed a single data.table, no timepoint information is present.
@@ -354,7 +349,7 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
   plot = plot +
     theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
           strip.background = element_rect(color = "black", size = 1),
-          axis.text.y = element_text(size = 12),
+          axis.text.y = element_text(size = 10),
           axis.text.y.right = element_blank(), axis.ticks.y.right = element_blank(),
           strip.text.y = element_text(size = yStripFontSize)) +
     coord_cartesian(ylim = c(0,maxFrequency*1.2)) +
