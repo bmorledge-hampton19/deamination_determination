@@ -96,7 +96,7 @@ for (i in seq_along(fivePrimeMismatchSixFourNucFreq)) {
 ```
 
 
-```{r CPD_mismatch_anchored_nucleotide_frequencies, fig.width = 11, fig.height = 7}
+```{r CPD_mismatch_anchored_nucleotide_frequencies, fig.width = 11, fig.height = 9}
 plotNucFreqVsReadLengthBarPlot(threePrimeMismatchCPDNucFreq$rep1, 
                                title = paste(c("CPD", titleCaseFiltering, "3' Anchored Nuc Freq Rep1"), collapse = ' '),
                                secondaryYAxisLabel = "5' Cut Site Distance",
@@ -117,7 +117,7 @@ plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchCPDNucFreq$rep2,
 ```
 
 
-```{r CPD_mismatch_anchored_purine_frequencies, fig.width = 11, fig.height = 7}
+```{r CPD_mismatch_anchored_purine_frequencies, fig.width = 11, fig.height = 9}
 plotNucFreqVsReadLengthBarPlot(threePrimeMismatchCPDNucFreq$rep1, 
                                title = paste(c("CPD", titleCaseFiltering, "3' Anchored Purine Freq Rep1"), collapse = ' '),
                                yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "5' Cut Site Distance",
@@ -142,7 +142,7 @@ plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchCPDNucFreq$rep2,
 ```
 
 
-```{r 6-4_mismatch_anchored_nucleotide_frequencies, fig.width = 11, fig.height = 7}
+```{r 6-4_mismatch_anchored_nucleotide_frequencies, fig.width = 11, fig.height = 9}
 plotNucFreqVsReadLengthBarPlot(threePrimeMismatchSixFourNucFreq$rep1, 
                                title = paste(c("6-4", titleCaseFiltering, "3' Anchored Nuc Freq Rep1"), collapse = ' '),
                                secondaryYAxisLabel = "5' Cut Site Distance",
@@ -163,7 +163,7 @@ plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchSixFourNucFreq$rep2,
 ```
 
 
-```{r 6-4_mismatch_anchored_purine_frequencies, fig.width = 11, fig.height = 7}
+```{r 6-4_mismatch_anchored_purine_frequencies, fig.width = 11, fig.height = 9}
 plotNucFreqVsReadLengthBarPlot(threePrimeMismatchSixFourNucFreq$rep1, 
                                title = paste(c("6-4", titleCaseFiltering, "3' Anchored Purine Freq Rep1"), collapse = ' '),
                                yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "5' Cut Site Distance",
@@ -244,7 +244,7 @@ for (i in seq_along(fivePrimeMMAnchoredSixFourEnrichment)) {
 ```
 
 
-```{r CPD_sequence_enrichment, fig.width = 11, fig.height = 7}
+```{r CPD_sequence_enrichment, fig.width = 11, fig.height = 9}
 plotSequenceEnrichment(threePrimeMMAnchoredCPDEnrichment$rep1,
                        title = paste(c("CPD", titleCaseFiltering, "3' Anchored YR Enrichment Rep1"), collapse = ' '),
                        secondaryYAxisLabel = "5' Cut Site Distance", showFivePrimeCutSite = TRUE,
@@ -265,7 +265,7 @@ plotSequenceEnrichment(fivePrimeMMAnchoredCPDEnrichment$rep2,
 ```
 
 
-```{r 6-4_sequence_enrichment, fig.width = 11, fig.height = 7}
+```{r 6-4_sequence_enrichment, fig.width = 11, fig.height = 9}
 plotSequenceEnrichment(threePrimeMMAnchoredSixFourEnrichment$rep1,
                        title = paste(c("6-4", titleCaseFiltering, "3' Anchored YR Enrichment Rep1"), collapse = ' '),
                        secondaryYAxisLabel = "5' Cut Site Distance", showFivePrimeCutSite = TRUE,
@@ -366,7 +366,7 @@ for (i in seq_along(fivePrimeMMAnchoredSixFourSeqFreq)) {
 ```
 
 
-```{r CPD_sequence_frequencies, fig.width = 11, fig.height = 7}
+```{r CPD_sequence_frequencies, fig.width = 11, fig.height = 9}
 plotSequenceFrequencies(threePrimeMMAnchoredCPDSeqFreq$rep1,
                         title = paste(c("CPD", titleCaseFiltering, "3' Anchored YR Freq Rep1"), collapse = ' '),
                         secondaryYAxisLabel = "5' Cut Site Distance", showFivePrimeCutSite = TRUE,
@@ -387,7 +387,7 @@ plotSequenceFrequencies(fivePrimeMMAnchoredCPDSeqFreq$rep2,
 ```
 
 
-```{r 6-4_sequence_frequencies, fig.width = 11, fig.height = 7}
+```{r 6-4_sequence_frequencies, fig.width = 11, fig.height = 9}
 plotSequenceFrequencies(threePrimeMMAnchoredSixFourSeqFreq$rep1,
                         title = paste(c("6-4", titleCaseFiltering, "3' Anchored YR Freq Rep1"), collapse = ' '),
                         secondaryYAxisLabel = "5' Cut Site Distance", showFivePrimeCutSite = TRUE,

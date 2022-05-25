@@ -124,14 +124,15 @@ for (i in seq_along(sixFourMMFreqZScores)) {
 }
 
 # Further filter data by read position based on length
+# NOTE: 6-4 data uses CPD z-scores for filtering.
 CPDMismatchData = mapply(function(CPDMismatchDataRep, CPDMMFreqZScoreRep) mapply(
   filterMismatchesByPositionAndReadLength, CPDMismatchDataRep, CPDMMFreqZScoreRep,
   expansionOffset = expansionOffset, SIMPLIFY = FALSE
 ), CPDMismatchData, CPDMMFreqZScores, SIMPLIFY = FALSE)
-sixFourMismatchData = mapply(function(sixFourMismatchDataRep, sixFourMMFreqZScoreRep) mapply(
-  filterMismatchesByPositionAndReadLength, sixFourMismatchDataRep, sixFourMMFreqZScoreRep,
-  expansionOffset = expansionOffset, SIMPLIFY = FALSE
-), sixFourMismatchData, sixFourMMFreqZScores, SIMPLIFY = FALSE)
+sixFourMismatchData = lapply(sixFourMismatchData, function(sixFourMismatchDataRep) {
+  lapply(sixFourMismatchDataRep, filterMismatchesByPositionAndReadLength,
+         CPDMMFreqZScores[[1]][[1]], expansionOffset = expansionOffset)
+})
 ```
 
 
