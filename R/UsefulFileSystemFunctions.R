@@ -19,6 +19,8 @@ generateFilePath = function(directory, dataTypeString, fileExtension,
                             strandPolarity = NA, anchored = F, sequence = NA, expansionNum = NA,
                             additionalInformation = character(), filtering = NA) {
 
+  if (!is.na(timepoint) && timepoint == "NONE") timepoint = NA
+
   if ( length(includedMismatches) > 0 && length(omittedMismatches) > 0) {
     stop("Included mismatches and omitted mismatches given simultaneously")
   }
