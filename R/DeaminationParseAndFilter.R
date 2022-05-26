@@ -66,7 +66,6 @@ simplifyTable = function(table, includeReadSequence = FALSE, includeTrinucleotid
                 Trinuc_Context := paste0(str_sub(Read_Sequence, Position - 1, Position - 1),
                                          str_sub(Mismatch, 1, 1),
                                          str_sub(Read_Sequence, Position + 1, Position + 1))]
-    returnTable[nchar(Trinuc_Context) == 0, Trinuc_Context := NA]
     if (!includeReadSequence) returnTable[, Read_Sequence := NULL]
   }
 

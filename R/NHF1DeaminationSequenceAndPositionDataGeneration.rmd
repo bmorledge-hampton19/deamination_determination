@@ -102,7 +102,7 @@ sixFourMismatchData = lapply(sixFourMismatchData, function(x) lapply(
 # Write the simplified mismatch data
 for (i in 1:length(CPDMismatchData)) {
   for (j in 1:length(CPDMismatchData[[i]])) {
-    fwrite(CPDMismatchData[[i]][[j]], sep = '\t',
+    fwrite(CPDMismatchData[[i]][[j]], sep = '\t', na = "NA",
            file = generateFilePath(
              deaminationSequenceAndPositionDataDirectory, dataTypeStrings$simplifiedMismatches, ".tsv",
              cellType = cellType, lesion = "CPD", timepoint = names(CPDMismatchData[[i]])[j],
@@ -113,7 +113,7 @@ for (i in 1:length(CPDMismatchData)) {
 
 for (i in 1:length(sixFourMismatchData)) {
   for (j in 1:length(sixFourMismatchData[[i]])) {
-    fwrite(sixFourMismatchData[[i]][[j]], sep = '\t',
+    fwrite(sixFourMismatchData[[i]][[j]], sep = '\t', na = "NA",
            file = generateFilePath(
              deaminationSequenceAndPositionDataDirectory, dataTypeStrings$simplifiedMismatches, ".tsv",
              cellType = cellType, lesion = "6-4", timepoint = names(sixFourMismatchData[[i]])[j],
