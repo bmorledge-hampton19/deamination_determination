@@ -104,7 +104,9 @@ plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
                                           yStripFontSize = 16,
                                           combineNucleotides = list(), combinedNames = list(),
                                           showThreePrimeCutSite = FALSE, showFivePrimeCutSite = FALSE,
-                                          expansionOffset = 0, xAxisBreaks = -3:3*10) {
+                                          expansionOffset = 0, xAxisBreaks = -3:3*10,
+                                          ylim = c(0,1.2), yAxisBreaks = c(0,0.5,1),
+                                          minReadLength = NULL, maxReadLength = NULL) {
 
   if (posType == THREE_PRIME) {
     xAxisLabel = "3' Relative Position"
@@ -115,6 +117,9 @@ plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
   if (length(combineNucleotides) > 0) {
     nucFreqTable = combineNucleotideFrequencies(nucFreqTable, combineNucleotides, combinedNames)
   }
+
+  if (!is.null(minReadLength)) nucFreqTable = nucFreqTable[Read_Length >= minReadLength]
+  if (!is.null(maxReadLength)) nucFreqTable = nucFreqTable[Read_Length <= maxReadLength]
 
   plot = ggplot(nucFreqTable, aes(Position, Frequency, fill = Nucleotide)) +
     geom_bar(position = "stack", stat = "identity") +
@@ -133,8 +138,8 @@ plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
           axis.text.y.right = element_blank(), axis.ticks.y.right = element_blank(),
           axis.text.y.left = element_text(size = 10),
           strip.text.y = element_text(size = yStripFontSize)) +
-    coord_cartesian(ylim = c(0,1.2)) +
-    scale_y_continuous(sec.axis = dup_axis(~., name = secondaryYAxisLabel), breaks = c(0, 0.5, 1)) +
+    coord_cartesian(ylim = ylim) +
+    scale_y_continuous(sec.axis = dup_axis(~., name = secondaryYAxisLabel), breaks = yAxisBreaks) +
     scale_x_continuous(breaks = xAxisBreaks)
 
   if (length(unique(nucFreqTable$Nucleotide)) == 1) {
@@ -247,7 +252,8 @@ plotSequenceEnrichment = function(enrichmentTablesByTimepoint, posType = THREE_P
                                   yAxisLabel = expression("log"[2]*"(Enrichment)"),
                                   secondaryYAxisLabel = "Read Length", yStripFontSize = 16, yAxisTickTextSize = 8,
                                   showThreePrimeCutSite = FALSE, showFivePrimeCutSite = FALSE,
-                                  querySequences = c("TGG"), expansionOffset = 0, xAxisBreaks = -3:3*10) {
+                                  querySequences = c("TGG"), expansionOffset = 0, xAxisBreaks = -3:3*10,
+                                  minReadLength = NULL, maxReadLength = NULL) {
 
   if (posType == THREE_PRIME) {
     xAxisLabel = "3' Relative Position"
@@ -266,6 +272,9 @@ plotSequenceEnrichment = function(enrichmentTablesByTimepoint, posType = THREE_P
   }
 
   maxQueryLength = max(nchar(querySequences))
+
+  if (!is.null(minReadLength)) fullEnrichmentTable = fullEnrichmentTable[Read_Length >= minReadLength]
+  if (!is.null(maxReadLength)) fullEnrichmentTable = fullEnrichmentTable[Read_Length <= maxReadLength]
 
   plot = ggplot(fullEnrichmentTable, aes(Position, log2(Enrichment))) +
     geom_bar(position = "stack", stat = "identity") +
@@ -312,7 +321,8 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
                                    title = "Seq Freq by Length and Timepoint", yAxisLabel = "Sequence Frequency",
                                    secondaryYAxisLabel = "Read Length", yStripFontSize = 16,
                                    showThreePrimeCutSite = FALSE, showFivePrimeCutSite = FALSE,
-                                   expansionOffset = 0, querySequences = c("TGG"), xAxisBreaks = -3:3*10) {
+                                   expansionOffset = 0, querySequences = c("TGG"), xAxisBreaks = -3:3*10,
+                                   minReadLength = NULL, maxReadLength = NULL) {
 
   if (posType == THREE_PRIME) {
     xAxisLabel = "3' Relative Position"
@@ -334,6 +344,9 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
   yAxisBreaks = c(0, maxFrequency/2, maxFrequency)
 
   maxQueryLength = max(nchar(querySequences))
+
+  if (!is.null(minReadLength)) fullFrequencyTable = fullFrequencyTable[Read_Length >= minReadLength]
+  if (!is.null(maxReadLength)) fullFrequencyTable = fullFrequencyTable[Read_Length <= maxReadLength]
 
   plot = ggplot(fullFrequencyTable, aes(Position, Frequency)) +
     geom_bar(stat = "identity") +
