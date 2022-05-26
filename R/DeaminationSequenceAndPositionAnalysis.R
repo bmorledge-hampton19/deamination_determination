@@ -181,7 +181,7 @@ plotReadLengthFrequencies = function(simplifiedTables, title = "Read Length Freq
     blankBackground + defaultTextScaling
 
   if (!noTimepointInfo) {
-    plot = plot + facet_grid(cols = vars(Timepoint))
+    plot = plot + facet_grid(cols = vars(factor(Timepoint, levels = names(simplifiedTables))))
   }
 
   plot = plot +
