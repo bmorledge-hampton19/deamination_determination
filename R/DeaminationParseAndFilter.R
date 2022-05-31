@@ -93,7 +93,8 @@ filterMismatchesByPositionAndReadLength = function(mismatchTable, posZScoreByRea
 # Z scores are calculated relative to a background defined as the first 10 positions on the 5' end (which
 # should just be noise).
 # NOTE: Positions are assumed to be given relative to the three prime end (negative values)
-getMismatchFrequencyZScoreByPosAndReadLength = function(simplifiedMismatchData, expansionOffset) {
+getMismatchFrequencyZScoreByPosAndReadLength = function(simplifiedMismatchData, expansionOffset,
+                                                        noisePositions = 10) {
 
   # First, get position frequencies for each read length.
   mismatchPositionFrequencies = simplifiedMismatchData[, .N, by = list(Position,Read_Length)]
@@ -105,7 +106,8 @@ getMismatchFrequencyZScoreByPosAndReadLength = function(simplifiedMismatchData, 
 
     # Determine the cutoff value based on the background.
     relevantPositionFrequencies = mismatchPositionFrequencies[Read_Length == readLength]
-    background = relevantPositionFrequencies[Position >= -readLength & Position < -readLength + 10, Frequency]
+    background = relevantPositionFrequencies[Position >= -readLength & Position < -readLength + noisePositions,
+                                             Frequency]
     backgroundMean = mean(background)
     backgroundSD = sd(background)
 
