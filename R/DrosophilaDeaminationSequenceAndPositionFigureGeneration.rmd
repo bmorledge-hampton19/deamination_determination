@@ -1,0 +1,179 @@
+---
+title: "Dm Deamination Sequence and Position Figure Generation"
+author: "Ben Morledge-Hampton"
+date: "5/2/2022"
+output: html_document
+params:
+  bioinformaticsDirectory:
+    label: "Bioinformatics Projects Directory"
+    value: C:/Bioinformatics_Projects
+    input: select
+    choices: [C:/Bioinformatics_Projects, F:/Bioinformatics_Projects]
+  filtering:
+    label: "Filtering"
+    value: NONE
+    input: select
+    choices: [NONE, TGG_filtered]
+---
+
+
+```{r setup_chunk}
+library(knitr)
+
+cellType = "Dm"
+CPDTimepoints = list(`10m` = NULL, `30m` = NULL, `8h` = NULL, `16h` = NULL, `24h` = NULL)
+minReadLength = 23; maxReadLength = 32
+
+if (interactive()) {
+  bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
+  filtering = readline("Filtering identifier (Input nothing for no filtering):")
+  if (filtering == '') filtering = character()
+} else {
+  bioinformaticsDirectory = params$bioinformaticsDirectory
+  filtering = params$filtering
+  if (filtering == "NONE") filtering = character()
+}
+if (length(filtering) > 0) {
+  titleCaseFiltering = tools::toTitleCase(gsub('_', ' ', filtering))
+} else titleCaseFiltering = character()
+
+opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5, 
+               fig.path = paste0(file.path("deamination_analysis_output",cellType,
+                                           paste(c(filtering,"deamination_sequence_and_position_figures"), collapse = '_')),
+                                 .Platform$file.sep))
+
+deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data", cellType)
+deaminationSequenceAndPositionDataDirectory = file.path(deaminationDataDirectory,"sequence_and_position_analysis")
+```
+
+
+```{r source_functions}
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "UsefulFileSystemFunctions.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "DeaminationSequenceAndPositionAnalysis.R"))
+```
+
+
+```{r read_simplified_mismatch_data}
+# Get file paths for the mismatch by read data
+CPDMismatchData = list(rep1 = CPDTimepoints,
+                       rep2 = CPDTimepoints)
+for (i in seq_along(CPDMismatchData)) {
+  for (j in seq_along(CPDMismatchData[[i]])) {
+    CPDMismatchData[[i]][[j]] = fread(generateFilePath(
+      deaminationSequenceAndPositionDataDirectory, dataTypeStrings$simplifiedMismatches, ".tsv",
+      cellType = cellType, lesion = "CPD", timepoint = names(CPDMismatchData[[i]])[j],
+      repitition = names(CPDMismatchData)[i], filtering = filtering
+    ))
+  }
+}
+```
+
+
+```{r CPD_mismatch_type_frequency}
+for (i in 1:length(CPDMismatchData)) {
+  for (j in 1:length(CPDMismatchData[[i]])) {
+    plotMismatchTypeFrequencies(CPDMismatchData[[i]][[j]],
+                                title = paste(c("CPD", titleCaseFiltering, names(CPDMismatchData)[i], 
+                                                names(CPDMismatchData[[i]])[j], "Mismatch Type Frequency"),
+                                              collapse = ' '))
+  }
+}
+```
+
+
+```{r CPD_mismatch_pos_frequency}
+for (i in 1:length(CPDMismatchData)) {
+  for (j in 1:length(CPDMismatchData[[i]])) {
+    plotMismatchPositionFrequencies(CPDMismatchData[[i]][[j]], includedTypes = c("C>T"),
+                                    title = paste(c("CPD", titleCaseFiltering, names(CPDMismatchData)[i], 
+                                                    names(CPDMismatchData[[i]])[j], "C>T Mismatch Positions"),
+                                                  collapse = ' '))
+    plotMismatchPositionFrequencies(CPDMismatchData[[i]][[j]], omittedTypes = c("C>T"),
+                                    title = paste(c("CPD", titleCaseFiltering, names(CPDMismatchData)[i], 
+                                                    names(CPDMismatchData[[i]])[j], "!C>T Mismatch Positions"),
+                                                  collapse = ' '))
+  }
+}
+```
+
+
+```{r CPD_trinucleotide_context_analysis}
+for (i in 1:length(CPDMismatchData)) {
+  for (j in 1:length(CPDMismatchData[[i]])) {
+    plotTrinucleotideContext(CPDMismatchData[[i]][[j]], includedTypes = c("C>T"),
+                             title = paste(c("CPD", titleCaseFiltering, names(CPDMismatchData)[i],
+                                             names(CPDMismatchData[[i]])[j], "C>T Mismatch Trinuc Context"),
+                                           collapse = ' '))
+  }
+}
+```
+
+
+```{r read_mismatch_frequency_z-score_tables}
+CPDMMFreqZScores = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints)
+for (i in seq_along(CPDMMFreqZScores)) {
+  for (j in seq_along(CPDMMFreqZScores[[i]])) {
+    CPDMMFreqZScores[[i]][[j]] = fread(generateFilePath(
+      directory = deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
+      cellType = cellType, lesion = "CPD", repitition = names(CPDMMFreqZScores)[i],
+      timepoint = names(CPDMMFreqZScores[[i]])[j], filtering = filtering, includedMismatches = c("C>T")
+    ))
+  }
+}
+```
+
+
+```{r CPD_mismatch_position_frequencies_by_read_length, fig.width = 9, fig.height = 5}
+plotPositionAcrossTimepointAndReadLength(CPDMismatchData$rep1, includedTypes = c("C>T"),
+                                         title = paste(c("CPD", titleCaseFiltering, "C>T Mismatch Pos Freq Rep1"),
+                                                       collapse = ' '),
+                                         zScoreTables = CPDMMFreqZScores$rep1)
+plotPositionAcrossTimepointAndReadLength(CPDMismatchData$rep2, includedTypes = c("C>T"),
+                                         title = paste(c("CPD", titleCaseFiltering, "C>T Mismatch Pos Freq Rep2"),
+                                                       collapse = ' '),
+                                         zScoreTables = CPDMMFreqZScores$rep2)
+plotPositionAcrossTimepointAndReadLength(CPDMismatchData$rep1, includedTypes = c("C>T"), posType = FIVE_PRIME,
+                                         title = paste(c("CPD", titleCaseFiltering, "C>T Mismatch Pos Freq Rep1"),
+                                                       collapse = ' '),
+                                         zScoreTables = CPDMMFreqZScores$rep1)
+plotPositionAcrossTimepointAndReadLength(CPDMismatchData$rep2, includedTypes = c("C>T"), posType = FIVE_PRIME,
+                                         title = paste(c("CPD", titleCaseFiltering, "C>T Mismatch Pos Freq Rep2"),
+                                                       collapse = ' '),
+                                         zScoreTables = CPDMMFreqZScores$rep2)
+```
+
+
+```{r CPD_read_length_distributions}
+plotReadLengthFrequencies(CPDMismatchData$rep1,
+                          title = paste(c("CPD", titleCaseFiltering, "Read Length Freq Rep 1"), collapse = ' '))
+plotReadLengthFrequencies(CPDMismatchData$rep2,
+                          title = paste(c("CPD", titleCaseFiltering, "Read Length Freq Rep 2"), collapse = ' '))
+```
+
+
+```{r read_mismatch_position_statistics}
+CPDGroupedStats = list(rep1 = list(three_prime = NULL, five_prime = NULL),
+                       rep2 = list(three_prime = NULL, five_prime = NULL))
+for (i in seq_along(CPDGroupedStats)) {
+  for (j in seq_along(CPDGroupedStats[[i]])) {
+    CPDGroupedStats[[i]][[j]] = fread(generateFilePath(
+      deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
+      cellType = cellType, lesion = "CPD", repitition = names(CPDGroupedStats)[i],
+      strandPolarity = names(CPDGroupedStats[[i]])[j], filtering = filtering
+    ))
+  }
+}
+```
+
+
+```{r CPD_position_differences_across_read_lengths, fig.width = 9, fig.height = 5}
+plotGroupedPositionStats(CPDGroupedStats$rep1$three_prime, CPDGroupedStats$rep1$five_prime, POS_DIFF,
+                         title = paste(c("CPD", titleCaseFiltering, "C>T Mismatch Pos Diff Rep1"), collapse = ' '),
+                         xAxisBreaks = c(minReadLength:maxReadLength))
+plotGroupedPositionStats(CPDGroupedStats$rep2$three_prime, CPDGroupedStats$rep2$five_prime, POS_DIFF,
+                         title = paste(c("CPD", titleCaseFiltering, "C>T Mismatch Pos Diff Rep2"), collapse = ' '),
+                         xAxisBreaks = c(minReadLength:maxReadLength))
+```
+
