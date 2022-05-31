@@ -35,8 +35,8 @@ generateFilePath = function(directory, dataTypeString, fileExtension,
   else anchoredText = NA
 
   basenameParts = c(cellType, lesion, timepoint, repitition, includedMismatches, omittedMismatches, "omitted",
-                    strandPolarity, anchoredText, sequence, additionalInformation, dataTypeString, expansionText,
-                    filtering)
+                    strandPolarity, anchoredText, sequence, dataTypeString, expansionText, filtering,
+                    additionalInformation)
   if (length(omittedMismatches) == 0) basenameParts[5+length(includedMismatches)] = NA
   basenameParts = basenameParts[!is.na(basenameParts)]
 
