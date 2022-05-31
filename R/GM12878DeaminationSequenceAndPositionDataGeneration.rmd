@@ -1,0 +1,137 @@
+---
+title: "GM12878 Deamination Sequence and Position Data Generation"
+author: "Ben Morledge-Hampton"
+date: "5/2/2022"
+output: html_document
+params:
+  bioinformaticsDirectory:
+    label: "Bioinformatics Projects Directory"
+    value: C:/Bioinformatics_Projects
+    input: select
+    choices: [C:/Bioinformatics_Projects, F:/Bioinformatics_Projects]
+  filtering:
+    label: "Filtering"
+    value: NONE
+    input: select
+    choices: [NONE, TGG_filtered]
+---
+
+
+```{r setup_chunk}
+library(knitr)
+
+expansionOffset = 0
+cellType = "GM12878"
+CisplatinTimepoints = list(`90min` = NULL)
+minReadLength = 22; maxReadLength = 30
+
+if (interactive()) {
+  bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
+  filtering = readline("Filtering identifier (Input nothing for no filtering):")
+  if (filtering == '') filtering = character()
+} else {
+  bioinformaticsDirectory = params$bioinformaticsDirectory
+  filtering = params$filtering
+  if (filtering == "NONE") filtering = character()
+}
+if (is.na(bioinformaticsDirectory)) stop("No bioinformatics directory given.")
+
+deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data", cellType)
+mismatchesByReadDirectory = file.path(deaminationDataDirectory, "mismatches_by_read")
+deaminationSequenceAndPositionDataDirectory = file.path(deaminationDataDirectory,"sequence_and_position_analysis")
+dir.create(deaminationSequenceAndPositionDataDirectory, recursive = TRUE, showWarnings = FALSE)
+```
+
+
+```{r source_functions}
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "UsefulFileSystemFunctions.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "DeaminationParseAndFilter.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "DeaminationSequenceAndPositionAnalysis.R"))
+```
+
+
+```{r read_mismatch_data}
+# Get file paths for the mismatch by read data
+CisplatinMismatchData = list(rep1 = CisplatinTimepoints,
+                             rep2 = CisplatinTimepoints)
+for (i in 1:length(CisplatinMismatchData)) {
+  for (j in 1:length(CisplatinMismatchData[[i]])) {
+    CisplatinMismatchData[[i]][[j]] = fread(generateFilePath(
+      mismatchesByReadDirectory, dataTypeStrings$mismatchesByRead, ".bed",
+      cellType = cellType, lesion = "cisplatin", timepoint = names(CisplatinMismatchData[[i]])[j],
+      repitition = names(CisplatinMismatchData)[i], filtering = filtering
+      ))
+  }
+}
+```
+
+
+```{r generate_and_write_simplified_and_filtered_mismatch_data}
+# Perform general filtering on the data
+CisplatinMismatchData = lapply(CisplatinMismatchData, function(x) lapply(
+  x, function(y) filterResults(y, TRUE, 3, minReadLength, maxReadLength)
+))
+
+# Simplify the data
+CisplatinMismatchData = lapply(CisplatinMismatchData, function(x) lapply(
+  x, function(y) simplifyTable(y, includeTrinucleotideContext = TRUE)
+))
+
+# Write the simplified mismatch data
+for (i in 1:length(CisplatinMismatchData)) {
+  for (j in 1:length(CisplatinMismatchData[[i]])) {
+    fwrite(CisplatinMismatchData[[i]][[j]], sep = '\t', na = "NA",
+           file = generateFilePath(
+             deaminationSequenceAndPositionDataDirectory, dataTypeStrings$simplifiedMismatches, ".tsv",
+             cellType = cellType, lesion = "cisplatin", timepoint = names(CisplatinMismatchData[[i]])[j],
+             repitition = names(CisplatinMismatchData)[i], filtering = filtering
+           ))
+  }
+}
+```
+
+
+```{r generate_and_write_mismatch_frequency_z-scores}
+# Don't forget to subset by C>T mismatches!
+CisplatinMMFreqZScores = lapply(CisplatinMismatchData, function(x) lapply(
+  x, function(y) {
+    getMismatchFrequencyZScoreByPosAndReadLength(y[Mismatch == "C>T"], expansionOffset)
+  }
+))
+
+for (i in seq_along(CisplatinMMFreqZScores)) {
+  for (j in seq_along(CisplatinMMFreqZScores[[i]])) {
+    fwrite(CisplatinMMFreqZScores[[i]][[j]], sep = '\t', file = generateFilePath(
+      directory = deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
+      cellType = cellType, lesion = "cisplatin", repitition = names(CisplatinMMFreqZScores)[i],
+      timepoint = names(CisplatinMMFreqZScores[[i]])[j], filtering = filtering, includedMismatches = c("C>T")
+    ))
+  }
+}
+```
+
+
+```{r generate_and_write_mismatch_position_statistics_by_read_length_and_timepoint}
+CisplatinGroupedStats = list(rep1 = list(), rep2 = list())
+CisplatinGroupedStats$rep1$three_prime = getGroupedPositionStats(CisplatinMismatchData$rep1, includedTypes = c("C>T"))
+CisplatinGroupedStats$rep2$three_prime = getGroupedPositionStats(CisplatinMismatchData$rep2, includedTypes = c("C>T"))
+CisplatinGroupedStats$rep1$five_prime =
+  getGroupedPositionStats(CisplatinMismatchData$rep1, includedTypes = c("C>T"), posType = FIVE_PRIME)
+CisplatinGroupedStats$rep2$five_prime =
+  getGroupedPositionStats(CisplatinMismatchData$rep2, includedTypes = c("C>T"), posType = FIVE_PRIME)
+
+for (i in seq_along(CisplatinGroupedStats)) {
+  for (j in seq_along(CisplatinGroupedStats[[i]])) {
+    fwrite(CisplatinGroupedStats[[i]][[j]], sep = '\t',
+           file = generateFilePath(
+             deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
+             cellType = cellType, lesion = "cisplatin", repitition = names(CisplatinGroupedStats)[i],
+             strandPolarity = names(CisplatinGroupedStats[[i]])[j], filtering = filtering
+           ))
+  }
+}
+```
+

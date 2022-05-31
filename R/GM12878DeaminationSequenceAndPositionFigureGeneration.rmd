@@ -1,0 +1,179 @@
+---
+title: "GM12878 Deamination Sequence and Position Figure Generation"
+author: "Ben Morledge-Hampton"
+date: "5/2/2022"
+output: html_document
+params:
+  bioinformaticsDirectory:
+    label: "Bioinformatics Projects Directory"
+    value: C:/Bioinformatics_Projects
+    input: select
+    choices: [C:/Bioinformatics_Projects, F:/Bioinformatics_Projects]
+  filtering:
+    label: "Filtering"
+    value: NONE
+    input: select
+    choices: [NONE, TGG_filtered]
+---
+
+
+```{r setup_chunk}
+library(knitr)
+
+cellType = "GM12878"
+CisplatinTimepoints = list(`90min` = NULL)
+minReadLength = 22; maxReadLength = 30
+
+if (interactive()) {
+  bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
+  filtering = readline("Filtering identifier (Input nothing for no filtering):")
+  if (filtering == '') filtering = character()
+} else {
+  bioinformaticsDirectory = params$bioinformaticsDirectory
+  filtering = params$filtering
+  if (filtering == "NONE") filtering = character()
+}
+if (length(filtering) > 0) {
+  titleCaseFiltering = tools::toTitleCase(gsub('_', ' ', filtering))
+} else titleCaseFiltering = character()
+
+opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5, 
+               fig.path = paste0(file.path("deamination_analysis_output",cellType,
+                                           paste(c(filtering,"deamination_sequence_and_position_figures"), collapse = '_')),
+                                 .Platform$file.sep))
+
+deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data", cellType)
+deaminationSequenceAndPositionDataDirectory = file.path(deaminationDataDirectory,"sequence_and_position_analysis")
+```
+
+
+```{r source_functions}
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "UsefulFileSystemFunctions.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "DeaminationSequenceAndPositionAnalysis.R"))
+```
+
+
+```{r read_simplified_mismatch_data}
+# Get file paths for the mismatch by read data
+CisplatinMismatchData = list(rep1 = CisplatinTimepoints,
+                             rep2 = CisplatinTimepoints)
+for (i in seq_along(CisplatinMismatchData)) {
+  for (j in seq_along(CisplatinMismatchData[[i]])) {
+    CisplatinMismatchData[[i]][[j]] = fread(generateFilePath(
+      deaminationSequenceAndPositionDataDirectory, dataTypeStrings$simplifiedMismatches, ".tsv",
+      cellType = cellType, lesion = "cisplatin", timepoint = names(CisplatinMismatchData[[i]])[j],
+      repitition = names(CisplatinMismatchData)[i], filtering = filtering
+    ))
+  }
+}
+```
+
+
+```{r cisplatin_mismatch_type_frequency}
+for (i in 1:length(CisplatinMismatchData)) {
+  for (j in 1:length(CisplatinMismatchData[[i]])) {
+    plotMismatchTypeFrequencies(CisplatinMismatchData[[i]][[j]],
+                                title = paste(c("cisplatin", titleCaseFiltering, names(CisplatinMismatchData)[i], 
+                                                names(CisplatinMismatchData[[i]])[j], "Mismatch Type Frequency"),
+                                              collapse = ' '))
+  }
+}
+```
+
+
+```{r cisplatin_mismatch_pos_frequency}
+for (i in 1:length(CisplatinMismatchData)) {
+  for (j in 1:length(CisplatinMismatchData[[i]])) {
+    plotMismatchPositionFrequencies(CisplatinMismatchData[[i]][[j]], includedTypes = c("C>T"),
+                                    title = paste(c("cisplatin", titleCaseFiltering, names(CisplatinMismatchData)[i], 
+                                                    names(CisplatinMismatchData[[i]])[j], "C>T Mismatch Positions"),
+                                                  collapse = ' '))
+    plotMismatchPositionFrequencies(CisplatinMismatchData[[i]][[j]], omittedTypes = c("C>T"),
+                                    title = paste(c("cisplatin", titleCaseFiltering, names(CisplatinMismatchData)[i], 
+                                                    names(CisplatinMismatchData[[i]])[j], "!C>T Mismatch Positions"),
+                                                  collapse = ' '))
+  }
+}
+```
+
+
+```{r cisplatin_trinucleotide_context_analysis}
+for (i in 1:length(CisplatinMismatchData)) {
+  for (j in 1:length(CisplatinMismatchData[[i]])) {
+    plotTrinucleotideContext(CisplatinMismatchData[[i]][[j]], includedTypes = c("C>T"),
+                             title = paste(c("cisplatin", titleCaseFiltering, names(CisplatinMismatchData)[i],
+                                             names(CisplatinMismatchData[[i]])[j], "C>T Mismatch Trinuc Context"),
+                                           collapse = ' '))
+  }
+}
+```
+
+
+```{r read_mismatch_frequency_z-score_tables}
+CisplatinMMFreqZScores = list(rep1 = CisplatinTimepoints, rep2 = CisplatinTimepoints)
+for (i in seq_along(CisplatinMMFreqZScores)) {
+  for (j in seq_along(CisplatinMMFreqZScores[[i]])) {
+    CisplatinMMFreqZScores[[i]][[j]] = fread(generateFilePath(
+      directory = deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
+      cellType = cellType, lesion = "cisplatin", repitition = names(CisplatinMMFreqZScores)[i],
+      timepoint = names(CisplatinMMFreqZScores[[i]])[j], filtering = filtering, includedMismatches = c("C>T")
+    ))
+  }
+}
+```
+
+
+```{r cisplatin_mismatch_position_frequencies_by_read_length, fig.width = 9, fig.height = 5}
+plotPositionAcrossTimepointAndReadLength(CisplatinMismatchData$rep1, includedTypes = c("C>T"),
+                                         title = paste(c("cisplatin", titleCaseFiltering, "C>T Mismatch Pos Freq Rep1"),
+                                                       collapse = ' '),
+                                         zScoreTables = CisplatinMMFreqZScores$rep1)
+plotPositionAcrossTimepointAndReadLength(CisplatinMismatchData$rep2, includedTypes = c("C>T"),
+                                         title = paste(c("cisplatin", titleCaseFiltering, "C>T Mismatch Pos Freq Rep2"),
+                                                       collapse = ' '),
+                                         zScoreTables = CisplatinMMFreqZScores$rep2)
+plotPositionAcrossTimepointAndReadLength(CisplatinMismatchData$rep1, includedTypes = c("C>T"), posType = FIVE_PRIME,
+                                         title = paste(c("cisplatin", titleCaseFiltering, "C>T Mismatch Pos Freq Rep1"),
+                                                       collapse = ' '),
+                                         zScoreTables = CisplatinMMFreqZScores$rep1)
+plotPositionAcrossTimepointAndReadLength(CisplatinMismatchData$rep2, includedTypes = c("C>T"), posType = FIVE_PRIME,
+                                         title = paste(c("cisplatin", titleCaseFiltering, "C>T Mismatch Pos Freq Rep2"),
+                                                       collapse = ' '),
+                                         zScoreTables = CisplatinMMFreqZScores$rep2)
+```
+
+
+```{r cisplatin_read_length_distributions}
+plotReadLengthFrequencies(CisplatinMismatchData$rep1,
+                          title = paste(c("cisplatin", titleCaseFiltering, "Read Length Freq Rep 1"), collapse = ' '))
+plotReadLengthFrequencies(CisplatinMismatchData$rep2,
+                          title = paste(c("cisplatin", titleCaseFiltering, "Read Length Freq Rep 2"), collapse = ' '))
+```
+
+
+```{r read_mismatch_position_statistics}
+CisplatinGroupedStats = list(rep1 = list(three_prime = NULL, five_prime = NULL),
+                             rep2 = list(three_prime = NULL, five_prime = NULL))
+for (i in seq_along(CisplatinGroupedStats)) {
+  for (j in seq_along(CisplatinGroupedStats[[i]])) {
+    CisplatinGroupedStats[[i]][[j]] = fread(generateFilePath(
+      deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
+      cellType = cellType, lesion = "cisplatin", repitition = names(CisplatinGroupedStats)[i],
+      strandPolarity = names(CisplatinGroupedStats[[i]])[j], filtering = filtering
+    ))
+  }
+}
+```
+
+
+```{r cisplatin_position_differences_across_read_lengths, fig.width = 9, fig.height = 5}
+plotGroupedPositionStats(CisplatinGroupedStats$rep1$three_prime, CisplatinGroupedStats$rep1$five_prime, POS_DIFF,
+                         title = paste(c("cisplatin", titleCaseFiltering, "C>T Mismatch Pos Diff Rep1"), collapse = ' '),
+                         xAxisBreaks = c(minReadLength:maxReadLength))
+plotGroupedPositionStats(CisplatinGroupedStats$rep2$three_prime, CisplatinGroupedStats$rep2$five_prime, POS_DIFF,
+                         title = paste(c("cisplatin", titleCaseFiltering, "C>T Mismatch Pos Diff Rep2"), collapse = ' '),
+                         xAxisBreaks = c(minReadLength:maxReadLength))
+```
+
