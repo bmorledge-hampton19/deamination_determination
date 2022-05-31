@@ -163,9 +163,9 @@ plotReadLengthFrequencies = function(simplifiedTables, title = "Read Length Freq
 
   #If passed a single data.table, wrap it in a list.
   if (is.data.table(simplifiedTables)) {
-    simplifiedTables = list(None = simplifiedTables)
-    noTimepointInfo = TRUE
-  } else noTimepointInfo = FALSE
+    simplifiedTables = list(NONE = simplifiedTables)
+  }
+  noTimepointInfo = all(names(simplifiedTables) == "NONE")
 
   aggregateTable = rbindlist(lapply(seq_along(simplifiedTables),
                                     function(i) simplifiedTables[[i]][,Timepoint := names(simplifiedTables)[i]]))
@@ -280,9 +280,9 @@ plotGroupedPositionStats = function(threePrimeGroupedStats, fivePrimeGroupedStat
     labs(title = title, x = "Read Length", y = stat) +
     scale_x_continuous(breaks = xAxisBreaks)
 
-  if (all(aggregateData$Timepoint == "None")) {
+  if (all(aggregateData$Timepoint == "NONE")) {
     groupedStatsPlot = groupedStatsPlot +
-      scale_color_grey() + theme(legend.position = "none")
+      scale_color_grey(guide = "none")
   } else groupedStatsPlot = groupedStatsPlot + scale_color_brewer(palette = "Set1")
 
   print(groupedStatsPlot)

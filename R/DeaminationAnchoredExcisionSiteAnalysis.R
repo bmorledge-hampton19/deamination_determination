@@ -51,9 +51,9 @@ tabulateNucFreqByPosTimepointAndLength = function(simplifiedTablesByTimepoint, p
 
   #If passed a single data.table, wrap it in a list.
   if (is.data.table(simplifiedTablesByTimepoint)){
-    simplifiedTablesByTimepoint = list(simplifiedTablesByTimepoint)
-    noTimepoints = TRUE
-  } else noTimepoints = FALSE
+    simplifiedTablesByTimepoint = list(NONE = simplifiedTables)
+  }
+  noTimepoints = all(names(simplifiedTablesByTimepoint) == "NONE")
 
   # First, stratify the data by length and timepoint (optional),
   # calculating relative nucleotide frequencies within each category.
@@ -61,7 +61,7 @@ tabulateNucFreqByPosTimepointAndLength = function(simplifiedTablesByTimepoint, p
     rbindlist(lapply(unique(simplifiedTablesByTimepoint[[i]]$Read_Length), function(x) {
 
       if (noTimepoints) {
-        paddingInfo = list(x, NA)
+        paddingInfo = list(x, "NONE")
       } else {
         paddingInfo = list(x, names(simplifiedTablesByTimepoint)[i])
       }
@@ -126,7 +126,7 @@ plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
     labs(title = title, x = xAxisLabel, y = yAxisLabel) +
     blankBackground + defaultTextScaling
 
-  if (all(is.na(nucFreqTable$Timepoint))) {
+  if (all(nucFreqTable$Timepoint == "NONE")) {
     plot = plot + facet_grid(rows = vars(Read_Length))
   } else {
     plot = plot + facet_grid(Read_Length~factor(Timepoint, levels = unique(nucFreqTable$Timepoint)))
