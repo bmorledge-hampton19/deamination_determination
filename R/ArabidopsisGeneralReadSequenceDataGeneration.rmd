@@ -1,0 +1,74 @@
+---
+title: "Arabidopsis General Read Sequence Data Generation"
+author: "Ben Morledge-Hampton"
+date: "5/2/2022"
+output: html_document
+params:
+  bioinformaticsDirectory:
+    label: "Bioinformatics Projects Directory"
+    value: C:/Bioinformatics_Projects
+    input: select
+    choices: [C:/Bioinformatics_Projects, F:/Bioinformatics_Projects]
+---
+
+
+```{r setup_chunk}
+library(knitr)
+
+expansionOffset = 10
+cellType = "Arabidopsis"
+CPDTimepoints = list(`ZT2` = NULL, `ZT14` = NULL)
+minReadLength = 24; maxReadLength = 30
+
+if (interactive()) {
+  bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
+} else {
+  bioinformaticsDirectory = params$bioinformaticsDirectory
+}
+
+if (is.na(bioinformaticsDirectory)) stop("No bioinformatics directory given.")
+
+deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data", cellType)
+generalReadSequenceDataDirectory = file.path(deaminationDataDirectory, "general_read_sequences")
+dir.create(generalReadSequenceDataDirectory, showWarnings = FALSE, recursive = TRUE)
+```
+
+
+```{r source_functions}
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "UsefulFileSystemFunctions.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "DeaminationAnchoredExcisionSiteAnalysis.R"))
+```
+
+
+```{r define_all_that_and_a_bag_of_chips_function}
+singleFileFullAnalysis = function(lesion, repitition, timepoint) {
+  readData = fread(generateFilePath(
+    generalReadSequenceDataDirectory, dataTypeStrings$alignedReads, ".bed",
+    cellType = cellType, lesion = lesion, timepoint = timepoint,
+    repitition = repitition, expansionNum = expansionOffset
+  ))
+  readData = data.table(Read_Length = nchar(readData$V7)-expansionOffset*2, Read_Sequence = readData$V7)
+  readData = readData[Read_Length >= minReadLength-7 & Read_Length <= maxReadLength]
+  
+  for (sequence in c("TGG","CGA")) {
+    seqFreq = getSequenceFreqByReadLengthAndPos(readData, querySequences = c(sequence))
+    fwrite(seqFreq, sep = '\t', file = generateFilePath(
+      directory = generalReadSequenceDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
+      cellType = cellType, lesion = lesion, repitition = repitition,
+      timepoint = timepoint, sequence = sequence
+    ))
+  }
+}
+```
+
+
+```{r compute_and_write_CPD_sequence_frequency}
+for (repitition in c("rep1", "rep2")) {
+  for (timepoint in names(CPDTimepoints)) {
+    singleFileFullAnalysis("CPD", repitition, timepoint)
+  }
+}
+```
+
