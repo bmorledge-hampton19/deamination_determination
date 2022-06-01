@@ -1,0 +1,201 @@
+---
+title: "XP-C Deamination Sequence and Position Data Generation"
+author: "Ben Morledge-Hampton"
+date: "5/2/2022"
+output: html_document
+params:
+  bioinformaticsDirectory:
+    label: "Bioinformatics Projects Directory"
+    value: C:/Bioinformatics_Projects
+    input: select
+    choices: [C:/Bioinformatics_Projects, F:/Bioinformatics_Projects]
+  filtering:
+    label: "Filtering"
+    value: NONE
+    input: select
+    choices: [NONE, TGG_filtered]
+---
+
+
+```{r setup_chunk}
+library(knitr)
+
+expansionOffset = 0
+cellType = "XP-C"
+CPDTimepoints = list(`1h` = NULL)
+sixFourTimepoints = list(`1h` = NULL)
+minReadLength = 22; maxReadLength = 30
+
+if (interactive()) {
+  bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
+  filtering = readline("Filtering identifier (Input nothing for no filtering):")
+  if (filtering == '') filtering = character()
+} else {
+  bioinformaticsDirectory = params$bioinformaticsDirectory
+  filtering = params$filtering
+  if (filtering == "NONE") filtering = character()
+}
+if (is.na(bioinformaticsDirectory)) stop("No bioinformatics directory given.")
+
+deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data", cellType)
+mismatchesByReadDirectory = file.path(deaminationDataDirectory, "mismatches_by_read")
+deaminationSequenceAndPositionDataDirectory = file.path(deaminationDataDirectory,"sequence_and_position_analysis")
+dir.create(deaminationSequenceAndPositionDataDirectory, recursive = TRUE, showWarnings = FALSE)
+```
+
+
+```{r source_functions}
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "UsefulFileSystemFunctions.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "DeaminationParseAndFilter.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "DeaminationSequenceAndPositionAnalysis.R"))
+```
+
+
+```{r read_mismatch_data}
+# Get file paths for the mismatch by read data
+CPDMismatchData = list(rep1 = CPDTimepoints,
+                       rep2 = CPDTimepoints)
+for (i in 1:length(CPDMismatchData)) {
+  for (j in 1:length(CPDMismatchData[[i]])) {
+    CPDMismatchData[[i]][[j]] = fread(generateFilePath(
+      mismatchesByReadDirectory, dataTypeStrings$mismatchesByRead, ".bed",
+      cellType = cellType, lesion = "CPD", timepoint = names(CPDMismatchData[[i]])[j],
+      repitition = names(CPDMismatchData)[i], filtering = filtering
+      ))
+  }
+}
+
+sixFourMismatchData = list(rep1 = sixFourTimepoints,
+                           rep2 = sixFourTimepoints)
+for (i in 1:length(sixFourMismatchData)) {
+  for (j in 1:length(sixFourMismatchData[[i]])) {
+    sixFourMismatchData[[i]][[j]] = fread(generateFilePath(
+      mismatchesByReadDirectory, dataTypeStrings$mismatchesByRead, ".bed",
+      cellType = cellType, lesion = "6-4", timepoint = names(sixFourMismatchData[[i]])[j],
+      repitition = names(sixFourMismatchData)[i], filtering = filtering
+      ))
+  }
+}
+```
+
+
+```{r generate_and_write_simplified_and_filtered_mismatch_data}
+# Perform general filtering on the data
+CPDMismatchData = lapply(CPDMismatchData, function(x) lapply(
+  x, function(y) filterResults(y, TRUE, 3, minReadLength, maxReadLength)
+))
+sixFourMismatchData = lapply(sixFourMismatchData, function(x) lapply(
+  x, function(y) filterResults(y, TRUE, 3, minReadLength, maxReadLength)
+))
+
+# Simplify the data
+CPDMismatchData = lapply(CPDMismatchData, function(x) lapply(
+  x, function(y) simplifyTable(y, includeTrinucleotideContext = TRUE)
+))
+sixFourMismatchData = lapply(sixFourMismatchData, function(x) lapply(
+  x, function(y) simplifyTable(y, includeTrinucleotideContext = TRUE)
+))
+
+# Write the simplified mismatch data
+for (i in 1:length(CPDMismatchData)) {
+  for (j in 1:length(CPDMismatchData[[i]])) {
+    fwrite(CPDMismatchData[[i]][[j]], sep = '\t', na = "NA",
+           file = generateFilePath(
+             deaminationSequenceAndPositionDataDirectory, dataTypeStrings$simplifiedMismatches, ".tsv",
+             cellType = cellType, lesion = "CPD", timepoint = names(CPDMismatchData[[i]])[j],
+             repitition = names(CPDMismatchData)[i], filtering = filtering
+           ))
+  }
+}
+
+for (i in 1:length(sixFourMismatchData)) {
+  for (j in 1:length(sixFourMismatchData[[i]])) {
+    fwrite(sixFourMismatchData[[i]][[j]], sep = '\t', na = "NA",
+           file = generateFilePath(
+             deaminationSequenceAndPositionDataDirectory, dataTypeStrings$simplifiedMismatches, ".tsv",
+             cellType = cellType, lesion = "6-4", timepoint = names(sixFourMismatchData[[i]])[j],
+             repitition = names(sixFourMismatchData)[i], filtering = filtering
+           ))
+  }
+}
+```
+
+
+```{r generate_and_write_mismatch_frequency_z-scores}
+# Don't forget to subset by C>T mismatches!
+CPDMMFreqZScores = lapply(CPDMismatchData, function(x) lapply(
+  x, function(y) {
+    getMismatchFrequencyZScoreByPosAndReadLength(y[Mismatch == "C>T"], expansionOffset)
+  }
+))
+sixFourMMFreqZScores = lapply(sixFourMismatchData, function(x) lapply(
+  x, function(y) {
+    getMismatchFrequencyZScoreByPosAndReadLength(y[Mismatch == "C>T"], expansionOffset)
+  }
+))
+
+for (i in seq_along(CPDMMFreqZScores)) {
+  for (j in seq_along(CPDMMFreqZScores[[i]])) {
+    fwrite(CPDMMFreqZScores[[i]][[j]], sep = '\t', file = generateFilePath(
+      directory = deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
+      cellType = cellType, lesion = "CPD", repitition = names(CPDMMFreqZScores)[i],
+      timepoint = names(CPDMMFreqZScores[[i]])[j], filtering = filtering, includedMismatches = c("C>T")
+    ))
+  }
+}
+
+for (i in seq_along(sixFourMMFreqZScores)) {
+  for (j in seq_along(sixFourMMFreqZScores[[i]])) {
+    fwrite(sixFourMMFreqZScores[[i]][[j]], sep = '\t', file = generateFilePath(
+      directory = deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
+      cellType = cellType, lesion = "6-4", repitition = names(sixFourMMFreqZScores)[i],
+      timepoint = names(sixFourMMFreqZScores[[i]])[j], filtering = filtering, includedMismatches = c("C>T")
+    ))
+  }
+}
+```
+
+
+```{r generate_and_write_mismatch_position_statistics_by_read_length_and_timepoint}
+CPDGroupedStats = list(rep1 = list(), rep2 = list())
+CPDGroupedStats$rep1$three_prime = getGroupedPositionStats(CPDMismatchData$rep1, includedTypes = c("C>T"))
+CPDGroupedStats$rep2$three_prime = getGroupedPositionStats(CPDMismatchData$rep2, includedTypes = c("C>T"))
+CPDGroupedStats$rep1$five_prime =
+  getGroupedPositionStats(CPDMismatchData$rep1, includedTypes = c("C>T"), posType = FIVE_PRIME)
+CPDGroupedStats$rep2$five_prime =
+  getGroupedPositionStats(CPDMismatchData$rep2, includedTypes = c("C>T"), posType = FIVE_PRIME)
+
+sixFourGroupedStats = list(rep1 = list(), rep2 = list())
+sixFourGroupedStats$rep1$three_prime = getGroupedPositionStats(sixFourMismatchData$rep1, includedTypes = c("C>T"))
+sixFourGroupedStats$rep2$three_prime = getGroupedPositionStats(sixFourMismatchData$rep2, includedTypes = c("C>T"))
+sixFourGroupedStats$rep1$five_prime =
+  getGroupedPositionStats(sixFourMismatchData$rep1, includedTypes = c("C>T"), posType = FIVE_PRIME)
+sixFourGroupedStats$rep2$five_prime =
+  getGroupedPositionStats(sixFourMismatchData$rep2, includedTypes = c("C>T"), posType = FIVE_PRIME)
+
+for (i in seq_along(CPDGroupedStats)) {
+  for (j in seq_along(CPDGroupedStats[[i]])) {
+    fwrite(CPDGroupedStats[[i]][[j]], sep = '\t',
+           file = generateFilePath(
+             deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
+             cellType = cellType, lesion = "CPD", repitition = names(CPDGroupedStats)[i],
+             strandPolarity = names(CPDGroupedStats[[i]])[j], filtering = filtering
+           ))
+  }
+}
+
+for (i in seq_along(sixFourGroupedStats)) {
+  for (j in seq_along(sixFourGroupedStats[[i]])) {
+    fwrite(sixFourGroupedStats[[i]][[j]], sep = '\t',
+           file = generateFilePath(
+             deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
+             cellType = cellType, lesion = "6-4", repitition = names(sixFourGroupedStats)[i],
+             strandPolarity = names(sixFourGroupedStats[[i]])[j], filtering = filtering
+           ))
+  }
+}
+```
+
