@@ -35,11 +35,11 @@ def findPotentialTandemDeaminations(inputFastqFilePaths: List[str], referenceSeq
 
         if isGzipped:
             outputFileBasename = os.path.basename(inputFastqFilePath).rsplit("trimmed.fastq",1)[0]
-            outputFileBasename += "_potential_tandem_deaminations.fastq.gz"
+            outputFileBasename += f"_potential_{referenceSequence}_to_{mismatchSequence}_mismatches.fastq.gz"
             openFunction = gzip.open
         else:
             outputFileBasename = os.path.basename(inputFastqFilePath).rsplit("trimmed.fastq",1)[0]
-            outputFileBasename += "_potential_tandem_deaminations.fastq"
+            outputFileBasename += f"_potential_{referenceSequence}_to_{mismatchSequence}_mismatches.fastq"
             openFunction = open
 
         outputFastqFilePath = os.path.join(outputDir, outputFileBasename)
