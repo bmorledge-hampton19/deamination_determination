@@ -6,6 +6,7 @@
 import os, gzip
 from typing import IO, List
 from benbiohelpers.TkWrappers.TkinterDialog import TkinterDialog
+from benbiohelpers.CustomErrors import UserInputError
 
 
 def writeNewFastqEntry(file: IO, readID, remainingHeaderLine, readSequence, qualityScoreLine):
@@ -20,10 +21,12 @@ def writeNewFastqEntry(file: IO, readID, remainingHeaderLine, readSequence, qual
 
 
 def findPotentialTandemDeaminations(inputFastqFilePaths: List[str], referenceSequence, mismatchSequence, outputDir = None):
-    
+
     for inputFastqFilePath in inputFastqFilePaths:
 
         print(f"\nWorking in {os.path.basename(inputFastqFilePath)}")
+        if "trimmed.fastq" not in inputFastqFilePath:
+            raise UserInputError("Given fastq file does not appear to be trimmed. (Expected \"trimmed.fastq\" in the name.)")
 
         isGzipped = inputFastqFilePath.endswith(".gz")
 
@@ -31,10 +34,12 @@ def findPotentialTandemDeaminations(inputFastqFilePaths: List[str], referenceSeq
         if outputDir is None: outputDir = os.path.dirname(inputFastqFilePath)
 
         if isGzipped:
-            outputFileBasename = os.path.basename(inputFastqFilePath).rsplit('.',2)[0] + "_potential_tandem_deaminations.tsv.gz"
+            outputFileBasename = os.path.basename(inputFastqFilePath).rsplit("trimmed.fastq",1)[0]
+            outputFileBasename += "_potential_tandem_deaminations.fastq.gz"
             openFunction = gzip.open
         else:
-            outputFileBasename = os.path.basename(inputFastqFilePath).rsplit('.',1)[0] + "_potential_tandem_deaminations.tsv"
+            outputFileBasename = os.path.basename(inputFastqFilePath).rsplit("trimmed.fastq",1)[0]
+            outputFileBasename += "_potential_tandem_deaminations.fastq"
             openFunction = open
 
         outputFastqFilePath = os.path.join(outputDir, outputFileBasename)
@@ -65,6 +70,7 @@ def findPotentialTandemDeaminations(inputFastqFilePaths: List[str], referenceSeq
                                             readSequence[potentialMismatchLocation+2:])
                         writeNewFastqEntry(outputFastqFile, thisReadID, remainingHeaderLine,
                                            thisReadSequence, qualityScoreLine)
+                        potentialMismatchLocation = readSequence.find(mismatchSequence, potentialMismatchLocation + 1)
 
 
 def main():
