@@ -49,7 +49,7 @@ def potentialMismatchesSamToBed(samFilePaths: List[str], outputDir = None):
 
                     # Check the current read category to determine if it has changed, if the last category needs
                     # to be written, etc.
-                    thisLineReadCategory, mismatchPosition = splitLine[0].split('$')[0]
+                    thisLineReadCategory = splitLine[0].split('$')[0]
 
                     if currentReadCategory is None:
                         currentReadCategory = thisLineReadCategory
@@ -57,7 +57,7 @@ def potentialMismatchesSamToBed(samFilePaths: List[str], outputDir = None):
                         readsInCurrentCategory = 1
 
                     elif thisLineReadCategory != currentReadCategory:
-                        if readsInCurrentCategory == 1 and mismatchPosition:
+                        if readsInCurrentCategory == 1 and lastLine.split()[0].split('$')[1]:
                             writeLastLine = True
                         currentReadCategory = thisLineReadCategory
                         if currentReadCategory in observedReadCategories:
@@ -79,16 +79,18 @@ def potentialMismatchesSamToBed(samFilePaths: List[str], outputDir = None):
                         else: strand = '+'
 
                         mismatchstartPos, mismatchEndPos = lastSplitLine[0].split('$')[1].split(':')
-                        mismatchCenterPos = (mismatchstartPos + mismatchEndPos - 1) / 2
+                        mismatchCenterPos = (int(mismatchstartPos) + int(mismatchEndPos) - 1) / 2
                         mismatchCenterPos = mismatchCenterPos - len(readSequence) # Convert to 3' oriented (negative) position
 
                         outputBedFile.write('\t'.join((lastSplitLine[2],
                                                        str(int(lastSplitLine[3]) - 1),
                                                        str(int(lastSplitLine[3]) - 1 + len(readSequence)), 
-                                                       mismatchCenterPos,
+                                                       str(mismatchCenterPos),
                                                        mismatchType,
                                                        strand,
                                                        readSequence)) + '\n')
+                        
+                        writeLastLine = False
 
                     # Store this line for later.
                     lastLine = line
