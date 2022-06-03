@@ -4,6 +4,7 @@ library(ggplot2)
 
 THREE_PRIME = "three_prime"
 FIVE_PRIME = "five_prime"
+HALF_MAX = "half_max"
 
 # Default text scaling
 defaultTextScaling = theme(plot.title = element_text(size = 22, hjust = 0.5),
@@ -72,7 +73,8 @@ plotMismatchPositionFrequencies = function(mismatchTable, includedTypes = list()
 # to construct a plot without timepoint information.
 plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTypes = list(), omittedTypes = list(),
                                                     title = "Mismatch Position Frequencies", posType = THREE_PRIME,
-                                                    zScoreTables = NULL, zScoreCutoff = 4, xAxisBreaks = -3:3*10) {
+                                                    zScoreTables = NULL, zScoreCutoff = 4, xAxisBreaks = -3:3*10,
+                                                    yAxisBreaks = NULL) {
 
   #If passed a single data.table, wrap it in a list.
   if (is.data.table(simplifiedTables)) {
@@ -141,14 +143,27 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
     plot = plot + facet_grid(Read_Length~factor(Timepoint, levels = names(simplifiedTables)))
   }
 
+  if (is.null(yAxisBreaks)) {
+    plot = plot + theme(axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+      scale_y_continuous(sec.axis = dup_axis(~., name = "Read Length"))
+  } else if (length(yAxisBreaks) == 1 && yAxisBreaks == HALF_MAX) {
+    maxFrequency = round(max(groupedPositionFrequencies$Frequency), digits = 2)
+    yAxisBreaks = c(0, maxFrequency/2, maxFrequency)
+    plot = plot + theme(axis.text.y = element_text(size = 10)) +
+      scale_y_continuous(breaks = yAxisBreaks, sec.axis = dup_axis(~., name = "Read Length"),) +
+      coord_cartesian(ylim = (c(0, maxFrequency*1.2)))
+  } else {
+    plot = plot + theme(axis.text.y = element_text(size = 10)) +
+      scale_y_continuous(breaks = yAxisBreaks, sec.axis = dup_axis(~., name = "Read Length"),) +
+      coord_cartesian(ylim = c(min(yAxisBreaks), max(yAxisBreaks) * 1.2))
+  }
 
   plot = plot +
     theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
           strip.background = element_rect(color = "black", size = 1),
-          axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+          axis.text.y.right = element_blank(), axis.ticks.y.right = element_blank(),
           strip.text.y = element_text(size = 16)) +
     geom_vline(xintercept = modePosition) +
-    scale_y_continuous(sec.axis = dup_axis(~., name = "Read Length")) +
     scale_x_continuous(breaks = xAxisBreaks)
 
   print(plot)
