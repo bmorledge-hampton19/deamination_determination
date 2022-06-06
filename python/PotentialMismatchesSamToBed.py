@@ -21,9 +21,9 @@ def potentialMismatchesSamToBed(samFilePaths: List[str], outputDir = None):
 
         # Create output file paths (bed file + metadata)
         if outputDir is None: outputDir = os.path.dirname(samFilePath)
-        outputBedFileBasename = os.path.basename(samFilePath).rsplit('.sam',1)[0] + ".bed"
-        mismatchPieces = outputBedFileBasename.rsplit("_mismatches", 1)[0].rsplit("potential_", 1)[1].split('_')
-        mismatchType = f"{mismatchPieces[0]}>{mismatchPieces[-1]}"
+        mismatchType = os.path.basename(samFilePath).rsplit("_mismatches.sam", 1)[0].rsplit("potential_", 1)[1]
+        outputBedFileBasename = (os.path.basename(samFilePath).rsplit(f"potential_{mismatchType}_mismatches.sam",1)[0] +
+                                 + f"{mismatchType}_mismatches_by_read.bed")
         outputBedFilePath = os.path.join(outputDir, outputBedFileBasename)
 
         # Read through the sam file line by line, looking for mismatches and recording them.
@@ -86,7 +86,7 @@ def potentialMismatchesSamToBed(samFilePaths: List[str], outputDir = None):
                                                        str(int(lastSplitLine[3]) - 1),
                                                        str(int(lastSplitLine[3]) - 1 + len(readSequence)), 
                                                        str(mismatchCenterPos),
-                                                       mismatchType,
+                                                       mismatchType.replace("_to_",'>'),
                                                        strand,
                                                        readSequence)) + '\n')
                         
