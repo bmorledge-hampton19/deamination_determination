@@ -168,14 +168,23 @@ plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
 
 # This function takes a table of mismatch data for whole reads and returns a table of
 # that same data for one side of that data, anchored on the mismatch
-orientDataToMismatch = function(simplifiedTable, posType, expansionOffset = 0) {
+orientDataToMismatch = function(simplifiedTable, posType, expansionOffset = 0, halfPositions = FALSE) {
 
   if (posType == THREE_PRIME) {
-    sequences = str_sub(simplifiedTable$Read_Sequence,
-                        -nchar(simplifiedTable$Read_Sequence), simplifiedTable$Position)
+    if (halfPositions) {
+      sequences = str_sub(simplifiedTable$Read_Sequence,
+                          -nchar(simplifiedTable$Read_Sequence), simplifiedTable$Position - 0.5)
+    } else {
+      sequences = str_sub(simplifiedTable$Read_Sequence,
+                          -nchar(simplifiedTable$Read_Sequence), simplifiedTable$Position)
+    }
     position = -1
   } else if (posType == FIVE_PRIME) {
-    sequences = str_sub(simplifiedTable$Read_Sequence, simplifiedTable$Position, -1)
+    if (halfPositions) {
+      sequences = str_sub(simplifiedTable$Read_Sequence, simplifiedTable$Position + 0.5, -1)
+    } else {
+      sequences = str_sub(simplifiedTable$Read_Sequence, simplifiedTable$Position, -1)
+    }
     position = 1
   } else stop("Unrecognized value for posType parameter.")
 

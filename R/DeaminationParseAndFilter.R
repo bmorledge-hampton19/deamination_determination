@@ -52,7 +52,7 @@ filterResults = function(mismatchData, removeRowsWithN = TRUE, maxMismatchesAllo
 simplifyTable = function(table, includeReadSequence = FALSE, includeTrinucleotideContext = FALSE,
                          expansionOffset = 0) {
 
-  returnTable = table[,list(Position = as.numeric(unlist(strsplit(V4, ':'))) - expansionOffset,
+  returnTable = table[,list(Position = as.numeric(unlist(strsplit(as.character(V4), ':'))) - expansionOffset,
                             Mismatch = unlist(strsplit(V5, ':')),
                             Read_Length = unlist(mapply(rep, nchar(V7)-2*expansionOffset,
                                                         lapply(strsplit(V5,':'), length))))]
