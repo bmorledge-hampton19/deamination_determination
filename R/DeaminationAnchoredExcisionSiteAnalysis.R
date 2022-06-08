@@ -79,7 +79,12 @@ tabulateNucFreqByPosTimepointAndLength = function(simplifiedTablesByTimepoint, p
     nucFreqTable = combineNucleotideFrequencies(nucFreqTable, combineNucleotides, combinedNames)
   }
 
-  return(nucFreqTable)
+  if (dim(nucFreqTable)[1] > 0) {
+    return(nucFreqTable)
+  } else {
+    return(data.table(Position = numeric(), Nucleotide = character(),
+                      Read_Length = numeric(), Timepoint = character()))
+  }
 
 }
 
@@ -170,6 +175,10 @@ plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
 # that same data for one side of that data, anchored on the mismatch
 orientDataToMismatch = function(simplifiedTable, posType, expansionOffset = 0, halfPositions = FALSE) {
 
+  # Check to see if the input table is empty. If it is, return an empty table.
+  if (dim(simplifiedTable)[1] == 0) return(data.table(Position = numeric(), Mismatch = character(),
+                                                      Read_Length = numeric(), Read_Sequence = character()))
+
   if (posType == THREE_PRIME) {
     if (halfPositions) {
       sequences = str_sub(simplifiedTable$Read_Sequence,
@@ -206,7 +215,7 @@ getSequenceFreqByReadLengthAndPos = function(readSequencesTable, expectedNucleot
   # Calculating expected and observed frequencies across all the query sequences at each position
   # NOTE: In order to determine what positions to iterate through, the following code assumes that
   #       all read sequences under a specific read length actually have that length.
-  return(rbindlist(lapply(unique(readSequencesTable$Read_Length), function(readLength) {
+  seqFreqTable = rbindlist(lapply(unique(readSequencesTable$Read_Length), function(readLength) {
 
     sequences = readSequencesTable[Read_Length == readLength]$Read_Sequence
     if (!is.null(expectedNucleotideFrequencies)) {
@@ -250,7 +259,17 @@ getSequenceFreqByReadLengthAndPos = function(readSequencesTable, expectedNucleot
       return(data.table(Position = positions, Read_Length = readLength, Frequency = frequencies))
     }
 
-  })))
+  }))
+
+  if (dim(seqFreqTable)[1] > 0) {
+    return(seqFreqTable)
+  } else {
+    if (!is.null(expectedNucleotideFrequencies)) {
+      return(data.table(Position = numeric(), Read_Length = numeric(), Enrichment = numeric()))
+    } else {
+      return(data.table(Position = numeric(), Read_Length = numeric(), Frequency = numeric()))
+    }
+  }
 
 }
 
