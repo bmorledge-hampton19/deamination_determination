@@ -27,8 +27,8 @@ library(knitr)
 library(stringr)
 
 cellType = "NHF1"
-CPDTimepoints = list(`1h` = NULL)
-sixFourTimepoints = list(`1h` = NULL)
+CPDTimepoints = list(`1h` = NULL, `8h` = NULL, `24h` = NULL, `48h` = NULL)
+sixFourTimepoints = list(`5min` = NULL, `20min` = NULL, `1h` = NULL)
 expansionOffset = 10
 minReadLength = 22; maxReadLength = 30
 
