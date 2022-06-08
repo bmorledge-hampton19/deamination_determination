@@ -92,8 +92,10 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
 
   if (posType == THREE_PRIME) {
     xAxisLabel = "3' Relative Position"
+    xlim = c(min(xAxisBreaks)*1.1,0)
   } else if (posType == FIVE_PRIME) {
     xAxisLabel = "5' Relative Position"
+    xlim = c(0, max(xAxisBreaks)*1.1)
     simplifiedTables = lapply(simplifiedTables, copy)
     lapply(simplifiedTables, function(x) x[, Position := Read_Length + Position + 1])
     if (!is.null(zScoreTables)) {
@@ -151,7 +153,7 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
     yAxisBreaks = c(0, maxFrequency/2, maxFrequency)
     plot = plot + theme(axis.text.y = element_text(size = 10)) +
       scale_y_continuous(breaks = yAxisBreaks, sec.axis = dup_axis(~., name = "Read Length"),) +
-      coord_cartesian(ylim = (c(0, maxFrequency*1.2)))
+      coord_cartesian(ylim = c(0, maxFrequency*1.2))
   } else {
     plot = plot + theme(axis.text.y = element_text(size = 10)) +
       scale_y_continuous(breaks = yAxisBreaks, sec.axis = dup_axis(~., name = "Read Length"),) +
@@ -164,7 +166,8 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
           axis.text.y.right = element_blank(), axis.ticks.y.right = element_blank(),
           strip.text.y = element_text(size = 16)) +
     geom_vline(xintercept = modePosition) +
-    scale_x_continuous(breaks = xAxisBreaks)
+    scale_x_continuous(breaks = xAxisBreaks) +
+    coord_cartesian(xlim = xlim)
 
   print(plot)
 
