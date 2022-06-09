@@ -4,12 +4,13 @@ Using mismatches in XR-seq reads to pinpoint CPD positions
 
 ## Table of Contents
 1. [Project Overview](#project-overview)
-2. [Directory Structure and Naming Conventions](#directory-structure-and-naming-conventions)
+2. [Dependencies and File Naming Conventions](#dependencies-and-file-naming-conventions)
 3. [Aligning Reads](#aligning-reads)
 4. [Identifying Mismatches](#identifying-mismatches)
-5. [Mismatch Analysis and Figure Generation](#mismatch-analysis-and-figure-generation)
-6. [Data Availability](#data-availability)
-7. [Acknowledgements](#acknowledgements)
+5. [Expanding and Filtering Mismatch Data](#expanding-and-filtering-mismatch-data)
+6. [Mismatch Analysis and Figure Generation](#mismatch-analysis-and-figure-generation)
+7. [Data Availability](#data-availability)
+8. [Acknowledgements](#acknowledgements)
 ***
 
 ## Project Overview
@@ -23,16 +24,20 @@ Cytosine nucleotides deaminate much faster in cyclobutane pyrimidine dimers (CPD
 #### The Methodology
 For single-nucleotide mismatches, reads are aligned using default alignment parameters in [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml), which are somewhat permissive of mismatches. The exact locations of the mismatches are extracted post-alignment from the resulting sam file.
 
-For tandem mismatches (specifically, CC>TT) an alternative method must be used. Aligners such as [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml) do not allow multiple mismatches during seeding, so depending on the read length and the position of the tandem mismatch, the read may not align at all. However, given the specific nature of the tandem mismatch, the problem can be coereced into an exact matching situation. For every TT sequence in a given read, a new read is produced with the TT changed to a CC to represent a reversion of the potential mismatch. These reverted reads are check against a reference genome for exact matches, and if exactly one read matches (and the original read does NOT match), the tandem mismatch in that read is confirmed. Exact matching can be performed using bowtie2 with specific parameters outlined in the (Aligning Reads)[#aligning-reads] section.
+For tandem mismatches (specifically, CC>TT) an alternative method must be used. Aligners such as [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml) do not allow multiple mismatches during seeding, so depending on the read length and the position of the tandem mismatch, the read may not align at all. However, given the specific nature of the tandem mismatch, the problem can be coereced into an exact matching situation. For every TT sequence in a given read, a new read is produced with the TT changed to a CC to represent a reversion of the potential mismatch. These reverted reads are check against a reference genome for exact matches, and if exactly one read matches (and the original read does NOT match), the tandem mismatch in that read is confirmed. Exact matching can be performed using bowtie2 with specific parameters outlined in the [Aligning Reads](#aligning-reads) section.
 ***
 
-## Directory Structure and Naming Conventions
+## Dependencies and File Naming Conventions
+Admittedly, the software in this repository was largely not designed with other users in mind. Despite this, the core analysis is still very much reproducible after taking a few steps to set up a specific environment and follow a few conventions when obtaining/naming data files. In the event that you find the following steps are insufficient to reproduce the desired results, you are more than welcome to [post an issue](../../issues) or email me directly at b.morledge-hampton@wsu.edu.
 ***
 
 ## Aligning Reads
 ***
 
 ## Identifying Mismatches
+***
+
+## Expanding and Filtering Mismatch Data
 ***
 
 ## Mismatch Analysis and Figure Generation
