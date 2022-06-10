@@ -10,7 +10,7 @@ from benbiohelpers.CustomErrors import UserInputError
 
 strandFromIsReverseComplement = {True:'-', False:'+'}
 
-def potentialMismatchesSamToBed(samFilePaths: List[str], outputDir = None):
+def potentialTandemMismatchesSamToBed(samFilePaths: List[str], outputDir = None):
     
     for samFilePath in samFilePaths:
 
@@ -112,7 +112,7 @@ def main():
     if outputDirDynSel.getControllerVar(): outputDir = selections.getIndividualFilePaths("outputDir")[0]
     else: outputDir = None
 
-    potentialMismatchesSamToBed(selections.getFilePathGroups()[0], outputDir)
+    potentialTandemMismatchesSamToBed(selections.getFilePathGroups()[0], outputDir)
 
 
 if __name__ == "__main__": main()
