@@ -45,10 +45,11 @@ if (interactive()) {
 if (is.na(bioinformaticsDirectory)) stop("No bioinformatics directory given.")
 
 deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data", cellType)
-tandemDeaminationDataDirectory = file.path(deaminationDataDirectory,
-                                           paste(str_replace(mismatchType, '>', "_to_"),
-                                                 "tandem_deaminations", sep = '_'))
-dir.create(tandemDeaminationDataDirectory, recursive = TRUE, showWarnings = FALSE)
+mismatchesByReadDirectory = file.path(deaminationDataDirectory, "mismatches_by_read")
+deaminationSequenceAndPositionDataDirectory = file.path(deaminationDataDirectory,"sequence_and_position_analysis")
+deaminationExcisionSiteDataDirectory = file.path(deaminationDataDirectory, "excision_site_analysis")
+dir.create(deaminationSequenceAndPositionDataDirectory, showWarnings = FALSE, recursive = TRUE)
+dir.create(deaminationExcisionSiteDataDirectory, showWarnings = FALSE, recursive = TRUE)
 ```
 
 
@@ -71,7 +72,7 @@ cisplatinMismatchData = list(rep1 = cisplatinTimepoints,
 for (i in 1:length(cisplatinMismatchData)) {
   for (j in 1:length(cisplatinMismatchData[[i]])) {
     cisplatinMismatchData[[i]][[j]] = fread(generateFilePath(
-      tandemDeaminationDataDirectory, dataTypeStrings$mismatchesByRead, ".bed",
+      mismatchesByReadDirectory, dataTypeStrings$mismatchesByRead, ".bed",
       cellType = cellType, lesion = "cisplatin", timepoint = names(cisplatinMismatchData[[i]])[j],
       repitition = names(cisplatinMismatchData)[i], filtering = filtering,
       includedMismatches = mismatchType
@@ -97,7 +98,7 @@ for (i in 1:length(cisplatinMismatchData)) {
   for (j in 1:length(cisplatinMismatchData[[i]])) {
     fwrite(cisplatinMismatchData[[i]][[j]], sep = '\t', na = "NA",
            file = generateFilePath(
-             tandemDeaminationDataDirectory, dataTypeStrings$simplifiedMismatches, ".tsv",
+             deaminationSequenceAndPositionDataDirectory, dataTypeStrings$simplifiedMismatches, ".tsv",
              cellType = cellType, lesion = "cisplatin", timepoint = names(cisplatinMismatchData[[i]])[j],
              repitition = names(cisplatinMismatchData)[i], filtering = filtering,
              includedMismatches = mismatchType
@@ -117,7 +118,7 @@ cisplatinMMFreqZScores = lapply(cisplatinMismatchData, function(x) lapply(
 for (i in seq_along(cisplatinMMFreqZScores)) {
   for (j in seq_along(cisplatinMMFreqZScores[[i]])) {
     fwrite(cisplatinMMFreqZScores[[i]][[j]], sep = '\t', file = generateFilePath(
-      directory = tandemDeaminationDataDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
+      directory = deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
       cellType = cellType, lesion = "cisplatin", repitition = names(cisplatinMMFreqZScores)[i],
       timepoint = names(cisplatinMMFreqZScores[[i]])[j], filtering = filtering, includedMismatches = c(mismatchType)
     ))
@@ -137,7 +138,7 @@ for (i in seq_along(cisplatinGroupedStats)) {
   for (j in seq_along(cisplatinGroupedStats[[i]])) {
     fwrite(cisplatinGroupedStats[[i]][[j]], sep = '\t',
            file = generateFilePath(
-             tandemDeaminationDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
+             deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
              cellType = cellType, lesion = "cisplatin", repitition = names(cisplatinGroupedStats)[i],
              strandPolarity = names(cisplatinGroupedStats[[i]])[j], filtering = filtering,
              includedMismatches = mismatchType
@@ -155,7 +156,7 @@ cisplatinMismatchData = list(rep1 = cisplatinTimepoints,
 for (i in 1:length(cisplatinMismatchData)) {
   for (j in 1:length(cisplatinMismatchData[[i]])) {
     cisplatinMismatchData[[i]][[j]] = fread(generateFilePath(
-      tandemDeaminationDataDirectory, dataTypeStrings$mismatchesByRead, ".bed",
+      mismatchesByReadDirectory, dataTypeStrings$mismatchesByRead, ".bed",
       cellType = cellType, lesion = "cisplatin", timepoint = names(cisplatinMismatchData[[i]])[j],
       repitition = names(cisplatinMismatchData)[i], expansionNum = expansionOffset, filtering = filtering,
       includedMismatches = mismatchType
@@ -181,7 +182,7 @@ cisplatinMMFreqZScores = list(rep1 = cisplatinTimepoints, rep2 = cisplatinTimepo
 for (i in seq_along(cisplatinMMFreqZScores)) {
   for (j in seq_along(cisplatinMMFreqZScores[[i]])) {
     cisplatinMMFreqZScores[[i]][[j]] = fread(generateFilePath(
-      directory = tandemDeaminationDataDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
+      directory = deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
       cellType = cellType, lesion = "cisplatin", repitition = names(cisplatinMMFreqZScores)[i],
       timepoint = names(cisplatinMMFreqZScores[[i]])[j], filtering = filtering, includedMismatches = mismatchType
     ))
@@ -214,7 +215,7 @@ threePrimeMismatchCisplatinNucFreq = lapply(threePrimeMismatchAnchoredCisplatinD
                                             tabulateNucFreqByPosTimepointAndLength)
 for (i in seq_along(threePrimeMismatchCisplatinNucFreq)) {
   fwrite(threePrimeMismatchCisplatinNucFreq[[i]], sep = '\t', file = generateFilePath(
-    directory = tandemDeaminationDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
+    directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
     cellType = cellType, lesion = "cisplatin", repitition = names(threePrimeMismatchCisplatinNucFreq)[i],
     strandPolarity = "three_prime", anchored = TRUE, filtering = filtering, includedMismatches = mismatchType
   ))
@@ -224,7 +225,7 @@ fivePrimeMismatchCisplatinNucFreq = lapply(fivePrimeMismatchAnchoredCisplatinDat
                                            tabulateNucFreqByPosTimepointAndLength, posType = FIVE_PRIME)
 for (i in seq_along(fivePrimeMismatchCisplatinNucFreq)) {
   fwrite(fivePrimeMismatchCisplatinNucFreq[[i]], sep = '\t', file = generateFilePath(
-    directory = tandemDeaminationDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
+    directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
     cellType = cellType, lesion = "cisplatin", repitition = names(fivePrimeMismatchCisplatinNucFreq)[i],
     strandPolarity = "five_prime", anchored = TRUE, filtering = filtering, includedMismatches = mismatchType
   ))
@@ -243,7 +244,7 @@ threePrimeMMAnchoredCisplatinSeqFreq = lapply(
 for (i in seq_along(threePrimeMMAnchoredCisplatinSeqFreq)) {
   for (j in seq_along(threePrimeMMAnchoredCisplatinSeqFreq[[i]])) {
     fwrite(threePrimeMMAnchoredCisplatinSeqFreq[[i]][[j]], sep = '\t', file = generateFilePath(
-      directory = tandemDeaminationDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
+      directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
       cellType = cellType, lesion = "cisplatin", repitition = names(threePrimeMMAnchoredCisplatinSeqFreq)[i],
       timepoint = names(threePrimeMMAnchoredCisplatinSeqFreq[[i]])[j], strandPolarity = "three_prime",
       anchored = TRUE, sequence = "YR", filtering = filtering, includedMismatches = mismatchType
@@ -261,7 +262,7 @@ fivePrimeMMAnchoredCisplatinSeqFreq = lapply(
 for (i in seq_along(fivePrimeMMAnchoredCisplatinSeqFreq)) {
   for (j in seq_along(fivePrimeMMAnchoredCisplatinSeqFreq[[i]])) {
     fwrite(fivePrimeMMAnchoredCisplatinSeqFreq[[i]][[j]], sep = '\t', file = generateFilePath(
-      directory = tandemDeaminationDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
+      directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
       cellType = cellType, lesion = "cisplatin", repitition = names(fivePrimeMMAnchoredCisplatinSeqFreq)[i],
       timepoint = names(fivePrimeMMAnchoredCisplatinSeqFreq[[i]])[j], strandPolarity = "five_prime",
       anchored = TRUE, sequence = "TGG", filtering = filtering, includedMismatches = mismatchType
@@ -269,5 +270,4 @@ for (i in seq_along(fivePrimeMMAnchoredCisplatinSeqFreq)) {
   }
 }
 ```
-
 

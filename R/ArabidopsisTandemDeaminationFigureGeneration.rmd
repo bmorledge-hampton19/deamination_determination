@@ -55,9 +55,8 @@ opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5,
                                  .Platform$file.sep))
 
 deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data", cellType)
-tandemDeaminationDataDirectory = file.path(deaminationDataDirectory,
-                                           paste(str_replace(mismatchType, '>', "_to_"),
-                                                 "tandem_deaminations", sep = '_'))
+deaminationSequenceAndPositionDataDirectory = file.path(deaminationDataDirectory,"sequence_and_position_analysis")
+deaminationExcisionSiteDataDirectory = file.path(deaminationDataDirectory, "excision_site_analysis")
 ```
 
 
@@ -78,7 +77,7 @@ CPDMismatchData = list(rep1 = CPDTimepoints,
 for (i in seq_along(CPDMismatchData)) {
   for (j in seq_along(CPDMismatchData[[i]])) {
     CPDMismatchData[[i]][[j]] = fread(generateFilePath(
-      tandemDeaminationDataDirectory, dataTypeStrings$simplifiedMismatches, ".tsv",
+      deaminationSequenceAndPositionDataDirectory, dataTypeStrings$simplifiedMismatches, ".tsv",
       cellType = cellType, lesion = "CPD", timepoint = names(CPDMismatchData[[i]])[j],
       repitition = names(CPDMismatchData)[i], filtering = filtering, includedMismatches = mismatchType
     ))
@@ -105,7 +104,7 @@ CPDMMFreqZScores = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints)
 for (i in seq_along(CPDMMFreqZScores)) {
   for (j in seq_along(CPDMMFreqZScores[[i]])) {
     CPDMMFreqZScores[[i]][[j]] = fread(generateFilePath(
-      directory = tandemDeaminationDataDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
+      directory = deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
       cellType = cellType, lesion = "CPD", repitition = names(CPDMMFreqZScores)[i],
       timepoint = names(CPDMMFreqZScores[[i]])[j], filtering = filtering, includedMismatches = mismatchType
     ))
@@ -154,7 +153,7 @@ CPDGroupedStats = list(rep1 = list(three_prime = NULL, five_prime = NULL),
 for (i in seq_along(CPDGroupedStats)) {
   for (j in seq_along(CPDGroupedStats[[i]])) {
     CPDGroupedStats[[i]][[j]] = fread(generateFilePath(
-      tandemDeaminationDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
+      deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
       cellType = cellType, lesion = "CPD", repitition = names(CPDGroupedStats)[i],
       strandPolarity = names(CPDGroupedStats[[i]])[j], filtering = filtering, includedMismatches = mismatchType
     ))
@@ -180,7 +179,7 @@ EXCISION SITE FIGURE GENERATION STARTS HERE
 threePrimeMismatchCPDNucFreq = list(rep1 = NULL, rep2 = NULL)
 for (i in seq_along(threePrimeMismatchCPDNucFreq)) {
   threePrimeMismatchCPDNucFreq[[i]] = fread(generateFilePath(
-    directory = tandemDeaminationDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
+    directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
     cellType = cellType, lesion = "CPD", repitition = names(threePrimeMismatchCPDNucFreq)[i],
     strandPolarity = "three_prime", anchored = TRUE, filtering = filtering, includedMismatches = mismatchType
   ))
@@ -189,7 +188,7 @@ for (i in seq_along(threePrimeMismatchCPDNucFreq)) {
 fivePrimeMismatchCPDNucFreq = list(rep1 = NULL, rep2 = NULL)
 for (i in seq_along(fivePrimeMismatchCPDNucFreq)) {
   fivePrimeMismatchCPDNucFreq[[i]] = fread(generateFilePath(
-    directory = tandemDeaminationDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
+    directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
     cellType = cellType, lesion = "CPD", repitition = names(fivePrimeMismatchCPDNucFreq)[i],
     strandPolarity = "five_prime", anchored = TRUE, filtering = filtering, includedMismatches = mismatchType
   ))
@@ -257,7 +256,7 @@ threePrimeMMAnchoredCPDSeqFreq = list(rep1 = CPDTimepoints,
 for (i in seq_along(threePrimeMMAnchoredCPDSeqFreq)) {
   for (j in seq_along(threePrimeMMAnchoredCPDSeqFreq[[i]])) {
     threePrimeMMAnchoredCPDSeqFreq[[i]][[j]] = fread(generateFilePath(
-      directory = tandemDeaminationDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
+      directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
       cellType = cellType, lesion = "CPD", repitition = names(threePrimeMMAnchoredCPDSeqFreq)[i],
       timepoint = names(threePrimeMMAnchoredCPDSeqFreq[[i]])[j], strandPolarity = "three_prime",
       anchored = TRUE, sequence = "YR", filtering = filtering, includedMismatches = mismatchType
@@ -270,7 +269,7 @@ fivePrimeMMAnchoredCPDSeqFreq = list(rep1 = CPDTimepoints,
 for (i in seq_along(fivePrimeMMAnchoredCPDSeqFreq)) {
   for (j in seq_along(fivePrimeMMAnchoredCPDSeqFreq[[i]])) {
     fivePrimeMMAnchoredCPDSeqFreq[[i]][[j]] = fread(generateFilePath(
-      directory = tandemDeaminationDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
+      directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
       cellType = cellType, lesion = "CPD", repitition = names(fivePrimeMMAnchoredCPDSeqFreq)[i],
       timepoint = names(fivePrimeMMAnchoredCPDSeqFreq[[i]])[j], strandPolarity = "five_prime",
       anchored = TRUE, sequence = "TGG", filtering = filtering, includedMismatches = mismatchType

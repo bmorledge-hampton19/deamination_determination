@@ -45,10 +45,11 @@ if (interactive()) {
 if (is.na(bioinformaticsDirectory)) stop("No bioinformatics directory given.")
 
 deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data", cellType)
-tandemDeaminationDataDirectory = file.path(deaminationDataDirectory,
-                                           paste(str_replace(mismatchType, '>', "_to_"),
-                                                 "tandem_deaminations", sep = '_'))
-dir.create(tandemDeaminationDataDirectory, recursive = TRUE, showWarnings = FALSE)
+mismatchesByReadDirectory = file.path(deaminationDataDirectory, "mismatches_by_read")
+deaminationSequenceAndPositionDataDirectory = file.path(deaminationDataDirectory,"sequence_and_position_analysis")
+deaminationExcisionSiteDataDirectory = file.path(deaminationDataDirectory, "excision_site_analysis")
+dir.create(deaminationSequenceAndPositionDataDirectory, showWarnings = FALSE, recursive = TRUE)
+dir.create(deaminationExcisionSiteDataDirectory, showWarnings = FALSE, recursive = TRUE)
 ```
 
 
@@ -71,7 +72,7 @@ CPDMismatchData = list(rep1 = CPDTimepoints,
 for (i in 1:length(CPDMismatchData)) {
   for (j in 1:length(CPDMismatchData[[i]])) {
     CPDMismatchData[[i]][[j]] = fread(generateFilePath(
-      tandemDeaminationDataDirectory, dataTypeStrings$mismatchesByRead, ".bed",
+      mismatchesByReadDirectory, dataTypeStrings$mismatchesByRead, ".bed",
       cellType = cellType, lesion = "CPD", timepoint = names(CPDMismatchData[[i]])[j],
       repitition = names(CPDMismatchData)[i], filtering = filtering,
       includedMismatches = mismatchType
@@ -97,7 +98,7 @@ for (i in 1:length(CPDMismatchData)) {
   for (j in 1:length(CPDMismatchData[[i]])) {
     fwrite(CPDMismatchData[[i]][[j]], sep = '\t', na = "NA",
            file = generateFilePath(
-             tandemDeaminationDataDirectory, dataTypeStrings$simplifiedMismatches, ".tsv",
+             deaminationSequenceAndPositionDataDirectory, dataTypeStrings$simplifiedMismatches, ".tsv",
              cellType = cellType, lesion = "CPD", timepoint = names(CPDMismatchData[[i]])[j],
              repitition = names(CPDMismatchData)[i], filtering = filtering,
              includedMismatches = mismatchType
@@ -117,7 +118,7 @@ CPDMMFreqZScores = lapply(CPDMismatchData, function(x) lapply(
 for (i in seq_along(CPDMMFreqZScores)) {
   for (j in seq_along(CPDMMFreqZScores[[i]])) {
     fwrite(CPDMMFreqZScores[[i]][[j]], sep = '\t', file = generateFilePath(
-      directory = tandemDeaminationDataDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
+      directory = deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
       cellType = cellType, lesion = "CPD", repitition = names(CPDMMFreqZScores)[i],
       timepoint = names(CPDMMFreqZScores[[i]])[j], filtering = filtering, includedMismatches = c(mismatchType)
     ))
@@ -137,7 +138,7 @@ for (i in seq_along(CPDGroupedStats)) {
   for (j in seq_along(CPDGroupedStats[[i]])) {
     fwrite(CPDGroupedStats[[i]][[j]], sep = '\t',
            file = generateFilePath(
-             tandemDeaminationDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
+             deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
              cellType = cellType, lesion = "CPD", repitition = names(CPDGroupedStats)[i],
              strandPolarity = names(CPDGroupedStats[[i]])[j], filtering = filtering,
              includedMismatches = mismatchType
@@ -155,7 +156,7 @@ CPDMismatchData = list(rep1 = CPDTimepoints,
 for (i in 1:length(CPDMismatchData)) {
   for (j in 1:length(CPDMismatchData[[i]])) {
     CPDMismatchData[[i]][[j]] = fread(generateFilePath(
-      tandemDeaminationDataDirectory, dataTypeStrings$mismatchesByRead, ".bed",
+      mismatchesByReadDirectory, dataTypeStrings$mismatchesByRead, ".bed",
       cellType = cellType, lesion = "CPD", timepoint = names(CPDMismatchData[[i]])[j],
       repitition = names(CPDMismatchData)[i], expansionNum = expansionOffset, filtering = filtering,
       includedMismatches = mismatchType
@@ -181,7 +182,7 @@ CPDMMFreqZScores = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints)
 for (i in seq_along(CPDMMFreqZScores)) {
   for (j in seq_along(CPDMMFreqZScores[[i]])) {
     CPDMMFreqZScores[[i]][[j]] = fread(generateFilePath(
-      directory = tandemDeaminationDataDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
+      directory = deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
       cellType = cellType, lesion = "CPD", repitition = names(CPDMMFreqZScores)[i],
       timepoint = names(CPDMMFreqZScores[[i]])[j], filtering = filtering, includedMismatches = mismatchType
     ))
@@ -214,7 +215,7 @@ CPDMismatchData = NULL
 threePrimeMismatchCPDNucFreq = lapply(threePrimeMismatchAnchoredCPDData, tabulateNucFreqByPosTimepointAndLength)
 for (i in seq_along(threePrimeMismatchCPDNucFreq)) {
   fwrite(threePrimeMismatchCPDNucFreq[[i]], sep = '\t', file = generateFilePath(
-    directory = tandemDeaminationDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
+    directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
     cellType = cellType, lesion = "CPD", repitition = names(threePrimeMismatchCPDNucFreq)[i],
     strandPolarity = "three_prime", anchored = TRUE, filtering = filtering, includedMismatches = mismatchType
   ))
@@ -224,7 +225,7 @@ fivePrimeMismatchCPDNucFreq = lapply(fivePrimeMismatchAnchoredCPDData,
                                      tabulateNucFreqByPosTimepointAndLength, posType = FIVE_PRIME)
 for (i in seq_along(fivePrimeMismatchCPDNucFreq)) {
   fwrite(fivePrimeMismatchCPDNucFreq[[i]], sep = '\t', file = generateFilePath(
-    directory = tandemDeaminationDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
+    directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
     cellType = cellType, lesion = "CPD", repitition = names(fivePrimeMismatchCPDNucFreq)[i],
     strandPolarity = "five_prime", anchored = TRUE, filtering = filtering, includedMismatches = mismatchType
   ))
@@ -241,7 +242,7 @@ threePrimeMMAnchoredCPDSeqFreq = lapply(threePrimeMismatchAnchoredCPDData, funct
 for (i in seq_along(threePrimeMMAnchoredCPDSeqFreq)) {
   for (j in seq_along(threePrimeMMAnchoredCPDSeqFreq[[i]])) {
     fwrite(threePrimeMMAnchoredCPDSeqFreq[[i]][[j]], sep = '\t', file = generateFilePath(
-      directory = tandemDeaminationDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
+      directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
       cellType = cellType, lesion = "CPD", repitition = names(threePrimeMMAnchoredCPDSeqFreq)[i],
       timepoint = names(threePrimeMMAnchoredCPDSeqFreq[[i]])[j], strandPolarity = "three_prime",
       anchored = TRUE, sequence = "YR", filtering = filtering, includedMismatches = mismatchType
@@ -257,7 +258,7 @@ fivePrimeMMAnchoredCPDSeqFreq = lapply(fivePrimeMismatchAnchoredCPDData, functio
 for (i in seq_along(fivePrimeMMAnchoredCPDSeqFreq)) {
   for (j in seq_along(fivePrimeMMAnchoredCPDSeqFreq[[i]])) {
     fwrite(fivePrimeMMAnchoredCPDSeqFreq[[i]][[j]], sep = '\t', file = generateFilePath(
-      directory = tandemDeaminationDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
+      directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
       cellType = cellType, lesion = "CPD", repitition = names(fivePrimeMMAnchoredCPDSeqFreq)[i],
       timepoint = names(fivePrimeMMAnchoredCPDSeqFreq[[i]])[j], strandPolarity = "five_prime",
       anchored = TRUE, sequence = "TGG", filtering = filtering, includedMismatches = mismatchType
