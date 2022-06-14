@@ -29,6 +29,7 @@ library(stringr)
 expansionOffset = 10
 cellType = "GM12878"
 cisplatinTimepoints = list(`90min` = NULL)
+repNames = c("rep1", "rep2", "all_reps")
 minReadLength = 22; maxReadLength = 30
 
 if (interactive()) {
@@ -72,8 +73,7 @@ source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
 
 ```{r read_simplified_mismatch_data}
 # Get file paths for the mismatch by read data
-cisplatinMismatchData = list(rep1 = cisplatinTimepoints,
-                             rep2 = cisplatinTimepoints)
+cisplatinMismatchData = list(rep1 = cisplatinTimepoints, rep2 = cisplatinTimepoints, all_reps = cisplatinTimepoints)
 for (i in seq_along(cisplatinMismatchData)) {
   for (j in seq_along(cisplatinMismatchData[[i]])) {
     cisplatinMismatchData[[i]][[j]] = fread(generateFilePath(
@@ -100,7 +100,7 @@ for (i in 1:length(cisplatinMismatchData)) {
 
 
 ```{r read_mismatch_frequency_z-score_tables}
-cisplatinMMFreqZScores = list(rep1 = cisplatinTimepoints, rep2 = cisplatinTimepoints)
+cisplatinMMFreqZScores = list(rep1 = cisplatinTimepoints, rep2 = cisplatinTimepoints, all_reps = cisplatinTimepoints)
 for (i in seq_along(cisplatinMMFreqZScores)) {
   for (j in seq_along(cisplatinMMFreqZScores[[i]])) {
     cisplatinMMFreqZScores[[i]][[j]] = fread(generateFilePath(
@@ -114,49 +114,54 @@ for (i in seq_along(cisplatinMMFreqZScores)) {
 
 
 ```{r cisplatin_mismatch_position_frequencies_by_read_length, fig.width = 9, fig.height = 5}
-plotPositionAcrossTimepointAndReadLength(cisplatinMismatchData$rep1,
-                                         title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
-                                                         "Mismatch Pos Freq Rep1"),
-                                                       collapse = ' '),
-                                         zScoreTables = cisplatinMMFreqZScores$rep1)
-plotPositionAcrossTimepointAndReadLength(cisplatinMismatchData$rep2,
-                                         title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
-                                                         "Mismatch Pos Freq Rep2"),
-                                                       collapse = ' '),
-                                         zScoreTables = cisplatinMMFreqZScores$rep2)
-plotPositionAcrossTimepointAndReadLength(cisplatinMismatchData$rep1, posType = FIVE_PRIME,
-                                         title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
-                                                         "Mismatch Pos Freq Rep1"),
-                                                       collapse = ' '),
-                                         zScoreTables = cisplatinMMFreqZScores$rep1)
-plotPositionAcrossTimepointAndReadLength(cisplatinMismatchData$rep2, posType = FIVE_PRIME,
-                                         title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
-                                                         "Mismatch Pos Freq Rep2"),
-                                                       collapse = ' '),
-                                         zScoreTables = cisplatinMMFreqZScores$rep2)
+for (i in seq_along(cisplatinMismatchData)) {
+  plotPositionAcrossTimepointAndReadLength(cisplatinMismatchData[[i]],
+                                           title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
+                                                           "Mismatch Pos Freq", repNames[i]),
+                                                         collapse = ' '),
+                                           zScoreTables = cisplatinMMFreqZScores[[i]])
+  plotPositionAcrossTimepointAndReadLength(cisplatinMismatchData[[i]], posType = FIVE_PRIME,
+                                           title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
+                                                           "Mismatch Pos Freq", repNames[i]),
+                                                         collapse = ' '),
+                                           zScoreTables = cisplatinMMFreqZScores[[i]])
+}
+```
+
+
+```{r read_read_length_counts}
+cisplatinReadLengthCounts = list(rep1 = cisplatinTimepoints, rep2 = cisplatinTimepoints, all_reps = cisplatinTimepoints)
+for (i in seq_along(cisplatinReadLengthCounts)) {
+  for (j in seq_along(cisplatinReadLengthCounts[[i]])) {
+    cisplatinReadLengthCounts[[i]][[j]] = fread(generateFilePath(
+      directory = deaminationSequenceAndPositionDataDirectory, dataTypeStrings$readLengthcounts, ".tsv",
+      cellType = cellType, lesion = "cisplatin", repitition = names(cisplatinReadLengthCounts)[i],
+      timepoint = names(cisplatinReadLengthCounts[[i]])[j], filtering = filtering, includedMismatches = mismatchType
+    ))
+  }
+}
 ```
 
 
 ```{r cisplatin_read_length_distributions}
-plotReadLengthFrequencies(cisplatinMismatchData$rep1,
-                          title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
-                                          "Read Length Freq Rep1"), collapse = ' '))
-plotReadLengthFrequencies(cisplatinMismatchData$rep2,
-                          title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
-                                          "Read Length Freq Rep2"), collapse = ' '))
+for (i in seq_along(cisplatinReadLengthCounts)) {
+  plotReadLengthFrequencies(cisplatinReadLengthCounts[[i]],
+                            title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
+                                            "Read Length Freq", repNames[i]), collapse = ' '))
+}
 ```
 
 
 ```{r read_mismatch_position_statistics}
 cisplatinGroupedStats = list(rep1 = list(three_prime = NULL, five_prime = NULL),
-                             rep2 = list(three_prime = NULL, five_prime = NULL))
+                             rep2 = list(three_prime = NULL, five_prime = NULL),
+                             all_reps = list(three_prime = NULL, five_prime = NULL))
 for (i in seq_along(cisplatinGroupedStats)) {
   for (j in seq_along(cisplatinGroupedStats[[i]])) {
     cisplatinGroupedStats[[i]][[j]] = fread(generateFilePath(
       deaminationSequenceAndPositionDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
       cellType = cellType, lesion = "cisplatin", repitition = names(cisplatinGroupedStats)[i],
-      strandPolarity = names(cisplatinGroupedStats[[i]])[j], filtering = filtering,
-      includedMismatches = mismatchType
+      strandPolarity = names(cisplatinGroupedStats[[i]])[j], filtering = filtering, includedMismatches = mismatchType
     ))
   }
 }
@@ -164,20 +169,18 @@ for (i in seq_along(cisplatinGroupedStats)) {
 
 
 ```{r cisplatin_position_differences_across_read_lengths, fig.width = 9, fig.height = 5}
-plotGroupedPositionStats(cisplatinGroupedStats$rep1$three_prime, cisplatinGroupedStats$rep1$five_prime, POS_DIFF,
-                         title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
-                                         "Mismatch Pos Diff Rep1"), collapse = ' '),
-                         xAxisBreaks = c(minReadLength:maxReadLength))
-plotGroupedPositionStats(cisplatinGroupedStats$rep2$three_prime, cisplatinGroupedStats$rep2$five_prime, POS_DIFF,
-                         title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
-                                         "Mismatch Pos Diff Rep2"), collapse = ' '),
-                         xAxisBreaks = c(minReadLength:maxReadLength))
+for (i in seq_along(cisplatinGroupedStats)) {
+  plotGroupedPositionStats(cisplatinGroupedStats[[i]]$three_prime, cisplatinGroupedStats[[i]]$five_prime, POS_DIFF,
+                           title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
+                                           "Mismatch Pos Diff", repNames[i]), collapse = ' '),
+                           xAxisBreaks = c(minReadLength:maxReadLength))
+}
 ```
 
 EXCISION SITE FIGURE GENERATION STARTS HERE
 
 ```{r read_nucleotide_frequency_data}
-threePrimeMismatchCisplatinNucFreq = list(rep1 = NULL, rep2 = NULL)
+threePrimeMismatchCisplatinNucFreq = list(rep1 = NULL, rep2 = NULL, all_reps = NULL)
 for (i in seq_along(threePrimeMismatchCisplatinNucFreq)) {
   threePrimeMismatchCisplatinNucFreq[[i]] = fread(generateFilePath(
     directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
@@ -186,7 +189,7 @@ for (i in seq_along(threePrimeMismatchCisplatinNucFreq)) {
   ))
 }
 
-fivePrimeMismatchCisplatinNucFreq = list(rep1 = NULL, rep2 = NULL)
+fivePrimeMismatchCisplatinNucFreq = list(rep1 = NULL, rep2 = NULL, all_reps = NULL)
 for (i in seq_along(fivePrimeMismatchCisplatinNucFreq)) {
   fivePrimeMismatchCisplatinNucFreq[[i]] = fread(generateFilePath(
     directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
@@ -198,62 +201,47 @@ for (i in seq_along(fivePrimeMismatchCisplatinNucFreq)) {
 
 
 ```{r cisplatin_mismatch_anchored_nucleotide_frequencies, fig.width = 11, fig.height = 9}
-plotNucFreqVsReadLengthBarPlot(threePrimeMismatchCisplatinNucFreq$rep1, 
-                               title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
-                                               "3' Anchored Nuc Freq Rep1"), collapse = ' '),
-                               secondaryYAxisLabel = "5' Cut Site Distance",
-                               posType = THREE_PRIME, showFivePrimeCutSite = TRUE, expansionOffset = expansionOffset)
-plotNucFreqVsReadLengthBarPlot(threePrimeMismatchCisplatinNucFreq$rep2, 
-                               title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
-                                               "3' Anchored Nuc Freq Rep2"), collapse = ' '),
-                               secondaryYAxisLabel = "5' Cut Site Distance",
-                               posType = THREE_PRIME, showFivePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+for (i in seq_along(threePrimeMismatchCisplatinNucFreq)) {
+  plotNucFreqVsReadLengthBarPlot(threePrimeMismatchCisplatinNucFreq[[i]], 
+                                 title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
+                                                 "3' Anchored Nuc Freq", repNames[i]), collapse = ' '),
+                                 secondaryYAxisLabel = "5' Cut Site Distance",
+                                 posType = THREE_PRIME, showFivePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+}
 
-plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchCisplatinNucFreq$rep1, 
-                               title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
-                                               "5' Anchored Nuc Freq Rep1"), collapse = ' '),
-                               yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "3' Cut Site Distance",
-                               posType = FIVE_PRIME, showThreePrimeCutSite = TRUE, expansionOffset = expansionOffset)
-plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchCisplatinNucFreq$rep2, 
-                               title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
-                                               "5' Anchored Nuc Freq Rep2"), collapse = ' '),
-                               yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "3' Cut Site Distance",
-                               posType = FIVE_PRIME, showThreePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+for (i in seq_along(fivePrimeMismatchCisplatinNucFreq)) {
+  plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchCisplatinNucFreq[[i]], 
+                                 title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
+                                                 "5' Anchored Nuc Freq", repNames[i]), collapse = ' '),
+                                 yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "3' Cut Site Distance",
+                                 posType = FIVE_PRIME, showThreePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+}
 ```
 
 
 ```{r cisplatin_mismatch_anchored_purine_frequencies, fig.width = 11, fig.height = 9}
-plotNucFreqVsReadLengthBarPlot(threePrimeMismatchCisplatinNucFreq$rep1, 
-                               title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
-                                               "3' Anchored Purine Freq Rep1"), collapse = ' '),
-                               yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "5' Cut Site Distance",
-                               combineNucleotides = c("AG"), combinedNames = c("Purine"),
-                               posType = THREE_PRIME, showFivePrimeCutSite = TRUE, expansionOffset = expansionOffset)
-plotNucFreqVsReadLengthBarPlot(threePrimeMismatchCisplatinNucFreq$rep2, 
-                               title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
-                                               "3' Anchored Purine Freq Rep2"), collapse = ' '),
-                               yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "5' Cut Site Distance",
-                               combineNucleotides = c("AG"), combinedNames = c("Purine"),
-                               posType = THREE_PRIME, showFivePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+for (i in seq_along(threePrimeMismatchCisplatinNucFreq)) {
+  plotNucFreqVsReadLengthBarPlot(threePrimeMismatchCisplatinNucFreq[[i]], 
+                                 title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
+                                                 "3' Anchored Purine Freq", repNames[i]), collapse = ' '),
+                                 yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "5' Cut Site Distance",
+                                 combineNucleotides = c("AG"), combinedNames = c("Purine"),
+                                 posType = THREE_PRIME, showFivePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+}
 
-plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchCisplatinNucFreq$rep1, 
-                               title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
-                                               "5' Anchored Purine Freq Rep1"), collapse = ' '),
-                               yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "3' Cut Site Distance",
-                               combineNucleotides = c("AG"), combinedNames = c("Purine"),
-                               posType = FIVE_PRIME, showThreePrimeCutSite = TRUE, expansionOffset = expansionOffset)
-plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchCisplatinNucFreq$rep2, 
-                               title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
-                                               "5' Anchored Purine Freq Rep2"), collapse = ' '),
-                               yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "3' Cut Site Distance",
-                               combineNucleotides = c("AG"), combinedNames = c("Purine"),
-                               posType = FIVE_PRIME, showThreePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+for (i in seq_along(fivePrimeMismatchCisplatinNucFreq)) {
+  plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchCisplatinNucFreq[[i]], 
+                                 title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
+                                                 "5' Anchored Purine Freq", repNames[i]), collapse = ' '),
+                                 yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "3' Cut Site Distance",
+                                 combineNucleotides = c("AG"), combinedNames = c("Purine"),
+                                 posType = FIVE_PRIME, showThreePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+}
 ```
 
 
 ```{r read_sequence_frequency_data}
-threePrimeMMAnchoredCisplatinSeqFreq = list(rep1 = cisplatinTimepoints,
-                                            rep2 = cisplatinTimepoints)
+threePrimeMMAnchoredCisplatinSeqFreq = list(rep1 = cisplatinTimepoints, rep2 = cisplatinTimepoints, all_reps = cisplatinTimepoints)
 for (i in seq_along(threePrimeMMAnchoredCisplatinSeqFreq)) {
   for (j in seq_along(threePrimeMMAnchoredCisplatinSeqFreq[[i]])) {
     threePrimeMMAnchoredCisplatinSeqFreq[[i]][[j]] = fread(generateFilePath(
@@ -265,8 +253,7 @@ for (i in seq_along(threePrimeMMAnchoredCisplatinSeqFreq)) {
   }
 }
 
-fivePrimeMMAnchoredCisplatinSeqFreq = list(rep1 = cisplatinTimepoints,
-                                           rep2 = cisplatinTimepoints)
+fivePrimeMMAnchoredCisplatinSeqFreq = list(rep1 = cisplatinTimepoints, rep2 = cisplatinTimepoints, all_reps = cisplatinTimepoints)
 for (i in seq_along(fivePrimeMMAnchoredCisplatinSeqFreq)) {
   for (j in seq_along(fivePrimeMMAnchoredCisplatinSeqFreq[[i]])) {
     fivePrimeMMAnchoredCisplatinSeqFreq[[i]][[j]] = fread(generateFilePath(
@@ -281,26 +268,20 @@ for (i in seq_along(fivePrimeMMAnchoredCisplatinSeqFreq)) {
 
 
 ```{r cisplatin_sequence_frequencies, fig.width = 11, fig.height = 9}
-plotSequenceFrequencies(threePrimeMMAnchoredCisplatinSeqFreq$rep1,
-                        title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
-                                        "3' Anchored YR Freq Rep1"), collapse = ' '),
-                        secondaryYAxisLabel = "5' Cut Site Distance", showFivePrimeCutSite = TRUE,
-                        expansionOffset = expansionOffset, querySequences = c("CG","CA","TG","TA"))
-plotSequenceFrequencies(threePrimeMMAnchoredCisplatinSeqFreq$rep2,
-                        title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
-                                        "3' Anchored YR Freq Rep2"), collapse = ' '),
-                        secondaryYAxisLabel = "5' Cut Site Distance", showFivePrimeCutSite = TRUE,
-                        expansionOffset = expansionOffset, querySequences = c("CG","CA","TG","TA"))
+for (i in seq_along(threePrimeMMAnchoredCisplatinSeqFreq)) {
+  plotSequenceFrequencies(threePrimeMMAnchoredCisplatinSeqFreq[[i]],
+                          title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
+                                          "3' Anchored YR Freq", repNames[i]), collapse = ' '),
+                          secondaryYAxisLabel = "5' Cut Site Distance", showFivePrimeCutSite = TRUE,
+                          expansionOffset = expansionOffset, querySequences = c("CG","CA","TG","TA"))
+}
 
-plotSequenceFrequencies(fivePrimeMMAnchoredCisplatinSeqFreq$rep1,
-                        title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
-                                        "5' Anchored TGG Freq Rep1"), collapse = ' '),
-                        secondaryYAxisLabel = "3' Cut Site Distance", showThreePrimeCutSite = TRUE,
-                        expansionOffset = expansionOffset, posType = FIVE_PRIME, querySequences = c("TGG"))
-plotSequenceFrequencies(fivePrimeMMAnchoredCisplatinSeqFreq$rep2,
-                        title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
-                                        "5' Anchored TGG Freq Rep2"), collapse = ' '),
-                        secondaryYAxisLabel = "3' Cut Site Distance", showThreePrimeCutSite = TRUE,
-                        expansionOffset = expansionOffset, posType = FIVE_PRIME, querySequences = c("TGG"))
+for (i in seq_along(fivePrimeMMAnchoredCisplatinSeqFreq)) {
+  plotSequenceFrequencies(fivePrimeMMAnchoredCisplatinSeqFreq[[i]],
+                          title = paste(c("cisplatin", titleCaseFiltering, titleCaseMismatchType,
+                                          "5' Anchored TGG Freq", repNames[i]), collapse = ' '),
+                          secondaryYAxisLabel = "3' Cut Site Distance", showThreePrimeCutSite = TRUE,
+                          expansionOffset = expansionOffset, posType = FIVE_PRIME, querySequences = c("TGG"))
+}
 ```
 

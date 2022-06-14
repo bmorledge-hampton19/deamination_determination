@@ -17,7 +17,8 @@ library(knitr)
 
 expansionOffset = 10
 cellType = "GM12878"
-CisplatinTimepoints = list(`90min` = NULL)
+cisplatinTimepoints = list(`90min` = NULL)
+repNames = c("rep1", "rep2", "all_reps")
 minReadLength = 22; maxReadLength = 30
 
 if (interactive()) {
@@ -52,6 +53,12 @@ singleFileFullAnalysis = function(lesion, repitition, timepoint) {
   readData = data.table(Read_Length = nchar(readData$V7)-expansionOffset*2, Read_Sequence = readData$V7)
   readData = readData[Read_Length >= minReadLength-7 & Read_Length <= maxReadLength]
   
+  readLengthCounts = readData[, .N, by = Read_Length][order(Read_Length)]
+  fwrite(readLengthCounts, sep = '\t', file = generateFilePath(
+    directory = generalReadSequenceDataDirectory, dataTypeStrings$readLengthcounts, ".tsv",
+    cellType = cellType, lesion = lesion, repitition = repitition, timepoint = timepoint
+  ))
+  
   for (sequence in c("TGG","CGA")) {
     seqFreq = getSequenceFreqByReadLengthAndPos(readData, querySequences = c(sequence))
     fwrite(seqFreq, sep = '\t', file = generateFilePath(
@@ -65,8 +72,8 @@ singleFileFullAnalysis = function(lesion, repitition, timepoint) {
 
 
 ```{r compute_and_write_cisplatin_sequence_frequency}
-for (repitition in c("rep1", "rep2")) {
-  for (timepoint in names(CisplatinTimepoints)) {
+for (repitition in repNames) {
+  for (timepoint in names(cisplatinTimepoints)) {
     singleFileFullAnalysis("cisplatin", repitition, timepoint)
   }
 }

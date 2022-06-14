@@ -67,8 +67,7 @@ source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
 
 ```{r read_mismatch_data}
 # Get file paths for the mismatch by read data
-cisplatinMismatchData = list(rep1 = cisplatinTimepoints,
-                             rep2 = cisplatinTimepoints)
+cisplatinMismatchData = list(rep1 = cisplatinTimepoints, rep2 = cisplatinTimepoints, all_reps = cisplatinTimepoints)
 for (i in 1:length(cisplatinMismatchData)) {
   for (j in 1:length(cisplatinMismatchData[[i]])) {
     cisplatinMismatchData[[i]][[j]] = fread(generateFilePath(
@@ -127,12 +126,31 @@ for (i in seq_along(cisplatinMMFreqZScores)) {
 ```
 
 
+```{r generate_and_write_read_length_counts}
+cisplatinReadLengthCounts = lapply(cisplatinMismatchData, function(x) lapply(
+  x, function(y) {
+    y[, .N, by = Read_Length][order(Read_Length)]
+  }
+))
+
+for (i in seq_along(cisplatinReadLengthCounts)) {
+  for (j in seq_along(cisplatinReadLengthCounts[[i]])) {
+    fwrite(cisplatinReadLengthCounts[[i]][[j]], sep = '\t', file = generateFilePath(
+      directory = deaminationSequenceAndPositionDataDirectory, dataTypeStrings$readLengthcounts, ".tsv",
+      cellType = cellType, lesion = "cisplatin", repitition = names(cisplatinReadLengthCounts)[i],
+      timepoint = names(cisplatinReadLengthCounts[[i]])[j], filtering = filtering, includedMismatches = mismatchType
+    ))
+  }
+}
+```
+
+
 ```{r generate_and_write_mismatch_position_statistics_by_read_length_and_timepoint}
-cisplatinGroupedStats = list(rep1 = list(), rep2 = list())
-cisplatinGroupedStats$rep1$three_prime = getGroupedPositionStats(cisplatinMismatchData$rep1)
-cisplatinGroupedStats$rep2$three_prime = getGroupedPositionStats(cisplatinMismatchData$rep2)
-cisplatinGroupedStats$rep1$five_prime = getGroupedPositionStats(cisplatinMismatchData$rep1, posType = FIVE_PRIME)
-cisplatinGroupedStats$rep2$five_prime = getGroupedPositionStats(cisplatinMismatchData$rep2, posType = FIVE_PRIME)
+cisplatinGroupedStats = list(rep1 = list(), rep2 = list(), all_reps = list())
+for (i in seq_along(cisplatinGroupedStats)) {
+  cisplatinGroupedStats[[i]]$three_prime = getGroupedPositionStats(cisplatinMismatchData[[i]])
+  cisplatinGroupedStats[[i]]$five_prime = getGroupedPositionStats(cisplatinMismatchData[[i]], posType = FIVE_PRIME)
+}
 
 for (i in seq_along(cisplatinGroupedStats)) {
   for (j in seq_along(cisplatinGroupedStats[[i]])) {
@@ -151,8 +169,7 @@ EXCISION SITE ANALYSIS STARTS HERE
 
 ```{r read_expanded_mismatch_data}
 # Get file paths for the expanded mismatch by read data
-cisplatinMismatchData = list(rep1 = cisplatinTimepoints,
-                             rep2 = cisplatinTimepoints)
+cisplatinMismatchData = list(rep1 = cisplatinTimepoints, rep2 = cisplatinTimepoints, all_reps = cisplatinTimepoints)
 for (i in 1:length(cisplatinMismatchData)) {
   for (j in 1:length(cisplatinMismatchData[[i]])) {
     cisplatinMismatchData[[i]][[j]] = fread(generateFilePath(
@@ -178,7 +195,7 @@ cisplatinMismatchData = lapply(cisplatinMismatchData, function(x) lapply(
 ))
 
 # Read mismatch frequency z-scores.
-cisplatinMMFreqZScores = list(rep1 = cisplatinTimepoints, rep2 = cisplatinTimepoints)
+cisplatinMMFreqZScores = list(rep1 = cisplatinTimepoints, rep2 = cisplatinTimepoints, all_reps = cisplatinTimepoints)
 for (i in seq_along(cisplatinMMFreqZScores)) {
   for (j in seq_along(cisplatinMMFreqZScores[[i]])) {
     cisplatinMMFreqZScores[[i]][[j]] = fread(generateFilePath(
@@ -211,8 +228,7 @@ cisplatinMismatchData = NULL
 
 
 ```{r generate_and_write_nucleotide_frequency_data}
-threePrimeMismatchCisplatinNucFreq = lapply(threePrimeMismatchAnchoredCisplatinData,
-                                            tabulateNucFreqByPosTimepointAndLength)
+threePrimeMismatchCisplatinNucFreq = lapply(threePrimeMismatchAnchoredCisplatinData, tabulateNucFreqByPosTimepointAndLength)
 for (i in seq_along(threePrimeMismatchCisplatinNucFreq)) {
   fwrite(threePrimeMismatchCisplatinNucFreq[[i]], sep = '\t', file = generateFilePath(
     directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
@@ -222,7 +238,7 @@ for (i in seq_along(threePrimeMismatchCisplatinNucFreq)) {
 }
 
 fivePrimeMismatchCisplatinNucFreq = lapply(fivePrimeMismatchAnchoredCisplatinData,
-                                           tabulateNucFreqByPosTimepointAndLength, posType = FIVE_PRIME)
+                                     tabulateNucFreqByPosTimepointAndLength, posType = FIVE_PRIME)
 for (i in seq_along(fivePrimeMismatchCisplatinNucFreq)) {
   fwrite(fivePrimeMismatchCisplatinNucFreq[[i]], sep = '\t', file = generateFilePath(
     directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
@@ -234,13 +250,11 @@ for (i in seq_along(fivePrimeMismatchCisplatinNucFreq)) {
 
 
 ```{r generate_and_write_sequence_frequencies}
-threePrimeMMAnchoredCisplatinSeqFreq = lapply(
-  threePrimeMismatchAnchoredCisplatinData,function(mismatchDataRep) {
-    lapply(mismatchDataRep, function(mismatchData) {
-      getSequenceFreqByReadLengthAndPos(mismatchData, querySequences = c("CG","CA","TG","TA"))
-    })
-  }
-)
+threePrimeMMAnchoredCisplatinSeqFreq = lapply(threePrimeMismatchAnchoredCisplatinData, function(mismatchDataRep) {
+  lapply(mismatchDataRep, function(mismatchData) {
+    getSequenceFreqByReadLengthAndPos(mismatchData, querySequences = c("CG","CA","TG","TA"))
+  })
+})
 for (i in seq_along(threePrimeMMAnchoredCisplatinSeqFreq)) {
   for (j in seq_along(threePrimeMMAnchoredCisplatinSeqFreq[[i]])) {
     fwrite(threePrimeMMAnchoredCisplatinSeqFreq[[i]][[j]], sep = '\t', file = generateFilePath(
@@ -252,13 +266,11 @@ for (i in seq_along(threePrimeMMAnchoredCisplatinSeqFreq)) {
   }
 }
 
-fivePrimeMMAnchoredCisplatinSeqFreq = lapply(
-  fivePrimeMismatchAnchoredCisplatinData, function(mismatchDataRep) {
-    lapply(mismatchDataRep, function(mismatchData) {
-      getSequenceFreqByReadLengthAndPos(mismatchData, querySequences = c("TGG"), posType = FIVE_PRIME)
-    })
-  }
-)
+fivePrimeMMAnchoredCisplatinSeqFreq = lapply(fivePrimeMismatchAnchoredCisplatinData, function(mismatchDataRep) {
+  lapply(mismatchDataRep, function(mismatchData) {
+    getSequenceFreqByReadLengthAndPos(mismatchData, querySequences = c("TGG"), posType = FIVE_PRIME)
+  })
+})
 for (i in seq_along(fivePrimeMMAnchoredCisplatinSeqFreq)) {
   for (j in seq_along(fivePrimeMMAnchoredCisplatinSeqFreq[[i]])) {
     fwrite(fivePrimeMMAnchoredCisplatinSeqFreq[[i]][[j]], sep = '\t', file = generateFilePath(
@@ -270,4 +282,5 @@ for (i in seq_along(fivePrimeMMAnchoredCisplatinSeqFreq)) {
   }
 }
 ```
+
 

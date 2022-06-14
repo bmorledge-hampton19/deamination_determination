@@ -17,7 +17,8 @@ library(knitr)
 
 expansionOffset = 10
 cellType = "GM12878"
-CisplatinTimepoints = list(`90min` = NULL)
+cisplatinTimepoints = list(`90min` = NULL)
+repNames = c("rep1", "rep2", "all_reps")
 minReadLength = 22; maxReadLength = 30
 
 opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5,
@@ -48,24 +49,24 @@ source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
 
 
 ```{r read_sequence_frequencies}
-CisplatinTGGSeqFreq = list(rep1 = CisplatinTimepoints, rep2 = CisplatinTimepoints)
-for (i in seq_along(CisplatinTGGSeqFreq)) {
-  for (j in seq_along(CisplatinTGGSeqFreq[[i]])) {
-    CisplatinTGGSeqFreq[[i]][[j]] = fread(generateFilePath(
+CPDTGGSeqFreq = list(rep1 = cisplatinTimepoints, rep2 = cisplatinTimepoints, all_reps = cisplatinTimepoints)
+for (i in seq_along(CPDTGGSeqFreq)) {
+  for (j in seq_along(CPDTGGSeqFreq[[i]])) {
+    CPDTGGSeqFreq[[i]][[j]] = fread(generateFilePath(
       directory = generalReadSequenceDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
-      cellType = cellType, lesion = "cisplatin", repitition = names(CisplatinTGGSeqFreq)[i],
-      timepoint = names(CisplatinTGGSeqFreq[[i]])[j], sequence = "TGG"
+      cellType = cellType, lesion = "cisplatin", repitition = names(CPDTGGSeqFreq)[i],
+      timepoint = names(CPDTGGSeqFreq[[i]])[j], sequence = "TGG"
     ))
   }
 }
 
-CisplatinCGASeqFreq = list(rep1 = CisplatinTimepoints, rep2 = CisplatinTimepoints)
-for (i in seq_along(CisplatinCGASeqFreq)) {
-  for (j in seq_along(CisplatinCGASeqFreq[[i]])) {
-    CisplatinCGASeqFreq[[i]][[j]] = fread(generateFilePath(
+CPDCGASeqFreq = list(rep1 = cisplatinTimepoints, rep2 = cisplatinTimepoints, all_reps = cisplatinTimepoints)
+for (i in seq_along(CPDCGASeqFreq)) {
+  for (j in seq_along(CPDCGASeqFreq[[i]])) {
+    CPDCGASeqFreq[[i]][[j]] = fread(generateFilePath(
       directory = generalReadSequenceDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
-      cellType = cellType, lesion = "cisplatin", repitition = names(CisplatinCGASeqFreq)[i],
-      timepoint = names(CisplatinCGASeqFreq[[i]])[j], sequence = "CGA"
+      cellType = cellType, lesion = "cisplatin", repitition = names(CPDCGASeqFreq)[i],
+      timepoint = names(CPDCGASeqFreq[[i]])[j], sequence = "CGA"
     ))
   }
 }
@@ -73,52 +74,44 @@ for (i in seq_along(CisplatinCGASeqFreq)) {
 
 
 ```{r cisplatin_sequence_frequencies, fig.width = 11, fig.height = 10}
-plotSequenceFrequencies(CisplatinTGGSeqFreq$rep1,
-                        title = "cisplatin TGG Frequencies Rep1", expansionOffset = expansionOffset,
-                        showThreePrimeCutSite = TRUE, showFivePrimeCutSite = TRUE,
-                        querySequences = c("TGG"))
-plotSequenceFrequencies(CisplatinTGGSeqFreq$rep2,
-                        title = "cisplatin TGG Frequencies Rep2", expansionOffset = expansionOffset,
-                        showThreePrimeCutSite = TRUE, showFivePrimeCutSite = TRUE,
-                        querySequences = c("TGG"))
+for (i in seq_along(CPDTGGSeqFreq)) {
+  plotSequenceFrequencies(CPDTGGSeqFreq[[i]],
+                          title = paste("Cisplatin TGG Frequencies", repNames[i]),
+                          expansionOffset = expansionOffset, showThreePrimeCutSite = TRUE,
+                          showFivePrimeCutSite = TRUE, querySequences = c("TGG"))
+}
 
-plotSequenceFrequencies(CisplatinCGASeqFreq$rep1,
-                        title = "cisplatin CGA Frequencies Rep1", expansionOffset = expansionOffset,
-                        showThreePrimeCutSite = TRUE, showFivePrimeCutSite = TRUE,
-                        querySequences = c("CGA"))
-plotSequenceFrequencies(CisplatinCGASeqFreq$rep2,
-                        title = "cisplatin CGA Frequencies Rep2", expansionOffset = expansionOffset,
-                        showThreePrimeCutSite = TRUE, showFivePrimeCutSite = TRUE,
-                        querySequences = c("CGA"))
+for (i in seq_along(CPDCGASeqFreq)) {
+  plotSequenceFrequencies(CPDCGASeqFreq[[i]],
+                          title = paste("Cisplatin CGA Frequencies", repNames[i]), expansionOffset = expansionOffset,
+                          showThreePrimeCutSite = TRUE, showFivePrimeCutSite = TRUE,
+                          querySequences = c("CGA"))
+}
 ```
 
 
 ```{r read_length_frequencies_plotting_function}
 readAndPlotReadLengthFrequencies = function(lesion, repitition, timepoints) {
   
-  readData = timepoints
-  for (i in seq_along(readData)) {
-    readData[[i]] = fread(generateFilePath(
-      generalReadSequenceDataDirectory, dataTypeStrings$alignedReads, ".bed",
-      cellType = cellType, lesion = lesion, timepoint = names(readData)[i],
-      repitition = repitition, expansionNum = expansionOffset
+  readLengthCountsByTimepoint = timepoints
+  for (i in seq_along(readLengthCountsByTimepoint)) {
+    readLengthCountsByTimepoint[[i]] = fread(generateFilePath(
+      generalReadSequenceDataDirectory, dataTypeStrings$readLengthcounts, ".tsv",
+      cellType = cellType, lesion = lesion, timepoint = names(readLengthCountsByTimepoint)[i],
+      repitition = repitition
     ))
-    readData[[i]] = data.table(Read_Length = nchar(readData[[i]]$V7)-expansionOffset*2,
-                               Timepoint = names(readData)[i])
-    readData[[i]] = readData[[i]][Read_Length >= minReadLength-7 & Read_Length <= maxReadLength]
   }
   
-  plotReadLengthFrequencies(readData,
-                            title = paste(c(lesion, "Read Length Freq",
-                                            tools::toTitleCase(repitition)),
-                                          collapse = ' '))
+  plotReadLengthFrequencies(readLengthCountsByTimepoint,
+                            title = paste(lesion, "Read Length Freq", repitition))
   
 }
 ```
 
 
 ```{r cisplatin_read_length_frequencies}
-readAndPlotReadLengthFrequencies("cisplatin", "rep1", CisplatinTimepoints)
-readAndPlotReadLengthFrequencies("cisplatin", "rep2", CisplatinTimepoints)
+for (rep in repNames) {
+  readAndPlotReadLengthFrequencies("cisplatin", rep, cisplatinTimepoints)
+}
 ```
 
