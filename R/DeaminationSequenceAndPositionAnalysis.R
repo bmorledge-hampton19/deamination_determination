@@ -177,19 +177,18 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
 # Plot read length frequencies across timepoint (optional).
 # Input should be a list of data.tables with names as timepoint information, or a single data.table
 # to construct a plot without timepoint information.
-plotReadLengthFrequencies = function(simplifiedTables, title = "Read Length Frequencies") {
+plotReadLengthFrequencies = function(readLengthCountTables, title = "Read Length Frequencies") {
 
   #If passed a single data.table, wrap it in a list.
-  if (is.data.table(simplifiedTables)) {
-    simplifiedTables = list(NONE = simplifiedTables)
+  if (is.data.table(readLengthCountTables)) {
+    readLengthCountTables = list(NONE = readLengthCountTables)
   }
-  noTimepointInfo = all(names(simplifiedTables) == "NONE")
+  noTimepointInfo = all(names(readLengthCountTables) == "NONE")
 
-  aggregateTable = rbindlist(lapply(seq_along(simplifiedTables),
-                                    function(i) simplifiedTables[[i]][,Timepoint := names(simplifiedTables)[i]]))
+  aggregateTable = rbindlist(lapply(seq_along(readLengthCountTables),
+                                    function(i) readLengthCountTables[[i]][,Timepoint := names(readLengthCountTables)[i]]))
 
-  readLengthFrequencies = (aggregateTable[, .N, by = list(Read_Length,Timepoint)]
-                                         [, Freq := N/sum(N), by = list(Timepoint)])
+  readLengthFrequencies = (aggregateTable[, Freq := N/sum(N), by = list(Timepoint)])
   maxFrequency = round(max(readLengthFrequencies$Freq), digits = 2)
   yAxisBreaks = c(0, maxFrequency/2, maxFrequency)
 
@@ -199,7 +198,7 @@ plotReadLengthFrequencies = function(simplifiedTables, title = "Read Length Freq
     blankBackground + defaultTextScaling
 
   if (!noTimepointInfo) {
-    plot = plot + facet_grid(cols = vars(factor(Timepoint, levels = names(simplifiedTables))))
+    plot = plot + facet_grid(cols = vars(factor(Timepoint, levels = names(readLengthCountTables))))
   }
 
   plot = plot +
