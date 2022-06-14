@@ -5,11 +5,9 @@ Using mismatches in XR-seq reads to pinpoint CPD positions
 ## Table of Contents
 1. [Project Overview](#project-overview)
 2. [Dependencies and File System Naming Conventions](#dependencies-and-file-system-naming-conventions)
-3. [Aligning Reads](#aligning-reads)
-4. [Identifying Mismatches](#identifying-mismatches)
-5. [Expanding and Filtering Mismatch Data](#expanding-and-filtering-mismatch-data)
-6. [Analysis and Figure Generation](#analysis-and-figure-generation)
-7. [Data Availability](#data-availability)
+3. [Preparing Data for Analysis](#preparing-data-for-analysis)
+4. [Analysis and Figure Generation](#analysis-and-figure-generation)
+5. [Data Availability](#data-availability)
 ***
 
 ## Project Overview
