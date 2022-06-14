@@ -18,6 +18,7 @@ library(knitr)
 expansionOffset = 10
 cellType = "Dm"
 CPDTimepoints = list(`10m` = NULL, `30m` = NULL, `8h` = NULL, `16h` = NULL, `24h` = NULL)
+repNames = c("rep1", "rep2", "all_reps")
 minReadLength = 23; maxReadLength = 32
 
 opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5,
@@ -48,7 +49,7 @@ source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
 
 
 ```{r read_sequence_frequencies}
-CPDTGGSeqFreq = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints)
+CPDTGGSeqFreq = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints, all_reps = CPDTimepoints)
 for (i in seq_along(CPDTGGSeqFreq)) {
   for (j in seq_along(CPDTGGSeqFreq[[i]])) {
     CPDTGGSeqFreq[[i]][[j]] = fread(generateFilePath(
@@ -59,7 +60,7 @@ for (i in seq_along(CPDTGGSeqFreq)) {
   }
 }
 
-CPDCGASeqFreq = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints)
+CPDCGASeqFreq = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints, all_reps = CPDTimepoints)
 for (i in seq_along(CPDCGASeqFreq)) {
   for (j in seq_along(CPDCGASeqFreq[[i]])) {
     CPDCGASeqFreq[[i]][[j]] = fread(generateFilePath(
@@ -73,52 +74,44 @@ for (i in seq_along(CPDCGASeqFreq)) {
 
 
 ```{r CPD_sequence_frequencies, fig.width = 11, fig.height = 10}
-plotSequenceFrequencies(CPDTGGSeqFreq$rep1,
-                        title = "CPD TGG Frequencies Rep1", expansionOffset = expansionOffset,
-                        showThreePrimeCutSite = TRUE, showFivePrimeCutSite = TRUE,
-                        querySequences = c("TGG"))
-plotSequenceFrequencies(CPDTGGSeqFreq$rep2,
-                        title = "CPD TGG Frequencies Rep2", expansionOffset = expansionOffset,
-                        showThreePrimeCutSite = TRUE, showFivePrimeCutSite = TRUE,
-                        querySequences = c("TGG"))
+for (i in seq_along(CPDTGGSeqFreq)) {
+  plotSequenceFrequencies(CPDTGGSeqFreq[[i]],
+                          title = paste("CPD TGG Frequencies", repNames[i]),
+                          expansionOffset = expansionOffset, showThreePrimeCutSite = TRUE,
+                          showFivePrimeCutSite = TRUE, querySequences = c("TGG"))
+}
 
-plotSequenceFrequencies(CPDCGASeqFreq$rep1,
-                        title = "CPD CGA Frequencies Rep1", expansionOffset = expansionOffset,
-                        showThreePrimeCutSite = TRUE, showFivePrimeCutSite = TRUE,
-                        querySequences = c("CGA"))
-plotSequenceFrequencies(CPDCGASeqFreq$rep2,
-                        title = "CPD CGA Frequencies Rep2", expansionOffset = expansionOffset,
-                        showThreePrimeCutSite = TRUE, showFivePrimeCutSite = TRUE,
-                        querySequences = c("CGA"))
+for (i in seq_along(CPDCGASeqFreq)) {
+  plotSequenceFrequencies(CPDCGASeqFreq[[i]],
+                          title = paste("CPD CGA Frequencies", repNames[i]), expansionOffset = expansionOffset,
+                          showThreePrimeCutSite = TRUE, showFivePrimeCutSite = TRUE,
+                          querySequences = c("CGA"))
+}
 ```
 
 
 ```{r read_length_frequencies_plotting_function}
 readAndPlotReadLengthFrequencies = function(lesion, repitition, timepoints) {
   
-  readData = timepoints
-  for (i in seq_along(readData)) {
-    readData[[i]] = fread(generateFilePath(
-      generalReadSequenceDataDirectory, dataTypeStrings$alignedReads, ".bed",
-      cellType = cellType, lesion = lesion, timepoint = names(readData)[i],
-      repitition = repitition, expansionNum = expansionOffset
+  readLengthCountsByTimepoint = timepoints
+  for (i in seq_along(readLengthCountsByTimepoint)) {
+    readLengthCountsByTimepoint[[i]] = fread(generateFilePath(
+      generalReadSequenceDataDirectory, dataTypeStrings$readLengthcounts, ".tsv",
+      cellType = cellType, lesion = lesion, timepoint = names(readLengthCountsByTimepoint)[i],
+      repitition = repitition
     ))
-    readData[[i]] = data.table(Read_Length = nchar(readData[[i]]$V7)-expansionOffset*2,
-                               Timepoint = names(readData)[i])
-    readData[[i]] = readData[[i]][Read_Length >= minReadLength-7 & Read_Length <= maxReadLength]
   }
   
-  plotReadLengthFrequencies(readData,
-                            title = paste(c(lesion, "Read Length Freq",
-                                            tools::toTitleCase(repitition)),
-                                          collapse = ' '))
+  plotReadLengthFrequencies(readLengthCountsByTimepoint,
+                            title = paste(lesion, "Read Length Freq", repitition))
   
 }
 ```
 
 
 ```{r CPD_read_length_frequencies}
-readAndPlotReadLengthFrequencies("CPD", "rep1", CPDTimepoints)
-readAndPlotReadLengthFrequencies("CPD", "rep2", CPDTimepoints)
+for (rep in repNames) {
+  readAndPlotReadLengthFrequencies("CPD", rep, CPDTimepoints)
+}
 ```
 
