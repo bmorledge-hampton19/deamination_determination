@@ -22,6 +22,7 @@ library(knitr)
 
 cellType = "Arabidopsis"
 CPDTimepoints = list(`ZT2` = NULL, `ZT14` = NULL)
+repNames = c("rep1", "rep2", "all_reps")
 minReadLength = 24; maxReadLength = 30
 
 if (interactive()) {
@@ -57,8 +58,7 @@ source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
 
 ```{r read_simplified_mismatch_data}
 # Get file paths for the mismatch by read data
-CPDMismatchData = list(rep1 = CPDTimepoints,
-                       rep2 = CPDTimepoints)
+CPDMismatchData = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints, all_reps = CPDTimepoints)
 for (i in seq_along(CPDMismatchData)) {
   for (j in seq_along(CPDMismatchData[[i]])) {
     CPDMismatchData[[i]][[j]] = fread(generateFilePath(
@@ -112,7 +112,7 @@ for (i in 1:length(CPDMismatchData)) {
 
 
 ```{r read_mismatch_frequency_z-score_tables}
-CPDMMFreqZScores = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints)
+CPDMMFreqZScores = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints, all_reps = CPDTimepoints)
 for (i in seq_along(CPDMMFreqZScores)) {
   for (j in seq_along(CPDMMFreqZScores[[i]])) {
     CPDMMFreqZScores[[i]][[j]] = fread(generateFilePath(
@@ -126,36 +126,45 @@ for (i in seq_along(CPDMMFreqZScores)) {
 
 
 ```{r CPD_mismatch_position_frequencies_by_read_length, fig.width = 9, fig.height = 5}
-plotPositionAcrossTimepointAndReadLength(CPDMismatchData$rep1, includedTypes = c("C>T"),
-                                         title = paste(c("CPD", titleCaseFiltering, "C>T Mismatch Pos Freq Rep1"),
-                                                       collapse = ' '),
-                                         zScoreTables = CPDMMFreqZScores$rep1)
-plotPositionAcrossTimepointAndReadLength(CPDMismatchData$rep2, includedTypes = c("C>T"),
-                                         title = paste(c("CPD", titleCaseFiltering, "C>T Mismatch Pos Freq Rep2"),
-                                                       collapse = ' '),
-                                         zScoreTables = CPDMMFreqZScores$rep2)
-plotPositionAcrossTimepointAndReadLength(CPDMismatchData$rep1, includedTypes = c("C>T"), posType = FIVE_PRIME,
-                                         title = paste(c("CPD", titleCaseFiltering, "C>T Mismatch Pos Freq Rep1"),
-                                                       collapse = ' '),
-                                         zScoreTables = CPDMMFreqZScores$rep1)
-plotPositionAcrossTimepointAndReadLength(CPDMismatchData$rep2, includedTypes = c("C>T"), posType = FIVE_PRIME,
-                                         title = paste(c("CPD", titleCaseFiltering, "C>T Mismatch Pos Freq Rep2"),
-                                                       collapse = ' '),
-                                         zScoreTables = CPDMMFreqZScores$rep2)
+for (i in seq_along(CPDMismatchData)) {
+  plotPositionAcrossTimepointAndReadLength(CPDMismatchData[[i]], includedTypes = c("C>T"),
+                                           title = paste(c("CPD", titleCaseFiltering, "C>T Mismatch Pos Freq", repNames[i]),
+                                                         collapse = ' '),
+                                           zScoreTables = CPDMMFreqZScores[[i]])
+  plotPositionAcrossTimepointAndReadLength(CPDMismatchData[[i]], includedTypes = c("C>T"), posType = FIVE_PRIME,
+                                           title = paste(c("CPD", titleCaseFiltering, "C>T Mismatch Pos Freq", repNames[i]),
+                                                         collapse = ' '),
+                                           zScoreTables = CPDMMFreqZScores[[i]])
+}
+```
+
+
+```{r read_read_length_counts}
+CPDReadLengthCounts = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints, all_reps = CPDTimepoints)
+for (i in seq_along(CPDReadLengthCounts)) {
+  for (j in seq_along(CPDReadLengthCounts[[i]])) {
+    CPDReadLengthCounts[[i]][[j]] = fread(generateFilePath(
+      directory = deaminationSequenceAndPositionDataDirectory, dataTypeStrings$readLengthcounts, ".tsv",
+      cellType = cellType, lesion = "CPD", repitition = names(CPDReadLengthCounts)[i],
+      timepoint = names(CPDReadLengthCounts[[i]])[j], filtering = filtering
+    ))
+  }
+}
 ```
 
 
 ```{r CPD_read_length_distributions}
-plotReadLengthFrequencies(CPDMismatchData$rep1,
-                          title = paste(c("CPD", titleCaseFiltering, "Read Length Freq Rep 1"), collapse = ' '))
-plotReadLengthFrequencies(CPDMismatchData$rep2,
-                          title = paste(c("CPD", titleCaseFiltering, "Read Length Freq Rep 2"), collapse = ' '))
+for (i in seq_along(CPDReadLengthCounts)) {
+  plotReadLengthFrequencies(CPDReadLengthCounts[[i]],
+                            title = paste(c("CPD", titleCaseFiltering, "Read Length Freq", repNames[i]), collapse = ' '))
+}
 ```
 
 
 ```{r read_mismatch_position_statistics}
 CPDGroupedStats = list(rep1 = list(three_prime = NULL, five_prime = NULL),
-                       rep2 = list(three_prime = NULL, five_prime = NULL))
+                       rep2 = list(three_prime = NULL, five_prime = NULL),
+                       all_reps = list(three_prime = NULL, five_prime = NULL))
 for (i in seq_along(CPDGroupedStats)) {
   for (j in seq_along(CPDGroupedStats[[i]])) {
     CPDGroupedStats[[i]][[j]] = fread(generateFilePath(
@@ -169,11 +178,10 @@ for (i in seq_along(CPDGroupedStats)) {
 
 
 ```{r CPD_position_differences_across_read_lengths, fig.width = 9, fig.height = 5}
-plotGroupedPositionStats(CPDGroupedStats$rep1$three_prime, CPDGroupedStats$rep1$five_prime, POS_DIFF,
-                         title = paste(c("CPD", titleCaseFiltering, "C>T Mismatch Pos Diff Rep1"), collapse = ' '),
-                         xAxisBreaks = c(minReadLength:maxReadLength))
-plotGroupedPositionStats(CPDGroupedStats$rep2$three_prime, CPDGroupedStats$rep2$five_prime, POS_DIFF,
-                         title = paste(c("CPD", titleCaseFiltering, "C>T Mismatch Pos Diff Rep2"), collapse = ' '),
-                         xAxisBreaks = c(minReadLength:maxReadLength))
+for (i in seq_along(CPDGroupedStats)) {
+  plotGroupedPositionStats(CPDGroupedStats[[i]]$three_prime, CPDGroupedStats[[i]]$five_prime, POS_DIFF,
+                           title = paste(c("CPD", titleCaseFiltering, "C>T Mismatch Pos Diff", repNames[i]), collapse = ' '),
+                           xAxisBreaks = c(minReadLength:maxReadLength))
+}
 ```
 

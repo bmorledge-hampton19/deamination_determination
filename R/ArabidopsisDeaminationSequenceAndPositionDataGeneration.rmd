@@ -55,8 +55,7 @@ source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
 
 ```{r read_mismatch_data}
 # Get file paths for the mismatch by read data
-CPDMismatchData = list(rep1 = CPDTimepoints,
-                       rep2 = CPDTimepoints)
+CPDMismatchData = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints, all_reps = CPDTimepoints)
 for (i in 1:length(CPDMismatchData)) {
   for (j in 1:length(CPDMismatchData[[i]])) {
     CPDMismatchData[[i]][[j]] = fread(generateFilePath(
@@ -114,14 +113,32 @@ for (i in seq_along(CPDMMFreqZScores)) {
 ```
 
 
+```{r generate_and_write_read_length_counts}
+CPDReadLengthCounts = lapply(CPDMismatchData, function(x) lapply(
+  x, function(y) {
+    y[, .N, by = Read_Length][order(Read_Length)]
+  }
+))
+
+for (i in seq_along(CPDReadLengthCounts)) {
+  for (j in seq_along(CPDReadLengthCounts[[i]])) {
+    fwrite(CPDReadLengthCounts[[i]][[j]], sep = '\t', file = generateFilePath(
+      directory = deaminationSequenceAndPositionDataDirectory, dataTypeStrings$readLengthcounts, ".tsv",
+      cellType = cellType, lesion = "CPD", repitition = names(CPDReadLengthCounts)[i],
+      timepoint = names(CPDReadLengthCounts[[i]])[j], filtering = filtering
+    ))
+  }
+}
+```
+
+
 ```{r generate_and_write_mismatch_position_statistics_by_read_length_and_timepoint}
-CPDGroupedStats = list(rep1 = list(), rep2 = list())
-CPDGroupedStats$rep1$three_prime = getGroupedPositionStats(CPDMismatchData$rep1, includedTypes = c("C>T"))
-CPDGroupedStats$rep2$three_prime = getGroupedPositionStats(CPDMismatchData$rep2, includedTypes = c("C>T"))
-CPDGroupedStats$rep1$five_prime =
-  getGroupedPositionStats(CPDMismatchData$rep1, includedTypes = c("C>T"), posType = FIVE_PRIME)
-CPDGroupedStats$rep2$five_prime =
-  getGroupedPositionStats(CPDMismatchData$rep2, includedTypes = c("C>T"), posType = FIVE_PRIME)
+CPDGroupedStats = list(rep1 = list(), rep2 = list(), all_reps = list())
+for (i in seq_along(CPDGroupedStats)) {
+  CPDGroupedStats[[i]]$three_prime = getGroupedPositionStats(CPDMismatchData[[i]], includedTypes = c("C>T"))
+  CPDGroupedStats[[i]]$five_prime =
+    getGroupedPositionStats(CPDMismatchData[[i]], includedTypes = c("C>T"), posType = FIVE_PRIME)
+}
 
 for (i in seq_along(CPDGroupedStats)) {
   for (j in seq_along(CPDGroupedStats[[i]])) {

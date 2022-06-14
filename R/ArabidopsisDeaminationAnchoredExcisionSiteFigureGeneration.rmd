@@ -23,6 +23,7 @@ library(knitr)
 expansionOffset = 10
 cellType = "Arabidopsis"
 CPDTimepoints = list(`ZT2` = NULL, `ZT14` = NULL)
+repNames = c("rep1", "rep2", "all_reps")
 minReadLength = 24; maxReadLength = 30
 
 if (interactive()) {
@@ -57,7 +58,7 @@ source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
 
 
 ```{r read_nucleotide_frequency_data}
-threePrimeMismatchCPDNucFreq = list(rep1 = NULL, rep2 = NULL)
+threePrimeMismatchCPDNucFreq = list(rep1 = NULL, rep2 = NULL, all_reps = NULL)
 for (i in seq_along(threePrimeMismatchCPDNucFreq)) {
   threePrimeMismatchCPDNucFreq[[i]] = fread(generateFilePath(
     directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
@@ -66,7 +67,7 @@ for (i in seq_along(threePrimeMismatchCPDNucFreq)) {
   ))
 }
 
-fivePrimeMismatchCPDNucFreq = list(rep1 = NULL, rep2 = NULL)
+fivePrimeMismatchCPDNucFreq = list(rep1 = NULL, rep2 = NULL, all_reps = NULL)
 for (i in seq_along(fivePrimeMismatchCPDNucFreq)) {
   fivePrimeMismatchCPDNucFreq[[i]] = fread(generateFilePath(
     directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
@@ -78,54 +79,43 @@ for (i in seq_along(fivePrimeMismatchCPDNucFreq)) {
 
 
 ```{r CPD_mismatch_anchored_nucleotide_frequencies, fig.width = 11, fig.height = 9}
-plotNucFreqVsReadLengthBarPlot(threePrimeMismatchCPDNucFreq$rep1, 
-                               title = paste(c("CPD", titleCaseFiltering, "3' Anchored Nuc Freq Rep1"), collapse = ' '),
-                               secondaryYAxisLabel = "5' Cut Site Distance",
-                               posType = THREE_PRIME, showFivePrimeCutSite = TRUE, expansionOffset = expansionOffset)
-plotNucFreqVsReadLengthBarPlot(threePrimeMismatchCPDNucFreq$rep2, 
-                               title = paste(c("CPD", titleCaseFiltering, "3' Anchored Nuc Freq Rep2"), collapse = ' '),
-                               secondaryYAxisLabel = "5' Cut Site Distance",
-                               posType = THREE_PRIME, showFivePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+for (i in seq_along(threePrimeMismatchCPDNucFreq)) {
+  plotNucFreqVsReadLengthBarPlot(threePrimeMismatchCPDNucFreq[[i]], 
+                                 title = paste(c("CPD", titleCaseFiltering, "3' Anchored Nuc Freq", repNames[i]), collapse = ' '),
+                                 secondaryYAxisLabel = "5' Cut Site Distance",
+                                 posType = THREE_PRIME, showFivePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+}
 
-plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchCPDNucFreq$rep1, 
-                               title = paste(c("CPD", titleCaseFiltering, "5' Anchored Nuc Freq Rep1"), collapse = ' '),
-                               yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "3' Cut Site Distance",
-                               posType = FIVE_PRIME, showThreePrimeCutSite = TRUE, expansionOffset = expansionOffset)
-plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchCPDNucFreq$rep2, 
-                               title = paste(c("CPD", titleCaseFiltering, "5' Anchored Nuc Freq Rep2"), collapse = ' '),
-                               yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "3' Cut Site Distance",
-                               posType = FIVE_PRIME, showThreePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+for (i in seq_along(fivePrimeMismatchCPDNucFreq)) {
+  plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchCPDNucFreq[[i]], 
+                                 title = paste(c("CPD", titleCaseFiltering, "5' Anchored Nuc Freq", repNames[i]), collapse = ' '),
+                                 yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "3' Cut Site Distance",
+                                 posType = FIVE_PRIME, showThreePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+}
 ```
 
 
 ```{r CPD_mismatch_anchored_purine_frequencies, fig.width = 11, fig.height = 9}
-plotNucFreqVsReadLengthBarPlot(threePrimeMismatchCPDNucFreq$rep1, 
-                               title = paste(c("CPD", titleCaseFiltering, "3' Anchored Purine Freq Rep1"), collapse = ' '),
-                               yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "5' Cut Site Distance",
-                               combineNucleotides = c("AG"), combinedNames = c("Purine"),
-                               posType = THREE_PRIME, showFivePrimeCutSite = TRUE, expansionOffset = expansionOffset)
-plotNucFreqVsReadLengthBarPlot(threePrimeMismatchCPDNucFreq$rep2, 
-                               title = paste(c("CPD", titleCaseFiltering, "3' Anchored Purine Freq Rep2"), collapse = ' '),
-                               yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "5' Cut Site Distance",
-                               combineNucleotides = c("AG"), combinedNames = c("Purine"),
-                               posType = THREE_PRIME, showFivePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+for (i in seq_along(threePrimeMismatchCPDNucFreq)) {
+  plotNucFreqVsReadLengthBarPlot(threePrimeMismatchCPDNucFreq[[i]], 
+                                 title = paste(c("CPD", titleCaseFiltering, "3' Anchored Purine Freq", repNames[i]), collapse = ' '),
+                                 yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "5' Cut Site Distance",
+                                 combineNucleotides = c("AG"), combinedNames = c("Purine"),
+                                 posType = THREE_PRIME, showFivePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+}
 
-plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchCPDNucFreq$rep1, 
-                               title = paste(c("CPD", titleCaseFiltering, "5' Anchored Purine Freq Rep1"), collapse = ' '),
-                               yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "3' Cut Site Distance",
-                               combineNucleotides = c("AG"), combinedNames = c("Purine"),
-                               posType = FIVE_PRIME, showThreePrimeCutSite = TRUE, expansionOffset = expansionOffset)
-plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchCPDNucFreq$rep2, 
-                               title = paste(c("CPD", titleCaseFiltering, "5' Anchored Purine Freq Rep2"), collapse = ' '),
-                               yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "3' Cut Site Distance",
-                               combineNucleotides = c("AG"), combinedNames = c("Purine"),
-                               posType = FIVE_PRIME, showThreePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+for (i in seq_along(fivePrimeMismatchCPDNucFreq)) {
+  plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchCPDNucFreq[[i]], 
+                                 title = paste(c("CPD", titleCaseFiltering, "5' Anchored Purine Freq", repNames[i]), collapse = ' '),
+                                 yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "3' Cut Site Distance",
+                                 combineNucleotides = c("AG"), combinedNames = c("Purine"),
+                                 posType = FIVE_PRIME, showThreePrimeCutSite = TRUE, expansionOffset = expansionOffset)
+}
 ```
 
 
 ```{r read_sequence_enrichment_data}
-threePrimeMMAnchoredCPDEnrichment = list(rep1 = CPDTimepoints,
-                                         rep2 = CPDTimepoints)
+threePrimeMMAnchoredCPDEnrichment = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints, all_reps = CPDTimepoints)
 for (i in seq_along(threePrimeMMAnchoredCPDEnrichment)) {
   for (j in seq_along(threePrimeMMAnchoredCPDEnrichment[[i]])) {
     threePrimeMMAnchoredCPDEnrichment[[i]][[j]] = fread(generateFilePath(
@@ -137,8 +127,7 @@ for (i in seq_along(threePrimeMMAnchoredCPDEnrichment)) {
   }
 }
 
-fivePrimeMMAnchoredCPDEnrichment = list(rep1 = CPDTimepoints,
-                                        rep2 = CPDTimepoints)
+fivePrimeMMAnchoredCPDEnrichment = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints, all_reps = CPDTimepoints)
 for (i in seq_along(fivePrimeMMAnchoredCPDEnrichment)) {
   for (j in seq_along(fivePrimeMMAnchoredCPDEnrichment[[i]])) {
     fivePrimeMMAnchoredCPDEnrichment[[i]][[j]] = fread(generateFilePath(
@@ -153,29 +142,24 @@ for (i in seq_along(fivePrimeMMAnchoredCPDEnrichment)) {
 
 
 ```{r CPD_sequence_enrichment, fig.width = 11, fig.height = 9}
-plotSequenceEnrichment(threePrimeMMAnchoredCPDEnrichment$rep1,
-                       title = paste(c("CPD", titleCaseFiltering, "3' Anchored YR Enrichment Rep1"), collapse = ' '),
-                       secondaryYAxisLabel = "5' Cut Site Distance", showFivePrimeCutSite = TRUE,
-                       expansionOffset = expansionOffset, querySequences = c("CG","CA","TG","TA"))
-plotSequenceEnrichment(threePrimeMMAnchoredCPDEnrichment$rep2,
-                       title = paste(c("CPD", titleCaseFiltering, "3' Anchored YR Enrichment Rep2"), collapse = ' '),
-                       secondaryYAxisLabel = "5' Cut Site Distance", showFivePrimeCutSite = TRUE,
-                       expansionOffset = expansionOffset, querySequences = c("CG","CA","TG","TA"))
+for (i in seq_along(threePrimeMMAnchoredCPDEnrichment)) {
+  plotSequenceEnrichment(threePrimeMMAnchoredCPDEnrichment[[i]],
+                         title = paste(c("CPD", titleCaseFiltering, "3' Anchored YR Enrichment", repNames[i]), collapse = ' '),
+                         secondaryYAxisLabel = "5' Cut Site Distance", showFivePrimeCutSite = TRUE,
+                         expansionOffset = expansionOffset, querySequences = c("CG","CA","TG","TA"))
+}
 
-plotSequenceEnrichment(fivePrimeMMAnchoredCPDEnrichment$rep1,
-                       title = paste(c("CPD", titleCaseFiltering, "5' Anchored TGG Enrichment Rep1"), collapse = ' '),
-                       secondaryYAxisLabel = "3' Cut Site Distance", showThreePrimeCutSite = TRUE,
-                       expansionOffset = expansionOffset, posType = FIVE_PRIME, querySequences = c("TGG"))
-plotSequenceEnrichment(fivePrimeMMAnchoredCPDEnrichment$rep2,
-                       title = paste(c("CPD", titleCaseFiltering, "5' Anchored TGG Enrichment Rep2"), collapse = ' '),
-                       secondaryYAxisLabel = "3' Cut Site Distance", showThreePrimeCutSite = TRUE,
-                       expansionOffset = expansionOffset, posType = FIVE_PRIME, querySequences = c("TGG"))
+for (i in seq_along(fivePrimeMMAnchoredCPDEnrichment)) {
+  plotSequenceEnrichment(fivePrimeMMAnchoredCPDEnrichment[[i]],
+                         title = paste(c("CPD", titleCaseFiltering, "5' Anchored TGG Enrichment", repNames[i]), collapse = ' '),
+                         secondaryYAxisLabel = "3' Cut Site Distance", showThreePrimeCutSite = TRUE,
+                         expansionOffset = expansionOffset, posType = FIVE_PRIME, querySequences = c("TGG"))
+}
 ```
 
 
 ```{r read_sequence_frequency_data}
-threePrimeMMAnchoredCPDSeqFreq = list(rep1 = CPDTimepoints,
-                                      rep2 = CPDTimepoints)
+threePrimeMMAnchoredCPDSeqFreq = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints, all_reps = CPDTimepoints)
 for (i in seq_along(threePrimeMMAnchoredCPDSeqFreq)) {
   for (j in seq_along(threePrimeMMAnchoredCPDSeqFreq[[i]])) {
     threePrimeMMAnchoredCPDSeqFreq[[i]][[j]] = fread(generateFilePath(
@@ -187,8 +171,7 @@ for (i in seq_along(threePrimeMMAnchoredCPDSeqFreq)) {
   }
 }
 
-fivePrimeMMAnchoredCPDSeqFreq = list(rep1 = CPDTimepoints,
-                                     rep2 = CPDTimepoints)
+fivePrimeMMAnchoredCPDSeqFreq = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints, all_reps = CPDTimepoints)
 for (i in seq_along(fivePrimeMMAnchoredCPDSeqFreq)) {
   for (j in seq_along(fivePrimeMMAnchoredCPDSeqFreq[[i]])) {
     fivePrimeMMAnchoredCPDSeqFreq[[i]][[j]] = fread(generateFilePath(
@@ -203,22 +186,18 @@ for (i in seq_along(fivePrimeMMAnchoredCPDSeqFreq)) {
 
 
 ```{r CPD_sequence_frequencies, fig.width = 11, fig.height = 9}
-plotSequenceFrequencies(threePrimeMMAnchoredCPDSeqFreq$rep1,
-                        title = paste(c("CPD", titleCaseFiltering, "3' Anchored YR Freq Rep1"), collapse = ' '),
-                        secondaryYAxisLabel = "5' Cut Site Distance", showFivePrimeCutSite = TRUE,
-                        expansionOffset = expansionOffset, querySequences = c("CG","CA","TG","TA"))
-plotSequenceFrequencies(threePrimeMMAnchoredCPDSeqFreq$rep2,
-                        title = paste(c("CPD", titleCaseFiltering, "3' Anchored YR Freq Rep2"), collapse = ' '),
-                        secondaryYAxisLabel = "5' Cut Site Distance", showFivePrimeCutSite = TRUE,
-                        expansionOffset = expansionOffset, querySequences = c("CG","CA","TG","TA"))
+for (i in seq_along(threePrimeMMAnchoredCPDSeqFreq)) {
+  plotSequenceFrequencies(threePrimeMMAnchoredCPDSeqFreq[[i]],
+                          title = paste(c("CPD", titleCaseFiltering, "3' Anchored YR Freq", repNames[i]), collapse = ' '),
+                          secondaryYAxisLabel = "5' Cut Site Distance", showFivePrimeCutSite = TRUE,
+                          expansionOffset = expansionOffset, querySequences = c("CG","CA","TG","TA"))
+}
 
-plotSequenceFrequencies(fivePrimeMMAnchoredCPDSeqFreq$rep1,
-                        title = paste(c("CPD", titleCaseFiltering, "5' Anchored TGG Freq Rep1"), collapse = ' '),
-                        secondaryYAxisLabel = "3' Cut Site Distance", showThreePrimeCutSite = TRUE,
-                        expansionOffset = expansionOffset, posType = FIVE_PRIME, querySequences = c("TGG"))
-plotSequenceFrequencies(fivePrimeMMAnchoredCPDSeqFreq$rep2,
-                        title = paste(c("CPD", titleCaseFiltering, "5' Anchored TGG Freq Rep2"), collapse = ' '),
-                        secondaryYAxisLabel = "3' Cut Site Distance", showThreePrimeCutSite = TRUE,
-                        expansionOffset = expansionOffset, posType = FIVE_PRIME, querySequences = c("TGG"))
+for (i in seq_along(fivePrimeMMAnchoredCPDSeqFreq)) {
+  plotSequenceFrequencies(fivePrimeMMAnchoredCPDSeqFreq[[i]],
+                          title = paste(c("CPD", titleCaseFiltering, "5' Anchored TGG Freq", repNames[i]), collapse = ' '),
+                          secondaryYAxisLabel = "3' Cut Site Distance", showThreePrimeCutSite = TRUE,
+                          expansionOffset = expansionOffset, posType = FIVE_PRIME, querySequences = c("TGG"))
+}
 ```
 
