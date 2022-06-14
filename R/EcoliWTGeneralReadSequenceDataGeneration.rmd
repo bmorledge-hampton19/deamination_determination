@@ -52,6 +52,12 @@ singleFileFullAnalysis = function(lesion, repitition, timepoint) {
   readData = data.table(Read_Length = nchar(readData$V7)-expansionOffset*2, Read_Sequence = readData$V7)
   readData = readData[Read_Length >= minReadLength-7 & Read_Length <= maxReadLength]
   
+  readLengthCounts = readData[, .N, by = Read_Length][order(Read_Length)]
+  fwrite(readLengthCounts, sep = '\t', file = generateFilePath(
+    directory = generalReadSequenceDataDirectory, dataTypeStrings$readLengthcounts, ".tsv",
+    cellType = cellType, lesion = lesion, repitition = repitition, timepoint = timepoint
+  ))
+  
   for (sequence in c("TGG","CGA")) {
     seqFreq = getSequenceFreqByReadLengthAndPos(readData, querySequences = c(sequence))
     fwrite(seqFreq, sep = '\t', file = generateFilePath(
@@ -65,7 +71,7 @@ singleFileFullAnalysis = function(lesion, repitition, timepoint) {
 
 
 ```{r compute_and_write_CPD_sequence_frequency}
-for (repitition in c("rep1", "rep2")) {
+for (repitition in c("rep1", "rep2", "all_reps")) {
   for (timepoint in names(CPDTimepoints)) {
     singleFileFullAnalysis("CPD", repitition, timepoint)
   }
