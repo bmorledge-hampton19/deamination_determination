@@ -118,6 +118,22 @@ for (i in seq_along(fivePrimeMismatchCPDNucFreq)) {
 ```
 
 
+```{r CPD_mismatch_anchored_nucleotide_frequencies_filtered, fig.width = 11, fig.height = 8}
+min3PrimeCutSiteDistance = 1
+max3PrimeCutSiteDistance = 12
+
+for (i in seq_along(fivePrimeMismatchCPDNucFreq)) {
+  plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchCPDNucFreq[[i]], 
+                                 title = paste(c("CPD", titleCaseFiltering,
+                                                 "5' Anchored Nuc Freq", repNames[i]), collapse = ' '),
+                                 yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "3' Cut Site Distance",
+                                 posType = FIVE_PRIME, showThreePrimeCutSite = TRUE,
+                                 expansionOffset = expansionOffset,
+                                 minReadLength = min3PrimeCutSiteDistance, maxReadLength = max3PrimeCutSiteDistance)
+}
+```
+
+
 ```{r CPD_mismatch_anchored_purine_frequencies, fig.width = 11, fig.height = 9}
 for (i in seq_along(threePrimeMismatchCPDNucFreq)) {
   plotNucFreqVsReadLengthBarPlot(threePrimeMismatchCPDNucFreq[[i]], 

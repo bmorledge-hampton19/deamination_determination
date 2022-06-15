@@ -193,11 +193,11 @@ for (i in seq_along(CPDMismatchData)) {
   plotPositionAcrossTimepointAndReadLength(CPDMismatchData[[i]], includedTypes = c("C>T"),
                                            title = paste(c("CPD", titleCaseFiltering,
                                                            "C>T Mismatch Pos Freq", repNames[i]), collapse = ' '),
-                                           zScoreTables = CPDMMFreqZScores[[i]])
+                                           zScoreTables = CPDMMFreqZScores[[i]], yAxisBreaks = c(0, 0.16, 0.32))
   plotPositionAcrossTimepointAndReadLength(CPDMismatchData[[i]], includedTypes = c("C>T"), posType = FIVE_PRIME,
                                            title = paste(c("CPD", titleCaseFiltering,
                                                            "C>T Mismatch Pos Freq", repNames[i]), collapse = ' '),
-                                           zScoreTables = CPDMMFreqZScores[[i]])
+                                           zScoreTables = CPDMMFreqZScores[[i]], yAxisBreaks = c(0, 0.16, 0.32))
 }
 ```
 
