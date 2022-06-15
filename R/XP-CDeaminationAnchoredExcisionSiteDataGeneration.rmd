@@ -57,8 +57,7 @@ source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
 
 ```{r read_expanded_mismatch_data}
 # Get file paths for the expanded mismatch by read data
-CPDMismatchData = list(rep1 = CPDTimepoints,
-                       rep2 = CPDTimepoints)
+CPDMismatchData = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints, all_reps = CPDTimepoints)
 for (i in 1:length(CPDMismatchData)) {
   for (j in 1:length(CPDMismatchData[[i]])) {
     CPDMismatchData[[i]][[j]] = fread(generateFilePath(
@@ -69,8 +68,7 @@ for (i in 1:length(CPDMismatchData)) {
   }
 }
 
-sixFourMismatchData = list(rep1 = sixFourTimepoints,
-                           rep2 = sixFourTimepoints)
+sixFourMismatchData = list(rep1 = sixFourTimepoints, rep2 = sixFourTimepoints, all_reps = sixFourTimepoints)
 for (i in 1:length(sixFourMismatchData)) {
   for (j in 1:length(sixFourMismatchData[[i]])) {
     sixFourMismatchData[[i]][[j]] = fread(generateFilePath(
@@ -101,7 +99,7 @@ sixFourMismatchData = lapply(sixFourMismatchData, function(x) lapply(
 ))
 
 # Read mismatch frequency z-scores.
-CPDMMFreqZScores = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints)
+CPDMMFreqZScores = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints, all_reps = CPDTimepoints)
 for (i in seq_along(CPDMMFreqZScores)) {
   for (j in seq_along(CPDMMFreqZScores[[i]])) {
     CPDMMFreqZScores[[i]][[j]] = fread(generateFilePath(
@@ -112,7 +110,7 @@ for (i in seq_along(CPDMMFreqZScores)) {
   }
 }
 
-sixFourMMFreqZScores = list(rep1 = sixFourTimepoints, rep2 = sixFourTimepoints)
+sixFourMMFreqZScores = list(rep1 = sixFourTimepoints, rep2 = sixFourTimepoints, all_reps = sixFourTimepoints)
 for (i in seq_along(sixFourMMFreqZScores)) {
   for (j in seq_along(sixFourMMFreqZScores[[i]])) {
     sixFourMMFreqZScores[[i]][[j]] = fread(generateFilePath(
