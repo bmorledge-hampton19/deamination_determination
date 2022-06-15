@@ -68,8 +68,7 @@ source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
 
 ```{r read_mismatch_data}
 # Get file paths for the mismatch by read data
-CPDMismatchData = list(rep1 = CPDTimepoints,
-                       rep2 = CPDTimepoints)
+CPDMismatchData = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints, all_reps = CPDTimepoints)
 for (i in 1:length(CPDMismatchData)) {
   for (j in 1:length(CPDMismatchData[[i]])) {
     CPDMismatchData[[i]][[j]] = fread(generateFilePath(
@@ -81,8 +80,7 @@ for (i in 1:length(CPDMismatchData)) {
   }
 }
 
-sixFourMismatchData = list(rep1 = sixFourTimepoints,
-                           rep2 = sixFourTimepoints)
+sixFourMismatchData = list(rep1 = sixFourTimepoints, rep2 = sixFourTimepoints, all_reps = sixFourTimepoints)
 for (i in 1:length(sixFourMismatchData)) {
   for (j in 1:length(sixFourMismatchData[[i]])) {
     sixFourMismatchData[[i]][[j]] = fread(generateFilePath(
@@ -174,20 +172,55 @@ for (i in seq_along(sixFourMMFreqZScores)) {
 ```
 
 
-```{r generate_and_write_mismatch_position_statistics_by_read_length_and_timepoint}
-CPDGroupedStats = list(rep1 = list(), rep2 = list())
-CPDGroupedStats$rep1$three_prime = getGroupedPositionStats(CPDMismatchData$rep1)
-CPDGroupedStats$rep2$three_prime = getGroupedPositionStats(CPDMismatchData$rep2)
-CPDGroupedStats$rep1$five_prime = getGroupedPositionStats(CPDMismatchData$rep1, posType = FIVE_PRIME)
-CPDGroupedStats$rep2$five_prime = getGroupedPositionStats(CPDMismatchData$rep2, posType = FIVE_PRIME)
+```{r generate_and_write_read_length_counts}
+CPDReadLengthCounts = lapply(CPDMismatchData, function(x) lapply(
+  x, function(y) {
+    y[, .N, by = Read_Length][order(Read_Length)]
+  }
+))
 
-sixFourGroupedStats = list(rep1 = list(), rep2 = list())
-sixFourGroupedStats$rep1$three_prime = getGroupedPositionStats(sixFourMismatchData$rep1)
-sixFourGroupedStats$rep2$three_prime = getGroupedPositionStats(sixFourMismatchData$rep2)
-sixFourGroupedStats$rep1$five_prime =
-  getGroupedPositionStats(sixFourMismatchData$rep1, posType = FIVE_PRIME)
-sixFourGroupedStats$rep2$five_prime =
-  getGroupedPositionStats(sixFourMismatchData$rep2, posType = FIVE_PRIME)
+sixFourReadLengthCounts = lapply(sixFourMismatchData, function(x) lapply(
+  x, function(y) {
+    y[, .N, by = Read_Length][order(Read_Length)]
+  }
+))
+
+for (i in seq_along(CPDReadLengthCounts)) {
+  for (j in seq_along(CPDReadLengthCounts[[i]])) {
+    fwrite(CPDReadLengthCounts[[i]][[j]], sep = '\t', file = generateFilePath(
+      directory = deaminationSequenceAndPositionDataDirectory, dataTypeStrings$readLengthcounts, ".tsv",
+      cellType = cellType, lesion = "CPD", repitition = names(CPDReadLengthCounts)[i],
+      timepoint = names(CPDReadLengthCounts[[i]])[j], filtering = filtering, includedMismatches = mismatchType
+    ))
+  }
+}
+
+for (i in seq_along(sixFourReadLengthCounts)) {
+  for (j in seq_along(sixFourReadLengthCounts[[i]])) {
+    fwrite(sixFourReadLengthCounts[[i]][[j]], sep = '\t', file = generateFilePath(
+      directory = deaminationSequenceAndPositionDataDirectory, dataTypeStrings$readLengthcounts, ".tsv",
+      cellType = cellType, lesion = "6-4", repitition = names(sixFourReadLengthCounts)[i],
+      timepoint = names(sixFourReadLengthCounts[[i]])[j], filtering = filtering, includedMismatches = mismatchType
+    ))
+  }
+}
+```
+
+
+```{r generate_and_write_mismatch_position_statistics_by_read_length_and_timepoint}
+CPDGroupedStats = list(rep1 = list(), rep2 = list(), all_reps = list())
+for (i in seq_along(CPDGroupedStats)) {
+  CPDGroupedStats[[i]]$three_prime = getGroupedPositionStats(CPDMismatchData[[i]])
+  CPDGroupedStats[[i]]$five_prime = getGroupedPositionStats(CPDMismatchData[[i]], posType = FIVE_PRIME)
+}
+
+
+sixFourGroupedStats = list(rep1 = list(), rep2 = list(), all_reps = list())
+for (i in seq_along(sixFourGroupedStats)) {
+  sixFourGroupedStats[[i]]$three_prime = getGroupedPositionStats(sixFourMismatchData[[i]])
+  sixFourGroupedStats[[i]]$five_prime =
+    getGroupedPositionStats(sixFourMismatchData[[i]], posType = FIVE_PRIME)
+}
 
 for (i in seq_along(CPDGroupedStats)) {
   for (j in seq_along(CPDGroupedStats[[i]])) {
@@ -218,8 +251,7 @@ EXCISION SITE ANALYSIS STARTS HERE
 
 ```{r read_expanded_mismatch_data}
 # Get file paths for the expanded mismatch by read data
-CPDMismatchData = list(rep1 = CPDTimepoints,
-                       rep2 = CPDTimepoints)
+CPDMismatchData = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints, all_reps = CPDTimepoints)
 for (i in 1:length(CPDMismatchData)) {
   for (j in 1:length(CPDMismatchData[[i]])) {
     CPDMismatchData[[i]][[j]] = fread(generateFilePath(
@@ -231,8 +263,7 @@ for (i in 1:length(CPDMismatchData)) {
   }
 }
 
-sixFourMismatchData = list(rep1 = sixFourTimepoints,
-                           rep2 = sixFourTimepoints)
+sixFourMismatchData = list(rep1 = sixFourTimepoints, rep2 = sixFourTimepoints, all_reps = sixFourTimepoints)
 for (i in 1:length(sixFourMismatchData)) {
   for (j in 1:length(sixFourMismatchData[[i]])) {
     sixFourMismatchData[[i]][[j]] = fread(generateFilePath(
@@ -264,7 +295,7 @@ sixFourMismatchData = lapply(sixFourMismatchData, function(x) lapply(
 ))
 
 # Read mismatch frequency z-scores.
-CPDMMFreqZScores = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints)
+CPDMMFreqZScores = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints, all_reps = CPDTimepoints)
 for (i in seq_along(CPDMMFreqZScores)) {
   for (j in seq_along(CPDMMFreqZScores[[i]])) {
     CPDMMFreqZScores[[i]][[j]] = fread(generateFilePath(
@@ -275,7 +306,7 @@ for (i in seq_along(CPDMMFreqZScores)) {
   }
 }
 
-sixFourMMFreqZScores = list(rep1 = sixFourTimepoints, rep2 = sixFourTimepoints)
+sixFourMMFreqZScores = list(rep1 = sixFourTimepoints, rep2 = sixFourTimepoints, all_reps = sixFourTimepoints)
 for (i in seq_along(sixFourMMFreqZScores)) {
   for (j in seq_along(sixFourMMFreqZScores[[i]])) {
     sixFourMMFreqZScores[[i]][[j]] = fread(generateFilePath(
