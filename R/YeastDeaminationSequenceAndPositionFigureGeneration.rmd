@@ -202,6 +202,20 @@ for (i in seq_along(CPDMismatchData)) {
 ```
 
 
+```{r CPD_mismatch_position_frequencies_by_read_length_filtered, fig.width = 5, fig.height = 5}
+for (i in seq_along(CPDMismatchData)) {
+  plotPositionAcrossTimepointAndReadLength(CPDMismatchData[[i]]$`20min`, includedTypes = c("C>T"),
+                                           title = paste(c("CPD", titleCaseFiltering,
+                                                           "C>T Mismatch Pos Freq", repNames[i]), collapse = ' '),
+                                           zScoreTables = CPDMMFreqZScores[[i]])
+  plotPositionAcrossTimepointAndReadLength(CPDMismatchData[[i]]$`20min`, includedTypes = c("C>T"),
+                                           title = paste(c("CPD", titleCaseFiltering,
+                                                           "C>T Mismatch Pos Freq", repNames[i]), collapse = ' '),
+                                           zScoreTables = CPDMMFreqZScores[[i]], posType = FIVE_PRIME)
+}
+```
+
+
 ```{r 6-4_mismatch_position_frequencies_by_read_length, fig.width = 9, fig.height = 5}
 for (i in seq_along(sixFourMismatchData)) {
   plotPositionAcrossTimepointAndReadLength(sixFourMismatchData[[i]], includedTypes = c("C>T"),
@@ -293,6 +307,17 @@ for (i in seq_along(CPDGroupedStats)) {
   plotGroupedPositionStats(CPDGroupedStats[[i]]$three_prime, CPDGroupedStats[[i]]$five_prime, POS_DIFF,
                            title = paste(c("CPD", titleCaseFiltering,
                                            "C>T Mismatch Pos Diff", repNames[i]), collapse = ' '),
+                           xAxisBreaks = c(minReadLength:maxReadLength))
+}
+```
+
+
+```{r CPD_position_differences_across_read_lengths_filtered, fig.width = 9, fig.height = 5}
+for (i in seq_along(CPDGroupedStats)) {
+  plotGroupedPositionStats(CPDGroupedStats[[i]]$three_prime[Timepoint == "20min"],
+                           CPDGroupedStats[[i]]$five_prime[Timepoint == "20min"],
+                           POS_DIFF, title = paste(c("CPD", titleCaseFiltering,
+                                                     "C>T Mismatch Pos Diff", repNames[i]), collapse = ' '),
                            xAxisBreaks = c(minReadLength:maxReadLength))
 }
 ```
