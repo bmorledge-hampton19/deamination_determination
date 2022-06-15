@@ -99,34 +99,30 @@ for (i in seq_along(sixFourCGASeqFreq)) {
 
 ```{r CPD_sequence_frequencies, fig.width = 11, fig.height = 10}
 for (i in seq_along(CPDTGGSeqFreq)) {
-  plotSequenceFrequencies(CPDTGGSeqFreq[[i]],
-                          title = "CPD TGG Frequencies", repNames[i], expansionOffset = expansionOffset,
-                          showThreePrimeCutSite = TRUE, showFivePrimeCutSite = TRUE,
-                          querySequences = c("TGG"))
+  plotSequenceFrequencies(CPDTGGSeqFreq[[i]], title = paste("CPD TGG Frequencies", repNames[i]),
+                          expansionOffset = expansionOffset, showThreePrimeCutSite = TRUE,
+                          showFivePrimeCutSite = TRUE, querySequences = c("TGG"))
 }
 
 for (i in seq_along(CPDCGASeqFreq)) {
-  plotSequenceFrequencies(CPDCGASeqFreq[[i]],
-                          title = "CPD CGA Frequencies", repNames[i], expansionOffset = expansionOffset,
-                          showThreePrimeCutSite = TRUE, showFivePrimeCutSite = TRUE,
-                          querySequences = c("CGA"))
+  plotSequenceFrequencies(CPDCGASeqFreq[[i]], title = paste("CPD CGA Frequencies", repNames[i]),
+                          expansionOffset = expansionOffset, showThreePrimeCutSite = TRUE,
+                          showFivePrimeCutSite = TRUE, querySequences = c("CGA"))
 }
 ```
 
 
 ```{r 6-4_sequence_frequencies, fig.width = 11, fig.height = 10}
 for (i in seq_along(sixFourTGGSeqFreq)) {
-  plotSequenceFrequencies(sixFourTGGSeqFreq[[i]],
-                          title = "6-4 TGG Frequencies", repNames[i], expansionOffset = expansionOffset,
-                          showThreePrimeCutSite = TRUE, showFivePrimeCutSite = TRUE,
-                          querySequences = c("TGG"))
+  plotSequenceFrequencies(sixFourTGGSeqFreq[[i]], title = paste("6-4 TGG Frequencies", repNames[i]),
+                          expansionOffset = expansionOffset, showThreePrimeCutSite = TRUE,
+                          showFivePrimeCutSite = TRUE, querySequences = c("TGG"))
 }
 
 for (i in seq_along(sixFourCGASeqFreq)) {
-  plotSequenceFrequencies(sixFourCGASeqFreq[[i]],
-                          title = "6-4 CGA Frequencies", repNames[i], expansionOffset = expansionOffset,
-                          showThreePrimeCutSite = TRUE, showFivePrimeCutSite = TRUE,
-                          querySequences = c("CGA"))
+  plotSequenceFrequencies(sixFourCGASeqFreq[[i]], title = paste("6-4 CGA Frequencies", repNames[i]),
+                          expansionOffset = expansionOffset, showThreePrimeCutSite = TRUE,
+                          showFivePrimeCutSite = TRUE, querySequences = c("CGA"))
 }
 ```
 
