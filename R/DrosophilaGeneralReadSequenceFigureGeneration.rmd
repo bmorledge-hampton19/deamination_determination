@@ -75,24 +75,22 @@ for (i in seq_along(CPDCGASeqFreq)) {
 
 ```{r CPD_sequence_frequencies, fig.width = 11, fig.height = 10}
 for (i in seq_along(CPDTGGSeqFreq)) {
-  plotSequenceFrequencies(CPDTGGSeqFreq[[i]],
-                          title = paste("CPD TGG Frequencies", repNames[i]),
+  plotSequenceFrequencies(CPDTGGSeqFreq[[i]], title = paste("CPD TGG Frequencies", repNames[i]),
                           expansionOffset = expansionOffset, showThreePrimeCutSite = TRUE,
                           showFivePrimeCutSite = TRUE, querySequences = c("TGG"))
 }
 
 for (i in seq_along(CPDCGASeqFreq)) {
-  plotSequenceFrequencies(CPDCGASeqFreq[[i]],
-                          title = paste("CPD CGA Frequencies", repNames[i]), expansionOffset = expansionOffset,
-                          showThreePrimeCutSite = TRUE, showFivePrimeCutSite = TRUE,
-                          querySequences = c("CGA"))
+  plotSequenceFrequencies(CPDCGASeqFreq[[i]], title = paste("CPD CGA Frequencies", repNames[i]),
+                          expansionOffset = expansionOffset, showThreePrimeCutSite = TRUE,
+                          showFivePrimeCutSite = TRUE, querySequences = c("CGA"))
 }
 ```
 
 
 ```{r read_length_frequencies_plotting_function}
 readAndPlotReadLengthFrequencies = function(lesion, repitition, timepoints) {
-  
+
   readLengthCountsByTimepoint = timepoints
   for (i in seq_along(readLengthCountsByTimepoint)) {
     readLengthCountsByTimepoint[[i]] = fread(generateFilePath(
