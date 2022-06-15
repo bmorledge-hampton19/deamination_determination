@@ -73,7 +73,7 @@ for (i in 1:length(sixFourMismatchData)) {
   for (j in 1:length(sixFourMismatchData[[i]])) {
     sixFourMismatchData[[i]][[j]] = fread(generateFilePath(
       mismatchesByReadDirectory, dataTypeStrings$mismatchesByRead, ".bed",
-      cellType = cellType, lesion = "6-4-PP", timepoint = names(sixFourMismatchData[[i]])[j],
+      cellType = cellType, lesion = "6-4", timepoint = names(sixFourMismatchData[[i]])[j],
       repitition = names(sixFourMismatchData)[i], expansionNum = expansionOffset, filtering = filtering
       ))
   }

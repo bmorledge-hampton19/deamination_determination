@@ -484,3 +484,4 @@ for (i in seq_along(fivePrimeMMAnchoredSixFourSeqFreq)) {
                           expansionOffset = expansionOffset, posType = FIVE_PRIME, querySequences = c("TGG"))
 }
 ```
+
