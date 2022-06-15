@@ -300,7 +300,9 @@ plotGroupedPositionStats = function(threePrimeGroupedStats, fivePrimeGroupedStat
   if (all(aggregateData$Timepoint == "NONE")) {
     groupedStatsPlot = groupedStatsPlot +
       scale_color_grey(guide = "none")
-  } else groupedStatsPlot = groupedStatsPlot + scale_color_brewer(palette = "Set1")
+  } else if (length(unique(aggregateData$Timepoint)) == 1) {
+    groupedStatsPlot = groupedStatsPlot + scale_color_grey()
+  } groupedStatsPlot = groupedStatsPlot + scale_color_brewer(palette = "Set1")
 
   print(groupedStatsPlot)
 
