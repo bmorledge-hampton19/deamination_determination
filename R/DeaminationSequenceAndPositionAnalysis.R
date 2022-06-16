@@ -123,7 +123,7 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
                                             function(i) zScoreTables[[i]][,Timepoint := names(zScoreTables)[i]]))
     setkey(groupedPositionFrequencies,Position,Read_Length,Timepoint)
     setkey(aggregateZScoreTable,Position,Read_Length,Timepoint)
-    groupedPositionFrequencies = groupedPositionFrequencies[aggregateZScoreTable]
+    groupedPositionFrequencies = groupedPositionFrequencies[aggregateZScoreTable, nomatch = NULL]
     groupedPositionFrequencies[,Meets_Cutoff := Z_Score >= zScoreCutoff]
   }
 
@@ -302,7 +302,7 @@ plotGroupedPositionStats = function(threePrimeGroupedStats, fivePrimeGroupedStat
       scale_color_grey(guide = "none")
   } else if (length(unique(aggregateData$Timepoint)) == 1) {
     groupedStatsPlot = groupedStatsPlot + scale_color_grey()
-  } groupedStatsPlot = groupedStatsPlot + scale_color_brewer(palette = "Set1")
+  } else groupedStatsPlot = groupedStatsPlot + scale_color_brewer(palette = "Set1")
 
   print(groupedStatsPlot)
 
