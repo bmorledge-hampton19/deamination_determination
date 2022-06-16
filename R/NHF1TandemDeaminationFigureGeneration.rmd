@@ -165,6 +165,22 @@ for (i in seq_along(CPDMismatchData)) {
 ```
 
 
+```{r CPD_mismatch_position_frequencies_by_read_length_filtered, fig.width = 5, fig.height = 5}
+for (i in seq_along(CPDMismatchData)) {
+  plotPositionAcrossTimepointAndReadLength(CPDMismatchData[[i]]["1h"],
+                                           title = paste(c("CPD", titleCaseFiltering, titleCaseMismatchType,
+                                                           "Mismatch Pos Freq", repNames[i]),
+                                                         collapse = ' '),
+                                           zScoreTables = CPDMMFreqZScores[[i]])
+  plotPositionAcrossTimepointAndReadLength(CPDMismatchData[[i]]["1h"], posType = FIVE_PRIME,
+                                           title = paste(c("CPD", titleCaseFiltering, titleCaseMismatchType,
+                                                           "Mismatch Pos Freq", repNames[i]),
+                                                         collapse = ' '),
+                                           zScoreTables = CPDMMFreqZScores[[i]])
+}
+```
+
+
 ```{r 6-4_mismatch_position_frequencies_by_read_length, fig.width = 9, fig.height = 5}
 for (i in seq_along(sixFourMismatchData)) {
   plotPositionAcrossTimepointAndReadLength(sixFourMismatchData[[i]],

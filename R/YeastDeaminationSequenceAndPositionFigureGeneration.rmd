@@ -204,11 +204,11 @@ for (i in seq_along(CPDMismatchData)) {
 
 ```{r CPD_mismatch_position_frequencies_by_read_length_filtered, fig.width = 5, fig.height = 5}
 for (i in seq_along(CPDMismatchData)) {
-  plotPositionAcrossTimepointAndReadLength(CPDMismatchData[[i]]$`20min`, includedTypes = c("C>T"),
+  plotPositionAcrossTimepointAndReadLength(CPDMismatchData[[i]]["20min"], includedTypes = c("C>T"),
                                            title = paste(c("CPD", titleCaseFiltering,
                                                            "C>T Mismatch Pos Freq", repNames[i]), collapse = ' '),
                                            zScoreTables = CPDMMFreqZScores[[i]])
-  plotPositionAcrossTimepointAndReadLength(CPDMismatchData[[i]]$`20min`, includedTypes = c("C>T"),
+  plotPositionAcrossTimepointAndReadLength(CPDMismatchData[[i]]["20min"], includedTypes = c("C>T"),
                                            title = paste(c("CPD", titleCaseFiltering,
                                                            "C>T Mismatch Pos Freq", repNames[i]), collapse = ' '),
                                            zScoreTables = CPDMMFreqZScores[[i]], posType = FIVE_PRIME)

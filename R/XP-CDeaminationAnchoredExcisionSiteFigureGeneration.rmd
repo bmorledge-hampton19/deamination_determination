@@ -357,7 +357,7 @@ for (i in seq_along(fivePrimeMMAnchoredSixFourSeqFreq)) {
 
 
 ```{r CPD_sequence_frequencies, fig.width = 11, fig.height = 9}
-for (i in seq_along(threePrimeMMAnchoredSixFourSeqFreq)) {
+for (i in seq_along(threePrimeMMAnchoredCPDSeqFreq)) {
   plotSequenceFrequencies(threePrimeMMAnchoredCPDSeqFreq[[i]],
                           title = paste(c("CPD", titleCaseFiltering,
                                           "3' Anchored YR Freq", repNames[i]), collapse = ' '),

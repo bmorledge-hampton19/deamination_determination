@@ -129,6 +129,22 @@ for (i in seq_along(CPDMismatchData)) {
 ```
 
 
+```{r CPD_mismatch_position_frequencies_by_read_length_filtered, fig.width = 5, fig.height = 5}
+for (i in seq_along(CPDMismatchData)) {
+  plotPositionAcrossTimepointAndReadLength(CPDMismatchData[[i]]["ZT2"],
+                                           title = paste(c("CPD", titleCaseFiltering, titleCaseMismatchType,
+                                                           "Mismatch Pos Freq", repNames[i]),
+                                                         collapse = ' '),
+                                           zScoreTables = CPDMMFreqZScores[[i]])
+  plotPositionAcrossTimepointAndReadLength(CPDMismatchData[[i]]["ZT2"], posType = FIVE_PRIME,
+                                           title = paste(c("CPD", titleCaseFiltering, titleCaseMismatchType,
+                                                           "Mismatch Pos Freq", repNames[i]),
+                                                         collapse = ' '),
+                                           zScoreTables = CPDMMFreqZScores[[i]])
+}
+```
+
+
 ```{r read_read_length_counts}
 CPDReadLengthCounts = list(rep1 = CPDTimepoints, rep2 = CPDTimepoints, all_reps = CPDTimepoints)
 for (i in seq_along(CPDReadLengthCounts)) {
