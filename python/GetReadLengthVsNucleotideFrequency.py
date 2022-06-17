@@ -93,7 +93,7 @@ def main():
     
     samFilePaths = selections.getFilePathGroups()[0]
     
-    acceptableReadLengths = parseToIterable(selections.getTextEntries()[0])
+    acceptableReadLengths = parseToIterable(selections.getTextEntries()[0], castType = int)
     maxMismatches = int(selections.getTextEntries()[1])
     allowN = selections.getToggleStates()[0]
     if outputDirDynSel.getControllerVar(): outputDir = selections.getIndividualFilePaths("outputDir")[0]

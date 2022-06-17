@@ -96,8 +96,8 @@ def main():
     # Get the user's input from the dialog.
     selections = dialog.selections
 
-    threePrimeBlacklist = parseToIterable(selections.getTextEntries()[0], castValuesToInt = False)
-    fivePrimeBlacklist = parseToIterable(selections.getTextEntries()[1], castValuesToInt = False)
+    threePrimeBlacklist = parseToIterable(selections.getTextEntries()[0])
+    fivePrimeBlacklist = parseToIterable(selections.getTextEntries()[1])
 
     filterOnExpandedContext(selections.getFilePathGroups()[0], threePrimeBlacklist, fivePrimeBlacklist,
                             selections.getTextEntries()[2])
