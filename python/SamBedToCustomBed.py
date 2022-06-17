@@ -14,11 +14,9 @@ from benbiohelpers.InputParsing.ParseToIterable import parseToIterable
 # based on the given parameters (all "acceptable..." parameters accept a list/range as input, and if
 # any filtering parameters are passed NoneType, they will not be used in filtering at all.) and single
 # mismatches and/or tandem mismatches to a custom-bed formatted file.
-def samBedToCustomBed(samBedFilePaths: List[str], 
-                      outputSingleBaseMismatches = True, singleBaseSuffix = "_individual_mismatches",
-                      outputTandemMismatches = True, tandemSuffix = "_tandem_mismatches",
-                      acceptableReadLengths = None, maxMismatches = None, acceptableMismatchPositions = None, 
-                      acceptableMismatchSequences = None):
+def samBedToCustomBed(samBedFilePaths: List[str], customSuffix: str = "mismatches_custom_input",
+                      acceptableReadLengths = None, maxMismatches = None,
+                      acceptableMismatchPositions = None, acceptableMismatchSequences = None):
 
     for samBedFilePath in samBedFilePaths:
 
@@ -26,67 +24,45 @@ def samBedToCustomBed(samBedFilePaths: List[str],
 
         # Generate the required output file paths, each within its own directory (for convenience with mutperiod).
         inputFileDir = os.path.dirname(samBedFilePath)
-        baseFileName = os.path.basename(samBedFilePath).rsplit('.')[0].rsplit("_mismatches_by_read")[0]
-
-        if outputSingleBaseMismatches:
-            singleMismatchOutputDir = os.path.join(inputFileDir, baseFileName + singleBaseSuffix)
-            singleMismatchOutputFilePath = os.path.join(singleMismatchOutputDir, baseFileName + singleBaseSuffix + ".bed")
-            checkDirs(singleMismatchOutputDir)
-            singleMismatchOutputFile = open(singleMismatchOutputFilePath, 'w')
-        if outputTandemMismatches:
-            tandemMismatchOutputDir = os.path.join(inputFileDir, baseFileName + tandemSuffix)
-            tandemMismatchOutputFilePath = os.path.join(tandemMismatchOutputDir, baseFileName + tandemSuffix + ".bed")
-            checkDirs(tandemMismatchOutputDir)
-            tandemMismatchOutputFile = open(tandemMismatchOutputFilePath, 'w')
+        baseFileName = os.path.basename(samBedFilePath).rsplit('.')[0].rsplit("mismatches_by_read", 1)[0]
+        outputDir = os.path.join(inputFileDir, baseFileName + customSuffix.rsplit("custom_input", 1)[0][:-1])
+        customBedOutputFilePath = os.path.join(outputDir, baseFileName + customSuffix + ".bed")
+        checkDirs(outputDir)
 
         # Loop through the sam bed file, filtering out lines that don't meet the requirements
         # and writing any remaining relevant data to the output file(s)
-        with open(samBedFilePath, 'r') as samBedFile:
-            for line in samBedFile:
+        with open(customBedOutputFilePath, 'w') as customBedOutputFile:
+            with open(samBedFilePath, 'r') as samBedFile:
+                for line in samBedFile:
 
-                (readChrom, readStart, readEnd, mismatchPositions, mismatchSequences, strand) = line.split()
-                readStart = int(readStart)
-                readEnd = int(readEnd)
-                
-                # Perform initial filtering on the read.
-                if ( (acceptableReadLengths is None or int(readEnd) - int(readStart) in acceptableReadLengths) and
-                     (maxMismatches is None or mismatchPositions.count(':') < maxMismatches) ):
-                    pass
-                else: continue
+                    (readChrom, readStart, readEnd, mismatchPositions, mismatchTypes, strand, _) = line.split()
+                    readStart = int(readStart)
+                    readEnd = int(readEnd)
+                    
+                    # Perform initial filtering on the read.
+                    if ( (acceptableReadLengths is None or int(readEnd) - int(readStart) in acceptableReadLengths) and
+                        (maxMismatches is None or mismatchPositions.count(':') < maxMismatches) ): pass
+                    else: continue
 
-                # If the read passed filtering, write any single-base and tandem mismatches that pass filtering.
-                lastPosition = None
-                lastSequence = None
-                for position, sequence in zip(mismatchPositions.split(':'), mismatchSequences.split(':')):
-                    position = int(position)
-                    if ( (acceptableMismatchPositions is None or position in acceptableMismatchPositions) and
-                            (acceptableMismatchSequences is None or sequence in acceptableMismatchSequences) ):
+                    # If the read passed filtering, write any mismatches that pass filtering.
+                    for relativeMMPosition, mmType in zip(mismatchPositions.split(':'), mismatchTypes.split(':')):
 
-                        if outputSingleBaseMismatches:
+                        relativeMMPosition = float(relativeMMPosition)
+                        if round(relativeMMPosition) == relativeMMPosition: relativeMMPosition = int(relativeMMPosition)
+
+                        if ( (acceptableMismatchPositions is None or relativeMMPosition in acceptableMismatchPositions) and
+                             (acceptableMismatchSequences is None or mmType in acceptableMismatchSequences) ):
+
+                            posOffset = ( (len(mmType)-1)/2 - 1 ) / 2
                             if strand == '+':
-                                absolutePos = readEnd + position
+                                absoluteMMPosStart = int(readEnd + relativeMMPosition - posOffset)
+                                absoluteMMPosEnd = int(readEnd + relativeMMPosition + posOffset)
                             else:
-                                absolutePos = readStart - position - 1
+                                absoluteMMPosStart = int(readStart - relativeMMPosition - 1 - posOffset)
+                                absoluteMMPosEnd = int(readStart - relativeMMPosition - 1 + posOffset)
 
-                            singleMismatchOutputFile.write('\t'.join((readChrom, str(absolutePos), str(absolutePos+1),
-                                                                      sequence[0], sequence[2], strand, str(position))) + '\n')
-
-                        if outputTandemMismatches and lastPosition is not None and abs(position-lastPosition) == 1:
-                            if strand == '+':
-                                absolutePos = readEnd + lastPosition
-                                refSeq = lastSequence[0] + sequence[0]
-                                mutSeq = lastSequence[2] + sequence[2]
-                            else:
-                                absolutePos = readStart - lastPosition - 1
-                                refSeq = sequence[0] + lastSequence[0]
-                                mutSeq = sequence[2] + lastSequence[2]
-
-                            tandemMismatchOutputFile.write('\t'.join((readChrom, str(absolutePos), str(absolutePos+2),
-                                                                      refSeq, mutSeq, strand, 
-                                                                      str((position+lastPosition)/2) )) + '\n')
-
-                        lastPosition = position
-                        lastSequence = sequence
+                            customBedOutputFile.write('\t'.join((readChrom, str(absoluteMMPosStart), str(absoluteMMPosEnd+1),
+                                                                 *mmType.split('>'), strand, str(relativeMMPosition))) + '\n')
 
 
 def main():
@@ -95,18 +71,10 @@ def main():
     dialog.createMultipleFileSelector("Mismatched Reads Bed Files:",0,"mismatches_by_read.bed",("Bed Files",".bed"))
     dialog.createTextField("Acceptable Read Lengths: ", 1, 0, defaultText = "23-31")
     dialog.createTextField("Max Mismatches: ", 2, 0, defaultText = "2")
-    dialog.createTextField("Acceptable Mismatch Positions: ", 3, 0, defaultText = "-12$-3")
+    dialog.createTextField("Acceptable Mismatch Positions: ", 3, 0, defaultText = "-12:-3")
     dialog.createTextField("Acceptable Mismatch Sequences: ", 4, 0, defaultText = "C>T")
-
-    with dialog.createDynamicSelector(5, 0) as singleBaseDynSel:
-        singleBaseDynSel.initCheckboxController("Output single-base mismatches")
-        singleBaseSuffixDialog = singleBaseDynSel.initDisplay(True, "singleBaseSuffix")
-        singleBaseSuffixDialog.createTextField("File suffix: ", 0, 0, defaultText = "_individual_mismatches")
-
-    with dialog.createDynamicSelector(6, 0) as tandemDynSel:
-        tandemDynSel.initCheckboxController("Output tandem mismatches")
-        tandemSuffixDialog = tandemDynSel.initDisplay(True, "tandemSuffix")
-        tandemSuffixDialog.createTextField("File suffix: ", 0, 0, defaultText = "_tandem_mismatches")
+    dialog.createTextField("File suffix (before .bed, with \"mismatches_by_read\" omitted):",
+                           5, 0, defaultText = "mismatches_custom_input")
 
     # Run the UI
     dialog.mainloop()
@@ -119,30 +87,22 @@ def main():
     
     samBedFilePaths = selections.getFilePathGroups()[0]
     
-    acceptableReadLengths = parseToIterable(selections.getTextEntries()[0])
-    maxMismatches = int(selections.getTextEntries()[1])
-    acceptableMismatchPositions = parseToIterable(selections.getTextEntries()[2],rangeChar = '$')
-    acceptableMismatchSequences = [sequence.strip() for sequence in selections.getTextEntries()[3].split(',')]
+    acceptableReadLengths = parseToIterable(selections.getTextEntries()[0], castType = int)
+    if len(acceptableReadLengths) == 0: acceptableReadLengths = None
 
-    if singleBaseDynSel.getControllerVar():
-        outputSingleBaseMismatches = True
-        singleBaseSuffix = selections.getTextEntries("singleBaseSuffix")[0]
-    else: 
-        outputSingleBaseMismatches = False
-        singleBaseSuffix = ''
+    maxMismatches = selections.getTextEntries()[1]
+    if maxMismatches == '': maxMismatches = None
+    else: maxMismatches = int(maxMismatches)
 
-    if tandemDynSel.getControllerVar():
-        outputTandemMismatches = True
-        tandemSuffix = selections.getTextEntries("tandemSuffix")[0]
-    else: 
-        outputTandemMismatches = False
-        tandemSuffix = ''
+    acceptableMismatchPositions = parseToIterable(selections.getTextEntries()[2],rangeChar = ':', castType = float)
+    if len(acceptableMismatchPositions) == 0: acceptableMismatchPositions = None
 
-    samBedToCustomBed(samBedFilePaths, 
-                      outputSingleBaseMismatches, singleBaseSuffix,
-                      outputTandemMismatches, tandemSuffix,
-                      acceptableReadLengths, maxMismatches, acceptableMismatchPositions, 
-                      acceptableMismatchSequences)
+    acceptableMismatchSequences = parseToIterable(selections.getTextEntries()[3])
+    if len(acceptableMismatchSequences) == 0: acceptableMismatchSequences = None
+
+    samBedToCustomBed(samBedFilePaths, selections.getTextEntries()[4],
+                      acceptableReadLengths, maxMismatches,
+                      acceptableMismatchPositions, acceptableMismatchSequences)
 
 
 if __name__ == "__main__": main()
