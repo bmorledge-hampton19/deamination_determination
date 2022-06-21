@@ -89,7 +89,7 @@ for (i in seq_along(threePrimeMismatchCPDNucFreq)) {
 for (i in seq_along(fivePrimeMismatchCPDNucFreq)) {
   plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchCPDNucFreq[[i]], 
                                  title = paste(c("CPD", titleCaseFiltering, "5' Anchored Nuc Freq", repNames[i]), collapse = ' '),
-                                 yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "3' Cut Site Distance",
+                                 secondaryYAxisLabel = "3' Cut Site Distance",
                                  posType = FIVE_PRIME, showThreePrimeCutSite = TRUE, expansionOffset = expansionOffset)
 }
 ```
@@ -189,7 +189,8 @@ for (i in seq_along(fivePrimeMMAnchoredCPDSeqFreq)) {
 for (i in seq_along(threePrimeMMAnchoredCPDSeqFreq)) {
   plotSequenceFrequencies(threePrimeMMAnchoredCPDSeqFreq[[i]],
                           title = paste(c("CPD", titleCaseFiltering, "3' Anchored YR Freq", repNames[i]), collapse = ' '),
-                          secondaryYAxisLabel = "5' Cut Site Distance", showFivePrimeCutSite = TRUE,
+                          secondaryYAxisLabel = "5' Cut Site Distance", yAxisLabel = "YR Frequency",
+                          showFivePrimeCutSite = TRUE,
                           expansionOffset = expansionOffset, querySequences = c("CG","CA","TG","TA"))
 }
 
@@ -209,7 +210,8 @@ for (i in seq_along(threePrimeMMAnchoredCPDSeqFreq)) {
   plotSequenceFrequencies(threePrimeMMAnchoredCPDSeqFreq[[i]],
                           title = paste(c("CPD", titleCaseFiltering,
                                           "3' Anchored YR Freq", repNames[i]), collapse = ' '),
-                          secondaryYAxisLabel = "5' Cut Site Distance", showFivePrimeCutSite = TRUE,
+                          secondaryYAxisLabel = "5' Cut Site Distance", yAxisLabel = "YR Frequency",
+                          showFivePrimeCutSite = TRUE,
                           expansionOffset = expansionOffset, querySequences = c("CG","CA","TG","TA"),
                           minReadLength = min5PrimeCutSiteDistance, maxReadLength = max5PrimeCutSiteDistance)
 }
@@ -223,7 +225,8 @@ for (i in seq_along(threePrimeMMAnchoredCPDSeqFreq)) {
   plotSequenceFrequencies(threePrimeMMAnchoredCPDSeqFreq[[i]]$ZT2,
                           title = paste(c("CPD", titleCaseFiltering,
                                           "3' Anchored YR Freq", repNames[i]), collapse = ' '),
-                          secondaryYAxisLabel = "5' Cut Site Distance", showFivePrimeCutSite = TRUE,
+                          secondaryYAxisLabel = "5' Cut Site Distance", yAxisLabel = "YR Frequency",
+                          showFivePrimeCutSite = TRUE,
                           expansionOffset = expansionOffset, querySequences = c("CG","CA","TG","TA"),
                           minReadLength = min5PrimeCutSiteDistance, maxReadLength = max5PrimeCutSiteDistance)
 }
