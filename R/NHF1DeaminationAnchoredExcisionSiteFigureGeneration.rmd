@@ -174,35 +174,35 @@ for (i in seq_along(fivePrimeMismatchCPDNucFreq)) {
 
 
 ```{r CPD_mismatch_anchored_purine_frequencies_filtered, fig.width = 11, fig.height = 9}
-min3PrimeCutSiteDistance = 1
-max3PrimeCutSiteDistance = 12
+min5PrimeCutSiteDistance = 13
+max5PrimeCutSiteDistance = 25
 
-for (i in seq_along(fivePrimeMismatchCPDNucFreq)) {
-  plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchCPDNucFreq[[i]], 
+for (i in seq_along(threePrimeMismatchCPDNucFreq)) {
+  plotNucFreqVsReadLengthBarPlot(threePrimeMismatchCPDNucFreq[[i]], 
                                  title = paste(c("CPD", titleCaseFiltering,
-                                                 "5' Anchored Purine Freq", repNames[i]), collapse = ' '),
-                                 yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "3' Cut Site Distance",
+                                                 "3' Anchored Purine Freq", repNames[i]), collapse = ' '),
+                                 yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "5' Cut Site Distance",
                                  combineNucleotides = c("AG"), combinedNames = c("Purine"),
-                                 posType = FIVE_PRIME, showThreePrimeCutSite = TRUE,
+                                 posType = THREE_PRIME, showFivePrimeCutSite = TRUE,
                                  expansionOffset = expansionOffset,
-                                 minReadLength = min3PrimeCutSiteDistance, maxReadLength = max3PrimeCutSiteDistance)
+                                 minReadLength = min5PrimeCutSiteDistance, maxReadLength = max5PrimeCutSiteDistance)
 }
 ```
 
 
 ```{r CPD_mismatch_anchored_purine_frequencies_filtered_x2, fig.width = 5, fig.height = 9}
-min3PrimeCutSiteDistance = 1
-max3PrimeCutSiteDistance = 12
+min5PrimeCutSiteDistance = 13
+max5PrimeCutSiteDistance = 25
 
-for (i in seq_along(fivePrimeMismatchCPDNucFreq)) {
-  plotNucFreqVsReadLengthBarPlot(fivePrimeMismatchCPDNucFreq[[i]][Timepoint == "1h"], 
+for (i in seq_along(threePrimeMismatchCPDNucFreq)) {
+  plotNucFreqVsReadLengthBarPlot(threePrimeMismatchCPDNucFreq[[i]][Timepoint == "1h"], 
                                  title = paste(c("CPD", titleCaseFiltering,
-                                                 "5' Anchored Purine Freq", repNames[i]), collapse = ' '),
-                                 yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "3' Cut Site Distance",
+                                                 "3' Anchored Purine Freq", repNames[i]), collapse = ' '),
+                                 yAxisLabel = "Purine Frequency", secondaryYAxisLabel = "5' Cut Site Distance",
                                  combineNucleotides = c("AG"), combinedNames = c("Purine"),
-                                 posType = FIVE_PRIME, showThreePrimeCutSite = TRUE,
+                                 posType = THREE_PRIME, showFivePrimeCutSite = TRUE,
                                  expansionOffset = expansionOffset,
-                                 minReadLength = min3PrimeCutSiteDistance, maxReadLength = max3PrimeCutSiteDistance)
+                                 minReadLength = min5PrimeCutSiteDistance, maxReadLength = max5PrimeCutSiteDistance)
 }
 ```
 
