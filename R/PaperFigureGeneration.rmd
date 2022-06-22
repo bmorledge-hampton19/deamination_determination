@@ -1,0 +1,140 @@
+---
+title: "Paper Figure Generation"
+author: "Ben Morledge-Hampton"
+date: "6/21/2022"
+output: html_document
+params:
+  bioinformaticsDirectory:
+    label: "Bioinformatics Projects Directory"
+    value: C:/Bioinformatics_Projects
+    input: select
+    choices: [C:/Bioinformatics_Projects, F:/Bioinformatics_Projects]
+---
+
+```{r setup_chunk}
+library(knitr)
+
+NHF1CPDTimepoints = list(`1h` = NULL, `8h` = NULL, `24h` = NULL, `48h` = NULL)
+
+if (interactive()) {
+  bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
+} else {
+  bioinformaticsDirectory = params$bioinformaticsDirectory
+}
+
+opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5, 
+               fig.path = paste0(file.path("deamination_analysis_output","paper_figures"),
+                                 .Platform$file.sep))
+
+deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data")
+
+NHF1DataDirectory = file.path(deaminationDirectory, "NHF1")
+NHF1SequenceAndPositionDataDirectory = file.path(NHF1DataDirectory, "sequence_and_position_analysis")
+NHF1ExcisionSiteDataDirectory = file.path(NHF1DataDirectory, "excision_site_analysis")
+NHF1GeneralReadSequenceDataDirectory = file.path(NHF1DataDirectory, "general_read_sequences")
+
+arabidopsisDataDirectory = file.path(deaminationDirectory, "Arabidopsis")
+arabidopsisSequenceAndPositionDataDirectory = file.path(arabidopsisDataDirectory, "sequence_and_position_analysis")
+arabidopsisExcisionSiteDataDirectory = file.path(arabidopsisDataDirectory, "excision_site_analysis")
+
+yeastDataDirectory = file.path(deaminationDirectory, "yeast")
+yeastSequenceAndPositionDataDirectory = file.path(yeastDataDirectory, "sequence_and_position_analysis")
+yeastExcisionSiteDataDirectory = file.path(yeastDataDirectory, "excision_site_analysis")
+```
+
+
+```{r source_functions}
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "UsefulFileSystemFunctions.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "DeaminationParseAndFilter.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "DeaminationSequenceAndPositionAnalysis.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "DeaminationAnchoredExcisionSiteAnalysis.R"))
+```
+
+
+```{r read_figure_2_data}
+NHF1CPDMismatchDataAllReps = NHF1CPDTimepoints
+for (i in seq_along(NHF1CPDMismatchDataAllReps)) {
+  NHF1CPDMismatchDataAllReps[[i]] = fread(generateFilePath(
+    NHF1SequenceAndPositionDataDirectory, dataTypeStrings$simplifiedMismatches, ".tsv",
+    cellType = "NHF1", lesion = "CPD", timepoint = names(CPDMismatchData)[i], repitition = "all_reps"
+  ))
+}
+```
+
+
+```{r figure_2}
+plotMismatchTypeFrequencies(NHF1CPDMismatchDataAllReps$`1h`,
+                            title = "NHF1 CPD 1h All Reps Mismatch Type Frequencies")
+
+plotTrinucleotideContext(NHF1CPDMismatchData$`1h`, includedTypes = c("C>T"),
+                         title = "NHF1 CPD 1h All Reps Mismatch Trinuc Context")
+
+plotMismatchPositionFrequencies(NHF1CPDMismatchData$`1h`, includedTypes = c("C>T"),
+                                title = "NHF1 CPD 1h All Reps Mismatch Pos Frequencies")
+```
+
+
+```{r read_figure_3_data}
+NHF1CPDMMFreqZScoresAllReps = NHF1CPDTimepoints
+for (i in seq_along(CPDMMFreqZScores)) {
+  NHF1CPDMMFreqZScoresAllReps[[i]] = fread(generateFilePath(
+    directory = NHF1SequenceAndPositionDataDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
+    cellType = "NHF1", lesion = "CPD", repitition = "all_reps",
+    timepoint = names(CPDMMFreqZScores)[i], includedMismatches = c("C>T")
+  ))
+}
+
+NHF1FivePrimeMismatchCPDNucFreqAllReps = fread(generateFilePath(
+  directory = NHF1ExcisionSiteDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
+  cellType = "NHF1", lesion = "CPD", repitition = "all_reps",
+  strandPolarity = "five_prime", anchored = TRUE
+))
+
+NHF1CPDTGGSeqFreqAllReps = NHF1CPDTimepoints
+for (i in seq_along(CPDTGGSeqFreq)) {
+  NHF1CPDTGGSeqFreqAllReps[[i]] = fread(generateFilePath(
+    directory = NHF1GeneralReadSequenceDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
+    cellType = "NHF1", lesion = "CPD", repitition = "all_reps",
+    timepoint = names(NHF1CPDTGGSeqFreqAllReps)[i], sequence = "TGG"
+  ))
+}
+```
+
+
+```{r figure_3}
+plotPositionAcrossTimepointAndReadLength(CPDMismatchData[[i]]["1h"], includedTypes = c("C>T"),
+                                         title = "NHF1 CPD 1h All Reps C>T Mismatch Pos Freq",
+                                         zScoreTables = CPDMMFreqZScores)
+
+plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllReps[Timepoint == "1h"], 
+                               title = "NHF1 CPD 1h All Reps 5' Anchored Nuc Freq",
+                               secondaryYAxisLabel = "3' Cut Site Distance",
+                               posType = FIVE_PRIME, showThreePrimeCutSite = TRUE,
+                               expansionOffset = 10, minReadLength = 1, maxReadLength = 12)
+
+plotSequenceFrequencies(NHF1CPDTGGSeqFreqAllReps$`1h`, title = "NHF1 CPD 1h All Reps General Read TGG Freq",
+                        expansionOffset = 10, showThreePrimeCutSite = TRUE,
+                        showFivePrimeCutSite = TRUE, querySequences = c("TGG"), minReadLength = 18)
+```
+
+
+```{r figure_3_alt}
+plotPositionAcrossTimepointAndReadLength(CPDMismatchData[[i]], includedTypes = c("C>T"),
+                                         title = "NHF1 CPD 1h All Reps C>T Mismatch Pos Freq",
+                                         zScoreTables = CPDMMFreqZScores)
+
+plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllReps, 
+                               title = "NHF1 CPD 1h All Reps 5' Anchored Nuc Freq",
+                               secondaryYAxisLabel = "3' Cut Site Distance",
+                               posType = FIVE_PRIME, showThreePrimeCutSite = TRUE,
+                               expansionOffset = 10, minReadLength = 1, maxReadLength = 12)
+
+plotSequenceFrequencies(NHF1CPDTGGSeqFreqAllReps, title = "NHF1 CPD 1h All Reps General Read TGG Freq",
+                        expansionOffset = 10, showThreePrimeCutSite = TRUE,
+                        showFivePrimeCutSite = TRUE, querySequences = c("TGG"), minReadLength = 18)
+```
+
