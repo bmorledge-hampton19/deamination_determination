@@ -12,7 +12,8 @@ dataTypeStrings =
        sequenceFrequency = "sequence_frequency",
        alignedReads = "aligned_reads",
        mismatchFrequencyZScores = "mismatch_frequency_z-scores",
-       readLengthcounts = "read_length_counts")
+       readLengthcounts = "read_length_counts",
+       tandemMismatchCountsComparison = "tandem_mismatch_counts_comparison")
 
 generateFilePath = function(directory, dataTypeString, fileExtension,
                             cellType = NA, lesion = NA, timepoint = NA, repitition = NA,
