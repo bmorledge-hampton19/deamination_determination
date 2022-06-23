@@ -30,7 +30,7 @@ plotMismatchTypeFrequencies = function(mismatchTable, title = "Mismatch Type Fre
   print(
     ggplot(mismatchTable[, .N, by = Mismatch][, Freq := N/sum(N)], aes(x = Mismatch, y = Freq)) +
       geom_bar(stat = "identity") +
-      labs(title = title, x = "Mismatch Type", y = "Frequency") +
+      labs(title = title, x = "Mismatch Type", y = "Relative Frequency") +
       blankBackground + defaultTextScaling + theme(axis.text = element_text(size = 15))
   )
 
@@ -62,7 +62,7 @@ plotMismatchPositionFrequencies = function(mismatchTable, includedTypes = list()
   print(
     ggplot(frequencyData, aes(x = Position, y = Freq)) +
       geom_bar(stat = "identity") +
-      labs(title = title, x = xAxisLabel, y = "Frequency") +
+      labs(title = title, x = xAxisLabel, y = "Relative Frequency") +
       blankBackground + defaultTextScaling
   )
 
@@ -128,7 +128,7 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
   }
 
   plot = ggplot(groupedPositionFrequencies, aes(Position, Frequency)) +
-    labs(title = title, x = xAxisLabel, y = "Relative Mismatch Frequency") +
+    labs(title = title, x = xAxisLabel, y = "Relative Frequency") +
     blankBackground + defaultTextScaling
 
   if (!is.null(zScoreTables)) {
@@ -194,7 +194,7 @@ plotReadLengthFrequencies = function(readLengthCountTables, title = "Read Length
 
   plot = ggplot(readLengthFrequencies, aes(Read_Length, Freq)) +
     geom_bar(stat = "identity") +
-    labs(title = title, x = "Read Length", y = "Frequency") +
+    labs(title = title, x = "Read Length", y = "Relative Frequency") +
     blankBackground + defaultTextScaling
 
   if (!noTimepointInfo) {
@@ -327,7 +327,7 @@ plotTrinucleotideContext = function(simplifiedMismatchTable, includedTypes = lis
   print(
     ggplot(trinucContextFrequencies, aes(Trinuc_Context, Freq, fill = str_sub(Trinuc_Context, 1, 1))) +
       geom_bar(stat = "identity") +
-      labs(title = title, x = "Trinucleotide Context", y = "Frequency") +
+      labs(title = title, x = "Trinucleotide Context", y = "Relative Frequency") +
       guides(x = guide_axis(angle = 45)) +
       theme(legend.position = "none", axis.text.x = element_text(size = 12)) +
       blankBackground + defaultTextScaling + scale_color_brewer(palette = "Set1")
