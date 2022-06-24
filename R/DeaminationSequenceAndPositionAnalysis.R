@@ -298,10 +298,9 @@ plotGroupedPositionStats = function(threePrimeGroupedStats, fivePrimeGroupedStat
     scale_x_continuous(breaks = xAxisBreaks)
 
   if (all(aggregateData$Timepoint == "NONE")) {
-    groupedStatsPlot = groupedStatsPlot +
-      scale_color_grey(guide = "none")
+    groupedStatsPlot = groupedStatsPlot + scale_color_manual(values = "black")
   } else if (length(unique(aggregateData$Timepoint)) == 1) {
-    groupedStatsPlot = groupedStatsPlot + scale_color_grey()
+    groupedStatsPlot = groupedStatsPlot + scale_color_manual(values = "black")
   } else groupedStatsPlot = groupedStatsPlot + scale_color_brewer(palette = "Set1")
 
   print(groupedStatsPlot)
@@ -330,7 +329,7 @@ plotTrinucleotideContext = function(simplifiedMismatchTable, includedTypes = lis
       labs(title = title, x = "Trinucleotide Context", y = "Relative Frequency") +
       guides(x = guide_axis(angle = 45)) +
       theme(legend.position = "none", axis.text.x = element_text(size = 12)) +
-      blankBackground + defaultTextScaling + scale_color_brewer(palette = "Set1")
+      blankBackground + defaultTextScaling + scale_fill_brewer(palette = "Set1")
   )
 
 }

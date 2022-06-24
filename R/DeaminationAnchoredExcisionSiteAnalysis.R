@@ -148,7 +148,7 @@ plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
     scale_x_continuous(breaks = xAxisBreaks)
 
   if (length(unique(nucFreqTable$Nucleotide)) == 1) {
-    plot = plot + theme(legend.position = "none") + scale_fill_grey()
+    plot = plot + theme(legend.position = "none") + scale_fill_manual(values = "grey35")
   } else {
     plot = plot + scale_fill_brewer(palette = "Set1")
   }
