@@ -407,14 +407,14 @@ plotSequenceFrequencies(NHF1ThreePrimeMMAnchoredCPDSeqFreqAllRepsFiltered$`1h`,
                         title = "NHF1 CPD 1h All Reps TGG-Filtered 3' Anchored YR Freq",
                         secondaryYAxisLabel = "5' Cut Site Distance", yAxisLabel = "YR Frequency",
                         showFivePrimeCutSite = TRUE, querySequences = c("CG","CA","TG","TA"),
-                        expansionOffset = 10, minReadLength = 19, maxReadLength = 25)
+                        expansionOffset = 10, minReadLength = 19, maxReadLength = 25, endBasedBackgroundNum = 8)
 
 ### All timepoints together ###
 # plotSequenceFrequencies(NHF1ThreePrimeMMAnchoredCPDSeqFreqAllRepsFiltered,
 #                         title = "NHF1 CPD All Reps TGG-Filtered 3' Anchored YR Freq",
 #                         secondaryYAxisLabel = "5' Cut Site Distance", yAxisLabel = "YR Frequency",
 #                         showFivePrimeCutSite = TRUE, querySequences = c("CG","CA","TG","TA"),
-#                         expansionOffset = 10, minReadLength = 19, maxReadLength = 25)
+#                         expansionOffset = 10, minReadLength = 19, maxReadLength = 25, endBasedBackgroundNum = 8)
 ```
 
 
@@ -519,14 +519,14 @@ plotSequenceFrequencies(NHF1ThreePrimeMMAnchoredCPDCCtoTTSeqFreqAllRepsFiltered$
                         title = "NHF1 CPD 1h All Reps TGG-Filtered CC>TT 3' Anchored YR Freq",
                         secondaryYAxisLabel = "5' Cut Site Distance", yAxisLabel = "YR Frequency",
                         showFivePrimeCutSite = TRUE, querySequences = c("CG","CA","TG","TA"),
-                        expansionOffset = 10, minReadLength = 19, maxReadLength = 25)
+                        expansionOffset = 10, minReadLength = 19, maxReadLength = 25, endBasedBackgroundNum = 8)
 
 ### All timepoints together ###
 # plotSequenceFrequencies(NHF1ThreePrimeMMAnchoredCPDCCtoTTSeqFreqAllRepsFiltered,
 #                         title = "NHF1 CPD All Reps TGG-Filtered CC>TT 3' Anchored YR Freq",
 #                         secondaryYAxisLabel = "5' Cut Site Distance", yAxisLabel = "YR Frequency",
 #                         showFivePrimeCutSite = TRUE, querySequences = c("CG","CA","TG","TA"),
-#                         expansionOffset = 10, minReadLength = 19, maxReadLength = 25)
+#                         expansionOffset = 10, minReadLength = 19, maxReadLength = 25, endBasedBackgroundNum = 8)
 ```
 ```{r figure_8C}
 ### Just the 1h timepoint ###
@@ -729,13 +729,13 @@ plotSequenceFrequencies(arabidopsisThreePrimeMMAnchoredCPDSeqFreqAllRepsFiltered
                         title = "Arabidopsis CPD ZT2 All Reps TGG-Filtered 3' Anchored YR Freq",
                         secondaryYAxisLabel = "5' Cut Site Distance", yAxisLabel = "YR Frequency",
                         showFivePrimeCutSite = TRUE, querySequences = c("CG","CA","TG","TA"),
-                        expansionOffset = 10, minReadLength = 19, maxReadLength = 25)
+                        expansionOffset = 10, minReadLength = 19, maxReadLength = 25, endBasedBackgroundNum = 8)
 
 plotSequenceFrequencies(yeastThreePrimeMMAnchoredCPDSeqFreqAllRepsFiltered,
                         title = "Yeast CPD 20min All Reps TGG-Filtered 3' Anchored YR Freq",
                         secondaryYAxisLabel = "5' Cut Site Distance", yAxisLabel = "YR Frequency",
                         showFivePrimeCutSite = TRUE, querySequences = c("CG","CA","TG","TA"),
-                        expansionOffset = 10, minReadLength = 13, maxReadLength = 19)
+                        expansionOffset = 10, minReadLength = 13, maxReadLength = 19, endBasedBackgroundNum = 8)
 ```
 
 

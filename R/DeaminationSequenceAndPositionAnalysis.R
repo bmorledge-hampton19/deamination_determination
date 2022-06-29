@@ -134,7 +134,7 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
   if (!is.null(zScoreTables)) {
     plot = plot +
       geom_bar(aes(fill = Meets_Cutoff), stat = "identity") +
-      scale_fill_manual(values = c("TRUE" = "red", "FALSE" = "black"), guide = "none")
+      scale_fill_manual(values = c("TRUE" = "red", "FALSE" = "grey35"), guide = "none")
   } else {
     plot = plot + geom_bar(stat = "identity")
   }

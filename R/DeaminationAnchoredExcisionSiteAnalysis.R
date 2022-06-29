@@ -345,18 +345,27 @@ plotSequenceEnrichment = function(enrichmentTablesByTimepoint, posType = THREE_P
 
 
 # Plot nucleotide frequencies for a series of read lengths.
+# Notes on statistics:
+#   A background mean and standard deviation are calculated from a given number of bases at the
+#   start (near 0) or end of the x-axis. The bar plot is colored based on whether the frequency at each position
+#   meets a z-score threshold with respect to this background.
 plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRIME,
                                    title = "Seq Freq by Length and Timepoint", yAxisLabel = "Sequence Frequency",
                                    secondaryYAxisLabel = "Read Length", yStripFontSize = 16,
                                    showThreePrimeCutSite = FALSE, showFivePrimeCutSite = FALSE,
                                    expansionOffset = 0, querySequences = c("TGG"), xAxisBreaks = -3:3*10,
-                                   minReadLength = NULL, maxReadLength = NULL) {
+                                   minReadLength = NULL, maxReadLength = NULL,
+                                   startBasedBackgroundNum = NULL, endBasedBackgroundNum = NULL, zScoreCutoff = 3) {
 
   if (posType == THREE_PRIME) {
     xAxisLabel = "3' Relative Position"
   } else if (posType == FIVE_PRIME) {
     xAxisLabel = "5' Relative Position"
   } else stop("Unrecognized value for posType parameter.")
+
+  if (!is.null(startBasedBackgroundNum) && !is.null(endBasedBackgroundNum)) {
+    stop("Two background position determinants given")
+  }
 
   # If passed a single data.table, no timepoint information is present.
   # Otherwise, combine the given tables into one agggregate table.
@@ -376,10 +385,37 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
   if (!is.null(minReadLength)) fullFrequencyTable = fullFrequencyTable[Read_Length >= minReadLength]
   if (!is.null(maxReadLength)) fullFrequencyTable = fullFrequencyTable[Read_Length <= maxReadLength]
 
+  # Determine zScores from background positions, if specified.
+  if (!is.null(startBasedBackgroundNum) || !is.null(endBasedBackgroundNum)) {
+    if (!is.null(startBasedBackgroundNum)) {
+      backgroundRows = fullFrequencyTable[abs(Position) <= startBasedBackgroundNum]
+    }
+    if (!is.null(endBasedBackgroundNum)) {
+      endPositionsByTimepointAndRL = fullFrequencyTable[, .(End = max(abs(Position))),
+                                                        by = list(Timepoint, Read_Length)]
+      setkey(endPositionsByTimepointAndRL, Timepoint, Read_Length)
+      backgroundRows = fullFrequencyTable[abs(Position) + endBasedBackgroundNum >
+                                            endPositionsByTimepointAndRL[list(fullFrequencyTable$Timepoint,
+                                                                              fullFrequencyTable$Read_Length)]$End]
+    }
+    backgroundStats = backgroundRows[,.(Mean = mean(Frequency), SD = sd(Frequency)), by = list(Timepoint, Read_Length)]
+    backgroundStats[,Threshold := Mean + SD * zScoreCutoff]
+    setkey(backgroundStats, Timepoint, Read_Length)
+    fullFrequencyTable[,Significant := Frequency > backgroundStats[list(fullFrequencyTable$Timepoint,
+                                                                        fullFrequencyTable$Read_Length)]$Threshold]
+  }
+
   plot = ggplot(fullFrequencyTable, aes(Position, Frequency)) +
-    geom_bar(stat = "identity") +
     labs(title = title, x = xAxisLabel, y = yAxisLabel) +
     blankBackground + defaultTextScaling
+
+  if (!is.null(startBasedBackgroundNum) || !is.null(endBasedBackgroundNum)) {
+    plot = plot +
+      geom_bar(aes(fill = Significant), stat = "identity") +
+      scale_fill_manual(values = c("TRUE" = "red", "FALSE" = "grey35"), guide = "none")
+  } else {
+    plot = plot + geom_bar(stat = "identity")
+  }
 
   if (all(fullFrequencyTable$Timepoint == "NONE")) {
     plot = plot + facet_grid(rows = vars(Read_Length))
