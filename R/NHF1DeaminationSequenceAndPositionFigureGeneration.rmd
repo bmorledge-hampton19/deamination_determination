@@ -13,7 +13,7 @@ params:
     label: "Filtering"
     value: NONE
     input: select
-    choices: [NONE, TGG_filtered]
+    choices: [NONE, TGG_filtered, TG_filtered]
 ---
 
 

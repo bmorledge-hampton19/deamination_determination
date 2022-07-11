@@ -109,15 +109,17 @@ plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
                                           yStripFontSize = 16,
                                           combineNucleotides = list(), combinedNames = list(),
                                           showThreePrimeCutSite = FALSE, showFivePrimeCutSite = FALSE,
-                                          expansionOffset = 0, xAxisBreaks = -3:3*10,
+                                          expansionOffset = 0, xAxisBreaks = -3:3*10, xAxisLabel = NULL,
                                           ylim = c(0,1.2), yAxisBreaks = c(0,0.5,1),
                                           minReadLength = NULL, maxReadLength = NULL) {
 
-  if (posType == THREE_PRIME) {
-    xAxisLabel = "3' Relative Position"
-  } else if (posType == FIVE_PRIME) {
-    xAxisLabel = "5' Relative Position"
-  } else stop("Unrecognized value for posType parameter.")
+  if (is.null(xAxisLabel)) {
+    if (posType == THREE_PRIME) {
+      xAxisLabel = "3' Relative Position"
+    } else if (posType == FIVE_PRIME) {
+      xAxisLabel = "5' Relative Position"
+    } else stop("Unrecognized value for posType parameter.")
+  }
 
   if (length(combineNucleotides) > 0) {
     nucFreqTable = combineNucleotideFrequencies(nucFreqTable, combineNucleotides, combinedNames)
@@ -348,20 +350,25 @@ plotSequenceEnrichment = function(enrichmentTablesByTimepoint, posType = THREE_P
 # Notes on statistics:
 #   A background mean and standard deviation are calculated from a given number of bases at the
 #   start (near 0) or end of the x-axis. The bar plot is colored based on whether the frequency at each position
-#   meets a z-score threshold with respect to this background.
+#   meets a z-score threshold with respect to this background. The positions which are checked can be specified
+#   using the same start- or end-based notation.
 plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRIME,
                                    title = "Seq Freq by Length and Timepoint", yAxisLabel = "Sequence Frequency",
                                    secondaryYAxisLabel = "Read Length", yStripFontSize = 16,
                                    showThreePrimeCutSite = FALSE, showFivePrimeCutSite = FALSE,
                                    expansionOffset = 0, querySequences = c("TGG"), xAxisBreaks = -3:3*10,
                                    minReadLength = NULL, maxReadLength = NULL,
-                                   startBasedBackgroundNum = NULL, endBasedBackgroundNum = NULL, zScoreCutoff = 3) {
+                                   startBasedBackgroundNum = NULL, endBasedBackgroundNum = NULL, zScoreCutoff = 3,
+                                   startBasedCheckPositions = NULL, endBasedCheckPositions = NULL, displayPValue = FALSE,
+                                   xAxisLabel = NULL, defaultColor = "grey35") {
 
-  if (posType == THREE_PRIME) {
-    xAxisLabel = "3' Relative Position"
-  } else if (posType == FIVE_PRIME) {
-    xAxisLabel = "5' Relative Position"
-  } else stop("Unrecognized value for posType parameter.")
+  if (is.null(xAxisLabel)) {
+    if (posType == THREE_PRIME) {
+      xAxisLabel = "3' Relative Position"
+    } else if (posType == FIVE_PRIME) {
+      xAxisLabel = "5' Relative Position"
+    } else stop("Unrecognized value for posType parameter.")
+  }
 
   if (!is.null(startBasedBackgroundNum) && !is.null(endBasedBackgroundNum)) {
     stop("Two background position determinants given")
@@ -387,22 +394,43 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
 
   # Determine zScores from background positions, if specified.
   if (!is.null(startBasedBackgroundNum) || !is.null(endBasedBackgroundNum)) {
+
     if (!is.null(startBasedBackgroundNum)) {
-      backgroundRows = fullFrequencyTable[abs(Position) <= startBasedBackgroundNum]
+      backgroundRows = fullFrequencyTable[abs(Position) <= abs(startBasedBackgroundNum)]
     }
     if (!is.null(endBasedBackgroundNum)) {
       endPositionsByTimepointAndRL = fullFrequencyTable[, .(End = max(abs(Position))),
                                                         by = list(Timepoint, Read_Length)]
       setkey(endPositionsByTimepointAndRL, Timepoint, Read_Length)
-      backgroundRows = fullFrequencyTable[abs(Position) + endBasedBackgroundNum >
-                                            endPositionsByTimepointAndRL[list(fullFrequencyTable$Timepoint,
-                                                                              fullFrequencyTable$Read_Length)]$End]
+      endPosByFullFreqRow = endPositionsByTimepointAndRL[list(fullFrequencyTable$Timepoint,
+                                                              fullFrequencyTable$Read_Length)]$End
+      backgroundRows = fullFrequencyTable[abs(Position) + abs(endBasedBackgroundNum) > endPosByFullFreqRow]
     }
+
     backgroundStats = backgroundRows[,.(Mean = mean(Frequency), SD = sd(Frequency)), by = list(Timepoint, Read_Length)]
-    backgroundStats[,Threshold := Mean + SD * zScoreCutoff]
     setkey(backgroundStats, Timepoint, Read_Length)
-    fullFrequencyTable[,Significant := Frequency > backgroundStats[list(fullFrequencyTable$Timepoint,
-                                                                        fullFrequencyTable$Read_Length)]$Threshold]
+    statsByFullFreqRow = backgroundStats[list(fullFrequencyTable$Timepoint, fullFrequencyTable$Read_Length)]
+    fullFrequencyTable[,Z_Score := (Frequency-statsByFullFreqRow$Mean) / statsByFullFreqRow$SD]
+    fullFrequencyTable[,P_Value := 2*pnorm(abs(Z_Score), lower.tail = FALSE)]
+    fullFrequencyTable[,Significant := abs(Z_Score) > zScoreCutoff]
+
+    if (!is.null(startBasedCheckPositions) || !is.null(endBasedCheckPositions)) {
+      fullFrequencyTable[,Relevant := FALSE]
+      if (!is.null(startBasedCheckPositions)) {
+        fullFrequencyTable[abs(Position) %in% abs(startBasedCheckPositions), Relevant := TRUE]
+      }
+
+      if (!is.null(endBasedCheckPositions)) {
+        endPositionsByTimepointAndRL = fullFrequencyTable[, .(End = max(abs(Position))),
+                                                          by = list(Timepoint, Read_Length)]
+        setkey(endPositionsByTimepointAndRL, Timepoint, Read_Length)
+        endPosByFullFreqRow = endPositionsByTimepointAndRL[list(fullFrequencyTable$Timepoint,
+                                                                fullFrequencyTable$Read_Length)]$End
+        fullFrequencyTable[(endPosByFullFreqRow - abs(Position) + 1) %in% abs(endBasedCheckPositions), Relevant := TRUE]
+      }
+    } else {
+      fullFrequencyTable[,Relevant := TRUE]
+    }
   }
 
   plot = ggplot(fullFrequencyTable, aes(Position, Frequency)) +
@@ -411,10 +439,15 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
 
   if (!is.null(startBasedBackgroundNum) || !is.null(endBasedBackgroundNum)) {
     plot = plot +
-      geom_bar(aes(fill = Significant), stat = "identity") +
-      scale_fill_manual(values = c("TRUE" = "red", "FALSE" = "grey35"), guide = "none")
+      geom_bar(aes(fill = Significant & Relevant), stat = "identity") +
+      scale_fill_manual(values = c("TRUE" = "red", "FALSE" = defaultColor), guide = "none")
   } else {
-    plot = plot + geom_bar(stat = "identity")
+    plot = plot + geom_bar(stat = "identity", fill = defaultColor)
+  }
+
+  if (displayPValue) {
+    plot = plot + geom_text(aes(label = ifelse(Relevant & Significant, paste0("p=",format(signif(P_Value, 3))), '')),
+                            size = 3, hjust = 1, vjust = 0, nudge_x = -0.05, nudge_y = 0.05)
   }
 
   if (all(fullFrequencyTable$Timepoint == "NONE")) {
@@ -429,9 +462,14 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
           axis.text.y = element_text(size = 10),
           axis.text.y.right = element_blank(), axis.ticks.y.right = element_blank(),
           strip.text.y = element_text(size = yStripFontSize)) +
-    coord_cartesian(ylim = c(0,maxFrequency*1.2)) +
     scale_y_continuous(sec.axis = dup_axis(~., name = secondaryYAxisLabel), breaks = yAxisBreaks) +
     scale_x_continuous(breaks = xAxisBreaks)
+
+  if (displayPValue) {
+    plot = plot +  coord_cartesian(ylim = c(0,maxFrequency*1.4))
+  } else {
+    plot = plot +  coord_cartesian(ylim = c(0,maxFrequency*1.2))
+  }
 
   if (showThreePrimeCutSite) {
     plot = plot + geom_vline(aes(xintercept = Cut_Site_Pos),

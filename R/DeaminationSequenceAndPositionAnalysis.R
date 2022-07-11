@@ -25,11 +25,11 @@ getReadLengthAndGCContent = function(table) {
 
 
 # Displays the frequencies of each mismatch type.
-plotMismatchTypeFrequencies = function(mismatchTable, title = "Mismatch Type Frequency") {
+plotMismatchTypeFrequencies = function(mismatchTable, title = "Mismatch Type Frequency", ylim = NULL) {
 
   print(
     ggplot(mismatchTable[, .N, by = Mismatch][, Freq := N/sum(N)], aes(x = Mismatch, y = Freq)) +
-      geom_bar(stat = "identity") +
+      geom_bar(stat = "identity") + coord_cartesian(ylim = ylim) +
       labs(title = title, x = "Mismatch Type", y = "Relative Frequency") +
       blankBackground + defaultTextScaling + theme(axis.text = element_text(size = 15))
   )
@@ -39,7 +39,7 @@ plotMismatchTypeFrequencies = function(mismatchTable, title = "Mismatch Type Fre
 # Displays the frequencies of positions for the chosen mismatch types.
 # (Types can be chosen by inclusion or omission)
 plotMismatchPositionFrequencies = function(mismatchTable, includedTypes = list(), omittedTypes = list(),
-                                           title = "Position Frequency", posType = THREE_PRIME) {
+                                           title = "Position Frequency", posType = THREE_PRIME, ylim = NULL) {
 
   if (posType == THREE_PRIME) {
     xAxisLabel = "3' Relative Position"
@@ -61,7 +61,7 @@ plotMismatchPositionFrequencies = function(mismatchTable, includedTypes = list()
 
   print(
     ggplot(frequencyData, aes(x = Position, y = Freq)) +
-      geom_bar(stat = "identity") +
+      geom_bar(stat = "identity") + coord_cartesian(ylim = ylim) +
       labs(title = title, x = xAxisLabel, y = "Relative Frequency") +
       blankBackground + defaultTextScaling
   )
@@ -74,7 +74,7 @@ plotMismatchPositionFrequencies = function(mismatchTable, includedTypes = list()
 plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTypes = list(), omittedTypes = list(),
                                                     title = "Mismatch Position Frequencies", posType = THREE_PRIME,
                                                     zScoreTables = NULL, zScoreCutoff = 4, xAxisBreaks = -3:3*10,
-                                                    yAxisBreaks = NULL) {
+                                                    yAxisBreaks = NULL, yAxisLabel = "Relative Frequency") {
 
   #If passed a single data.table, wrap it in a list.
   if (is.data.table(simplifiedTables)) {
@@ -128,7 +128,7 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
   }
 
   plot = ggplot(groupedPositionFrequencies, aes(Position, Frequency)) +
-    labs(title = title, x = xAxisLabel, y = "Relative Frequency") +
+    labs(title = title, x = xAxisLabel, y = yAxisLabel) +
     blankBackground + defaultTextScaling
 
   if (!is.null(zScoreTables)) {
@@ -280,7 +280,8 @@ plotGroupedPositionStats = function(threePrimeGroupedStats, fivePrimeGroupedStat
   if (stat == POS_DIFF) {
     groupedStatsPlot =
       ggplot(aggregateData, aes(Read_Length, Absolute_Pos_Change, color = Timepoint, linetype = Position_Type)) +
-      geom_line(size = 1.25)
+      geom_line(size = 1.5) + theme(legend.key.width = unit(3, "line")) +
+      scale_linetype_manual(values = c("3' Relative Position" = "dashed", "5' Relative Position" = "solid"))
   } else if (stat == IQR) {
     groupedStatsPlot =
       ggplot(aggregateData, aes(Read_Length, IQR, color = Timepoint, shape = Position_Type)) +
