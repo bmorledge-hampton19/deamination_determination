@@ -41,8 +41,11 @@ Besides the code in this repository, the analysis requires that the following pa
   - [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
   - [samtools](http://www.htslib.org/)
   - [trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic)
-  
+
+##### Optional Dependencies
 Although not required, the scripts in [this repository](https://github.com/bmorledge-hampton19/xrlesionfinder/tree/main/xrlesionfinder) may be helpful for [trimming](https://github.com/bmorledge-hampton19/xrlesionfinder/blob/main/xrlesionfinder/AlignmentAndFormatting/TrimAdaptorSequences.py) and [aligning](https://github.com/bmorledge-hampton19/xrlesionfinder/blob/main/xrlesionfinder/AlignmentAndFormatting/TrimmedFastqToSam.py) sequencing reads and [parsing them to bed](https://github.com/bmorledge-hampton19/xrlesionfinder/blob/main/xrlesionfinder/AlignmentAndFormatting/SamToBed.py). If desired, these three operations can be chained together using the [AlignXRSeqReads.py](https://github.com/bmorledge-hampton19/xrlesionfinder/blob/main/xrlesionfinder/AlignmentAndFormatting/AlignXRSeqReads.py) script.
+
+Additionally, [this script](https://github.com/bmorledge-hampton19/xrlesionfinder/blob/main/xrlesionfinder/AlignmentAndFormatting/SRA_ToFastq.py) can be used to download the sequencing data more efficiently by providing the relevant SRA accession IDs in a newline-separated text format and optionally providing custom names (in the same format) for the resulting fastq files. Note that running this script requires that the [SRA Toolkit](https://github.com/ncbi/sra-tools) is installed and accessible through your PATH environment variable.
 
 #### Directory structure naming conventions
 After cloning the deamination_determination repository, you will need to create a directory at the top level called "data". Within this data directory, an additional directory will be required for each species or cell type being analyzed. The names supported by the R notebooks in this repository are:
