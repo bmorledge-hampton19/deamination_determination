@@ -360,7 +360,7 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
                                    minReadLength = NULL, maxReadLength = NULL,
                                    startBasedBackgroundNum = NULL, endBasedBackgroundNum = NULL, zScoreCutoff = 3,
                                    startBasedCheckPositions = NULL, endBasedCheckPositions = NULL, displayPValue = FALSE,
-                                   xAxisLabel = NULL, defaultColor = "grey35") {
+                                   significanceAsteriskBreakpoints = NULL, xAxisLabel = NULL, defaultColor = "grey35") {
 
   if (is.null(xAxisLabel)) {
     if (posType == THREE_PRIME) {
@@ -448,6 +448,13 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
   if (displayPValue) {
     plot = plot + geom_text(aes(label = ifelse(Relevant & Significant, paste0("p=",format(signif(P_Value, 3))), '')),
                             size = 3, hjust = 1, vjust = 0, nudge_x = -0.05, nudge_y = 0.05)
+  } else if (!is.null(significanceAsteriskBreakpoints)) {
+    fullFrequencyTable[,Asterisks := ""]
+    for (i in seq_along(significanceAsteriskBreakpoints)) {
+      fullFrequencyTable[Relevant & P_Value < significanceAsteriskBreakpoints[i],
+                         Asterisks := paste0(rep('*',i), collapse = '')]
+    }
+    plot = plot + geom_text(aes(label = Asterisks), size = 4, hjust = 0.5, vjust = 0, nudge_x = 0, nudge_y = -0.05)
   }
 
   if (all(fullFrequencyTable$Timepoint == "NONE")) {

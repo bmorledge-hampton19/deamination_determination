@@ -370,7 +370,27 @@ for (i in seq_along(NHF1ThreePrimeMMAnchoredCPDSeqFreqAllRepsFiltered)) {
 ```
 
 
-```{r figure_4A, fig.width = 5, fig.height = 6}
+```{r figure_4A, fig.width = 6.5, fig.height = 6}
+### Just the 1h timepoint ###
+plotNucFreqVsReadLengthBarPlot(NHF1ThreePrimeMismatchCPDNucFreqAllRepsFiltered[Timepoint == "1h"], 
+                               title = "NHF1 CPD 1h All Reps TGG-Filtered 3' Anchored Nuc Freq",
+                               secondaryYAxisLabel = "5' Cut Site Distance",
+                               posType = FIVE_PRIME, showThreePrimeCutSite = TRUE,
+                               expansionOffset = 10, minReadLength = 19, maxReadLength = 25,
+                               xAxisLabel = "Mismatch Relative Position")
+
+### All timepoints together ###
+# plotNucFreqVsReadLengthBarPlot(NHF1ThreePrimeMismatchCPDNucFreqAllRepsFiltered, 
+#                                title = "NHF1 CPD All Reps TGG-Filtered 3' Anchored Nuc Freq",
+#                                secondaryYAxisLabel = "5' Cut Site Distance",
+#                                posType = FIVE_PRIME, showThreePrimeCutSite = TRUE,
+#                                expansionOffset = 10, minReadLength = 19, maxReadLength = 25,
+#                                xAxisLabel = "Mismatch Relative Position")}
+
+```
+
+
+```{r figure_4B, fig.width = 5, fig.height = 6}
 ### Just the 1h timepoint ###
 plotNucFreqVsReadLengthBarPlot(NHF1ThreePrimeMismatchCPDNucFreqAllRepsFiltered[Timepoint == "1h"], 
                                title = "NHF1 CPD 1h ALL Reps TGG-Filtered 3' Anchored Purine Freq",
@@ -389,14 +409,23 @@ plotNucFreqVsReadLengthBarPlot(NHF1ThreePrimeMismatchCPDNucFreqAllRepsFiltered[T
 #                                expansionOffset = 10, minReadLength = 19, maxReadLength = 25,
 #                                xAxisLabel = "Mismatch Relative Position")
 ```
-```{r figure_4B, fig.width = 5, fig.height = 5}
-### Just the 1h timepoint ###
+```{r figure_4C, fig.width = 5, fig.height = 5}
+### Just the 1h timepoint (asterisks) ###
 plotSequenceFrequencies(NHF1ThreePrimeMMAnchoredCPDSeqFreqAllRepsFiltered$`1h`,
                         title = "NHF1 CPD 1h All Reps TGG-Filtered 3' Anchored YR Freq",
                         secondaryYAxisLabel = "5' Cut Site Distance", yAxisLabel = "YR Frequency",
                         showFivePrimeCutSite = TRUE, querySequences = c("CG","CA","TG","TA"),
                         expansionOffset = 10, minReadLength = 19, maxReadLength = 25, endBasedBackgroundNum = 8,
-                        endBasedCheckPositions = -10, displayPValue = TRUE, xAxisLabel = "Mismatch Relative Position")
+                        endBasedCheckPositions = -10, xAxisLabel = "Mismatch Relative Position",
+                        significanceAsteriskBreakpoints = c(1e-6, 1e-9))
+
+### Just the 1h timepoint (full p-values) ###
+# plotSequenceFrequencies(NHF1ThreePrimeMMAnchoredCPDSeqFreqAllRepsFiltered$`1h`,
+#                         title = "NHF1 CPD 1h All Reps TGG-Filtered 3' Anchored YR Freq",
+#                         secondaryYAxisLabel = "5' Cut Site Distance", yAxisLabel = "YR Frequency",
+#                         showFivePrimeCutSite = TRUE, querySequences = c("CG","CA","TG","TA"),
+#                         expansionOffset = 10, minReadLength = 19, maxReadLength = 25, endBasedBackgroundNum = 8,
+#                         endBasedCheckPositions = -10, displayPValue = TRUE, xAxisLabel = "Mismatch Relative Position")
 
 ### All timepoints together ###
 # plotSequenceFrequencies(NHF1ThreePrimeMMAnchoredCPDSeqFreqAllRepsFiltered,
