@@ -1,0 +1,90 @@
+---
+title: "5'CutSiteAnalysisDataGeneration"
+author: "Ben MOrledge-Hampton"
+date: '2022-07-14'
+output: html_document
+params:
+  bioinformaticsDirectory:
+    label: "Bioinformatics Projects Directory"
+    value: C:/Bioinformatics_Projects
+    input: select
+    choices: [C:/Bioinformatics_Projects, F:/Bioinformatics_Projects]
+  filtering:
+    label: "Filtering"
+    value: NONE
+    input: select
+    choices: [NONE, TGG_filtered, TG_filtered]
+---
+
+
+```{r setup_chunk}
+library(knitr)
+
+expansionOffset = 10
+
+if (interactive()) {
+  bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
+  filtering = readline("Filtering identifier (Input nothing for no filtering):")
+  if (filtering == '') filtering = character()
+} else {
+  bioinformaticsDirectory = params$bioinformaticsDirectory
+  filtering = params$filtering
+  if (filtering == "NONE") filtering = character()
+}
+
+if (is.na(bioinformaticsDirectory)) stop("No bioinformatics directory given.")
+
+deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data")
+NHF1GeneralReadSequenceDataDirectory = file.path(deaminationDataDirectory, "NHF1", "general_read_sequences")
+GM12878GeneralReadSequenceDataDirectory = file.path(deaminationDataDirectory, "GM12878", "general_read_sequences")
+DmGeneralReadSequenceDataDirectory = file.path(deaminationDataDirectory, "Dm", "general_read_sequences")
+
+humanReadMinMax = c(22, 30)
+drosophilaReadMinMax = c(23, 32)
+```
+
+
+```{r source_functions}
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "UsefulFileSystemFunctions.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "DeaminationAnchoredExcisionSiteAnalysis.R"))
+```
+
+
+```{r define_all_that_and_a_bag_of_chips_function}
+cutSiteAnalysis = function(lesion, repetition, timepoint, cellType, directory,
+                           querySequences, sequencesName, readMinMax) {
+  readData = fread(generateFilePath(
+    directory, dataTypeStrings$alignedReads, ".bed",
+    cellType = cellType, lesion = lesion, timepoint = timepoint,
+    repitition = repetition, expansionNum = expansionOffset, filtering = filtering
+  ))
+  readData = data.table(Read_Length = nchar(readData$V7)-expansionOffset*2, Read_Sequence = readData$V7)
+  readData = readData[Read_Length >= readMinMax[1] & Read_Length <= readMinMax[2]]
+
+  seqFreq = getSequenceFreqByReadLengthAndPos(readData, querySequences = querySequences)
+  fwrite(seqFreq, sep = '\t', file = generateFilePath(
+      directory = directory, dataTypeStrings$sequenceFrequency, ".tsv",
+      cellType = cellType, lesion = lesion, repitition = repetition,
+      timepoint = timepoint, sequence = sequencesName, filtering = filtering))
+}
+```
+
+
+```{r compute_and_write_sequence_frequencies}
+cutSiteAnalysis("CPD", "all_reps", "1h", "NHF1", NHF1GeneralReadSequenceDataDirectory,
+                c("CG","CA","TG","TA"), "YR", humanReadMinMax)
+cutSiteAnalysis("CPD", "all_reps", "1h", "NHF1", NHF1GeneralReadSequenceDataDirectory,
+                c("CAC","CAG","CAT"), "CAB", humanReadMinMax)
+cutSiteAnalysis("6-4", "all_reps", "20min", "NHF1", NHF1GeneralReadSequenceDataDirectory,
+                c("CG","CA","TG","TA"), "YR", humanReadMinMax)
+cutSiteAnalysis("cisplatin", "rep1", "90min", "GM12878", GM12878GeneralReadSequenceDataDirectory,
+                c("CG","CA","TG","TA"), "YR", humanReadMinMax)
+cutSiteAnalysis("CPD", "all_reps", "30m", "Dm", DmGeneralReadSequenceDataDirectory,
+                c("CG","CA","TG","TA"), "YR", drosophilaReadMinMax)
+cutSiteAnalysis("CPD", "all_reps", "1h", "NHF1", NHF1GeneralReadSequenceDataDirectory,
+                c("TCAGTC","TCAGTT"), "TCAGTY", humanReadMinMax)
+cutSiteAnalysis("CPD", "all_reps", "30m", "Dm", DmGeneralReadSequenceDataDirectory,
+                c("TCAGTC","TCAGTT"), "TCAGTY", drosophilaReadMinMax)
+```
