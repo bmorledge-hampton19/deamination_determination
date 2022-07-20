@@ -384,7 +384,7 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
     }))
   }
 
-  maxFrequency = round(max(fullFrequencyTable$Frequency),digits = 2)
+  maxFrequency = signif(max(fullFrequencyTable$Frequency),digits = 2)
   yAxisBreaks = c(0, maxFrequency/2, maxFrequency)
 
   maxQueryLength = max(nchar(querySequences))
