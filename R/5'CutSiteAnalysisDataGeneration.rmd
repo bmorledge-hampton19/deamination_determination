@@ -72,7 +72,7 @@ cutSiteAnalysis = function(lesion, repetition, timepoint, cellType, directory,
 ```
 
 
-```{r compute_and_write_sequence_frequencies}
+```{r compute_and_write_sequence_frequencies_OLD}
 cutSiteAnalysis("CPD", "all_reps", "1h", "NHF1", NHF1GeneralReadSequenceDataDirectory,
                 c("CG","CA","TG","TA"), "YR", humanReadMinMax)
 cutSiteAnalysis("CPD", "all_reps", "1h", "NHF1", NHF1GeneralReadSequenceDataDirectory,
@@ -88,3 +88,16 @@ cutSiteAnalysis("CPD", "all_reps", "1h", "NHF1", NHF1GeneralReadSequenceDataDire
 cutSiteAnalysis("CPD", "all_reps", "30m", "Dm", DmGeneralReadSequenceDataDirectory,
                 c("TCAGTC","TCAGTT"), "TCAGTY", drosophilaReadMinMax)
 ```
+
+
+```{r compute_and_write_sequence_frequencies}
+HYV = c("ACA","ACC","ACG","ATA","ATC","ATG",
+        "CCA","CCC","CCG","CTA","CTC","CTG",
+        "TCA","TCC","TCG","TTA","TTC","TTG")
+cutSiteAnalysis("CPD", "all_reps", "1h", "NHF1", NHF1GeneralReadSequenceDataDirectory,
+                HYV, "HYV", humanReadMinMax)
+cutSiteAnalysis("CPD", "all_reps", "30m", "Dm", DmGeneralReadSequenceDataDirectory,
+                c("CG","CA","TG","TA"), "YR", drosophilaReadMinMax)
+
+```
+
