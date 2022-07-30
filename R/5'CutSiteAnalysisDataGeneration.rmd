@@ -38,9 +38,15 @@ deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_deter
 NHF1GeneralReadSequenceDataDirectory = file.path(deaminationDataDirectory, "NHF1", "general_read_sequences")
 GM12878GeneralReadSequenceDataDirectory = file.path(deaminationDataDirectory, "GM12878", "general_read_sequences")
 DmGeneralReadSequenceDataDirectory = file.path(deaminationDataDirectory, "Dm", "general_read_sequences")
+arabidopsisGeneralReadSequenceDataDirectory = file.path(deaminationDataDirectory, "Arabidopsis", "general_read_sequences")
+yeastGeneralReadSequenceDataDirectory = file.path(deaminationDataDirectory, "yeast", "general_read_sequences")
+EColiGeneralReadSequenceDataDirectory = file.path(deaminationDataDirectory, "E_coli_WT", "general_read_sequences")
 
 humanReadMinMax = c(22, 30)
 drosophilaReadMinMax = c(23, 32)
+arabidopsisReadMinMax = c(24, 30)
+yeastReadMinMax = c(22, 25)
+EColiReadMinMax = c(11, 13)
 ```
 
 
@@ -54,16 +60,18 @@ source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
 
 ```{r define_all_that_and_a_bag_of_chips_function}
 cutSiteAnalysis = function(lesion, repetition, timepoint, cellType, directory,
-                           querySequences, sequencesName, readMinMax) {
+                           queryPattern, sequencesName, readMinMax,
+                           dataTypeString = dataTypeStrings$alignedReads, fileExtension = ".bed") {
   readData = fread(generateFilePath(
-    directory, dataTypeStrings$alignedReads, ".bed",
+    directory, dataTypeString, fileExtension,
     cellType = cellType, lesion = lesion, timepoint = timepoint,
     repitition = repetition, expansionNum = expansionOffset, filtering = filtering
   ))
   readData = data.table(Read_Length = nchar(readData$V7)-expansionOffset*2, Read_Sequence = readData$V7)
   readData = readData[Read_Length >= readMinMax[1] & Read_Length <= readMinMax[2]]
 
-  seqFreq = getSequenceFreqByReadLengthAndPos(readData, querySequences = querySequences)
+  seqFreq = getSequenceFreqByReadLengthAndPos(readData, queryPattern = queryPattern, posType = FIVE_PRIME)
+  seqFreq[, Position := Position - 10]
   fwrite(seqFreq, sep = '\t', file = generateFilePath(
       directory = directory, dataTypeStrings$sequenceFrequency, ".tsv",
       cellType = cellType, lesion = lesion, repitition = repetition,
@@ -72,32 +80,23 @@ cutSiteAnalysis = function(lesion, repetition, timepoint, cellType, directory,
 ```
 
 
-```{r compute_and_write_sequence_frequencies_OLD}
-cutSiteAnalysis("CPD", "all_reps", "1h", "NHF1", NHF1GeneralReadSequenceDataDirectory,
-                c("CG","CA","TG","TA"), "YR", humanReadMinMax)
-cutSiteAnalysis("CPD", "all_reps", "1h", "NHF1", NHF1GeneralReadSequenceDataDirectory,
-                c("CAC","CAG","CAT"), "CAB", humanReadMinMax)
-cutSiteAnalysis("6-4", "all_reps", "20min", "NHF1", NHF1GeneralReadSequenceDataDirectory,
-                c("CG","CA","TG","TA"), "YR", humanReadMinMax)
-cutSiteAnalysis("cisplatin", "rep1", "90min", "GM12878", GM12878GeneralReadSequenceDataDirectory,
-                c("CG","CA","TG","TA"), "YR", humanReadMinMax)
-cutSiteAnalysis("CPD", "all_reps", "30m", "Dm", DmGeneralReadSequenceDataDirectory,
-                c("CG","CA","TG","TA"), "YR", drosophilaReadMinMax)
-cutSiteAnalysis("CPD", "all_reps", "1h", "NHF1", NHF1GeneralReadSequenceDataDirectory,
-                c("TCAGTC","TCAGTT"), "TCAGTY", humanReadMinMax)
-cutSiteAnalysis("CPD", "all_reps", "30m", "Dm", DmGeneralReadSequenceDataDirectory,
-                c("TCAGTC","TCAGTT"), "TCAGTY", drosophilaReadMinMax)
-```
-
-
 ```{r compute_and_write_sequence_frequencies}
 HYV = c("ACA","ACC","ACG","ATA","ATC","ATG",
         "CCA","CCC","CCG","CTA","CTC","CTG",
         "TCA","TCC","TCG","TTA","TTC","TTG")
-cutSiteAnalysis("CPD", "all_reps", "1h", "NHF1", NHF1GeneralReadSequenceDataDirectory,
-                HYV, "HYV", humanReadMinMax)
-cutSiteAnalysis("CPD", "all_reps", "30m", "Dm", DmGeneralReadSequenceDataDirectory,
-                c("CG","CA","TG","TA"), "YR", drosophilaReadMinMax)
+HYVPattern = "^[ACT][CT][ACG]"
 
+cutSiteAnalysis("CPD", "all_reps", "1h", "NHF1", NHF1GeneralReadSequenceDataDirectory,
+                HYVPattern, "HYV", humanReadMinMax)
+cutSiteAnalysis("6-4", "all_reps", "20min", "NHF1", NHF1GeneralReadSequenceDataDirectory,
+                HYVPattern, "HYV", humanReadMinMax)
+cutSiteAnalysis("cisplatin", "rep1", "90min", "GM12878", GM12878GeneralReadSequenceDataDirectory,
+                HYVPattern, "HYV", humanReadMinMax)
+cutSiteAnalysis("CPD", "all_reps", "20min", "yeast", yeastGeneralReadSequenceDataDirectory,
+                HYVPattern, "HYV", yeastReadMinMax)
+cutSiteAnalysis("CPD", "all_reps", "ZT2", "Arabidopsis", arabidopsisGeneralReadSequenceDataDirectory,
+                HYVPattern, "HYV", arabidopsisReadMinMax)
+cutSiteAnalysis("CPD", "all_reps", "5min", "E_coli_WT", EColiGeneralReadSequenceDataDirectory,
+                HYVPattern, "HYV", EColiReadMinMax)
 ```
 

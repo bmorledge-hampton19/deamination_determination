@@ -40,11 +40,18 @@ if (is.na(bioinformaticsDirectory)) stop("No bioinformatics directory given.")
 
 deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data")
 NHF1GeneralReadSequenceDataDirectory = file.path(deaminationDataDirectory, "NHF1", "general_read_sequences")
+NHF1ExcisionSiteDataDirectory = file.path(deaminationDataDirectory, "NHF1", "excision_site_analysis")
 GM12878GeneralReadSequenceDataDirectory = file.path(deaminationDataDirectory, "GM12878", "general_read_sequences")
 DmGeneralReadSequenceDataDirectory = file.path(deaminationDataDirectory, "Dm", "general_read_sequences")
+arabidopsisGeneralReadSequenceDataDirectory = file.path(deaminationDataDirectory, "Arabidopsis", "general_read_sequences")
+yeastGeneralReadSequenceDataDirectory = file.path(deaminationDataDirectory, "yeast", "general_read_sequences")
+EColiGeneralReadSequenceDataDirectory = file.path(deaminationDataDirectory, "E_coli_WT", "general_read_sequences")
 
 humanReadMinMax = c(22, 30)
 drosophilaReadMinMax = c(23, 32)
+arabidopsisReadMinMax = c(24, 30)
+yeastReadMinMax = c(22, 25)
+EColiReadMinMax = c(11, 13)
 
 opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5, 
                fig.path = paste0(file.path("deamination_analysis_output",
@@ -63,43 +70,38 @@ source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
 
 ```{r define_all_that_and_a_bag_of_chips_function}
 cutSitePlotting = function(lesion, repetition, timepoint, cellType, directory,
-                           sequencesName, readMinMax, plottingPositionsFromEnd) {
+                           sequencesName, readMinMax, maxPlottingPos, xAxisOffset = 1,
+                           backgroundPositions = -9:-4, checkPositions = -1,
+                           displayPValue = TRUE) {
   sequenceFrequencyData = fread(generateFilePath(
     directory, dataTypeStrings$sequenceFrequency, ".tsv",
     cellType = cellType, lesion = lesion, timepoint = timepoint,
     repitition = repetition, sequence = sequencesName, filtering = filtering
   ))
   
-  sequenceFrequencyData[, Position := Position + 10]
-  endPositionsByTimepointAndRL = sequenceFrequencyData[, .(End = max(abs(Position))),
-                                                        by = Read_Length]
-  setkey(endPositionsByTimepointAndRL, Read_Length)
-  endPosByFullFreqRow = endPositionsByTimepointAndRL[list(sequenceFrequencyData$Read_Length)]$End
-  seqFreqPlottingRows = sequenceFrequencyData[abs(Position) + abs(plottingPositionsFromEnd) > endPosByFullFreqRow]
-  
-  plotSequenceFrequencies(seqFreqPlottingRows,
+  plotSequenceFrequencies(sequenceFrequencyData[Position <= maxPlottingPos],
                           title = paste(cellType, lesion, titleCaseFiltering, timepoint),
                           secondaryYAxisLabel = "Read Length", yAxisLabel = paste(sequencesName,"Frequency"),
-                          showFivePrimeCutSite = TRUE, querySequences = c("CG","CA","TG","TA"), expansionOffset = 10,
-                          minReadLength = readMinMax[1], maxReadLength = readMinMax[2], endBasedBackgroundNum = 8,
-                          endBasedCheckPositions = -10, displayPValue = TRUE, xAxisLabel = "3' Relative Position")
+                          showFivePrimeCutSite = TRUE, querySequences = c("333"), expansionOffset = 10,
+                          minReadLength = readMinMax[1], maxReadLength = readMinMax[2],
+                          backgroundPositions = backgroundPositions, checkPositions = checkPositions,
+                          displayPValue = displayPValue, xAxisLabel = "5' Relative Position",
+                          xAxisOffset = xAxisOffset, xAxisBreaks = c(-8, 0, 8))
 }
 ```
 
 
 ```{r sequence_frequency_figures, fig.width = 5, fig.height = 7}
 cutSitePlotting("CPD", "all_reps", "1h", "NHF1", NHF1GeneralReadSequenceDataDirectory,
-                "YR", humanReadMinMax, 17)
+                "HYV", humanReadMinMax, 7)
 cutSitePlotting("6-4", "all_reps", "20min", "NHF1", NHF1GeneralReadSequenceDataDirectory,
-                "YR", humanReadMinMax, 17)
-cutSitePlotting("CPD", "all_reps", "1h", "NHF1", NHF1GeneralReadSequenceDataDirectory,
-                "CAB", humanReadMinMax, 17)
+                "HYV", humanReadMinMax, 7)
 cutSitePlotting("cisplatin", "rep1", "90min", "GM12878", GM12878GeneralReadSequenceDataDirectory,
-                "YR", humanReadMinMax, 17)
-cutSitePlotting("CPD", "all_reps", "30m", "Dm", DmGeneralReadSequenceDataDirectory,
-                "YR", drosophilaReadMinMax, 17)
-cutSitePlotting("CPD", "all_reps", "1h", "NHF1", NHF1GeneralReadSequenceDataDirectory,
-                "TCAGTY", humanReadMinMax, 25)
-cutSitePlotting("CPD", "all_reps", "30m", "Dm", DmGeneralReadSequenceDataDirectory,
-                "TCAGTY", drosophilaReadMinMax, 25)
+                "HYV", humanReadMinMax, 7)
+cutSitePlotting("CPD", "all_reps", "20min", "yeast", yeastGeneralReadSequenceDataDirectory,
+                "HYV", yeastReadMinMax, 7)
+cutSitePlotting("CPD", "all_reps", "ZT2", "Arabidopsis", arabidopsisGeneralReadSequenceDataDirectory,
+                "HYV", arabidopsisReadMinMax, 7)
+cutSitePlotting("CPD", "all_reps", "5min", "E_coli_WT", EColiGeneralReadSequenceDataDirectory,
+                "HYV", EColiReadMinMax, 7, 1, NULL, NULL, FALSE)
 ```

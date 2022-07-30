@@ -291,6 +291,22 @@ for (i in seq_along(threePrimeMMAnchoredCPDSeqFreq)) {
   }
 }
 
+threePrimeMMAnchoredCPDSeqFreq = lapply(threePrimeMismatchAnchoredCPDData, function(mismatchDataRep) {
+  lapply(mismatchDataRep, function(mismatchData) {
+    getSequenceFreqByReadLengthAndPos(mismatchData, queryPattern = "^[ACT][CT][ACG]")
+  })
+})
+for (i in seq_along(threePrimeMMAnchoredCPDSeqFreq)) {
+  for (j in seq_along(threePrimeMMAnchoredCPDSeqFreq[[i]])) {
+    fwrite(threePrimeMMAnchoredCPDSeqFreq[[i]][[j]], sep = '\t', file = generateFilePath(
+      directory = deaminationExcisionSiteDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
+      cellType = cellType, lesion = "CPD", repitition = names(threePrimeMMAnchoredCPDSeqFreq)[i],
+      timepoint = names(threePrimeMMAnchoredCPDSeqFreq[[i]])[j], strandPolarity = "three_prime",
+      anchored = TRUE, sequence = "HYV", filtering = filtering
+    ))
+  }
+}
+
 fivePrimeMMAnchoredCPDSeqFreq = lapply(fivePrimeMismatchAnchoredCPDData, function(mismatchDataRep) {
   lapply(mismatchDataRep, function(mismatchData) {
     getSequenceFreqByReadLengthAndPos(mismatchData, querySequences = c("TGG"), posType = FIVE_PRIME)
