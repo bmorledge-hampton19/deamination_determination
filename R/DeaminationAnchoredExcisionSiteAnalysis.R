@@ -377,7 +377,7 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
                                    minReadLength = NULL, maxReadLength = NULL,
                                    startBasedBackgroundNum = NULL, endBasedBackgroundNum = NULL, backgroundPositions = NULL,
                                    startBasedCheckPositions = NULL, endBasedCheckPositions = NULL, checkPositions = NULL,
-                                   displayPValue = FALSE, zScoreCutoff = 3, significanceAsteriskBreakpoints = NULL,
+                                   displayPValue = FALSE, zScoreCutoff = 4, significanceAsteriskBreakpoints = NULL,
                                    xAxisLabel = NULL, xAxisOffset = 0, defaultColor = "grey35") {
 
   if (is.null(xAxisLabel)) {
