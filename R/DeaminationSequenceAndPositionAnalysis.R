@@ -124,7 +124,7 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
     setkey(groupedPositionFrequencies,Position,Read_Length,Timepoint)
     setkey(aggregateZScoreTable,Position,Read_Length,Timepoint)
     groupedPositionFrequencies = groupedPositionFrequencies[aggregateZScoreTable, nomatch = NULL]
-    groupedPositionFrequencies[,Meets_Cutoff := Z_Score >= zScoreCutoff]
+    groupedPositionFrequencies[,Meets_Cutoff := Z_Score > zScoreCutoff]
   }
 
   plot = ggplot(groupedPositionFrequencies, aes(Position, Frequency)) +
