@@ -373,25 +373,34 @@ for (i in seq_along(NHF1ThreePrimeMMAnchoredCPDSeqFreqAllRepsFiltered)) {
     strandPolarity = "three_prime", anchored = TRUE, sequence = "HYV", filtering = "TGG_filtered"
   ))
 }
-NHF1GeneralReadsCPDSeqFreqAllReps1hFiltered = fread(generateFilePath(
-  NHF1GeneralReadSequenceDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
-  cellType = "NHF1", lesion = "CPD", timepoint = "1h",
-  repitition = "all_reps", sequence = "HYV", filtering = "TGG_filtered"
+
+NHF1GeneralReadsCPDNucFreqAllReps1hFilteredCombined = fread(generateFilePath(
+  NHF1GeneralReadSequenceDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
+  cellType = "NHF1", lesion = "CPD", repitition = "all_reps", timepoint = "1h",
+  filtering = "TGG_filtered", additionalInformation = "combined_read_lengths"
 ))
-arabidopsisGeneralReadsCPDSeqFreqAllRepsZT2Filtered = fread(generateFilePath(
+NHF1GeneralReadsCPDSeqFreqAllReps1hFilteredCombined = fread(generateFilePath(
+  NHF1GeneralReadSequenceDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
+  cellType = "NHF1", lesion = "CPD", timepoint = "1h", repitition = "all_reps",
+  sequence = "HYV", filtering = "TGG_filtered", additionalInformation = "combined_read_lengths"
+))
+arabidopsisGeneralReadsCPDSeqFreqAllRepsZT2FilteredCombined = fread(generateFilePath(
   arabidopsisGeneralReadSequenceDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
   cellType = "Arabidopsis", lesion = "CPD", timepoint = "ZT2",
-  repitition = "all_reps", sequence = "HYV", filtering = "TGG_filtered"
+  repitition = "all_reps", sequence = "HYV", filtering = "TGG_filtered",
+  additionalInformation = "combined_read_lengths"
 ))
-yeastGeneralReadsCPDSeqFreqAllReps20MinFiltered = fread(generateFilePath(
+yeastGeneralReadsCPDSeqFreqAllReps20MinFilteredCombined = fread(generateFilePath(
   yeastGeneralReadSequenceDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
   cellType = "yeast", lesion = "CPD", timepoint = "20min",
-  repitition = "all_reps", sequence = "HYV", filtering = "TGG_filtered"
+  repitition = "all_reps", sequence = "HYV", filtering = "TGG_filtered",
+  additionalInformation = "combined_read_lengths"
 ))
-EColiGeneralReadsCPDSeqFreqAllReps5MinFiltered = fread(generateFilePath(
+EColiGeneralReadsCPDSeqFreqAllReps5MinFilteredCombined = fread(generateFilePath(
   EColiGeneralReadSequenceDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
   cellType = "E_coli_WT", lesion = "CPD", timepoint = "5min",
-  repitition = "all_reps", sequence = "HYV", filtering = "TGG_filtered"
+  repitition = "all_reps", sequence = "HYV", filtering = "TGG_filtered",
+  additionalInformation = "combined_read_lengths"
 ))
 ```
 
@@ -430,40 +439,48 @@ plotSequenceFrequencies(NHF1ThreePrimeMMAnchoredCPDSeqFreqAllRepsFiltered$`1h`,
 #                         expansionOffset = 10, minReadLength = 19, maxReadLength = 25, endBasedBackgroundNum = 8,
 #                         endBasedCheckPositions = -10, displayPValue = TRUE, xAxisLabel = "Mismatch Relative Position")
 ```
-```{r figure_4C, fig.width = 5, fig.height = 6}
-plotSequenceFrequencies(NHF1GeneralReadsCPDSeqFreqAllReps1hFiltered[Position <= 7],
+```{r figure_4C, fig.width = 6.5, fig.height = 4.75}
+plotNucFreqVsReadLengthBarPlot(NHF1GeneralReadsCPDNucFreqAllReps1hFilteredCombined[Position <= 7], 
+                               title = "NHF1 CPD 1h All Reps TGG-Filtered Nuc Freq",
+                               secondaryYAxisLabel = "Read Length", ylim = c(0,1),
+                               posType = FIVE_PRIME, showFivePrimeCutSite = TRUE,
+                               expansionOffset = 10,
+                               xAxisLabel = "Mismatch Relative Position")
+```
+```{r figure_4D, fig.width = 5, fig.height = 4}
+plotSequenceFrequencies(NHF1GeneralReadsCPDSeqFreqAllReps1hFilteredCombined[Position <= 7],
                         title = "NHF1 CPD 1h All Reps TGG-Filtered General Reads HYV Freq",
                         secondaryYAxisLabel = "Read Length", yAxisLabel = "HYV Frequency",
                         showFivePrimeCutSite = TRUE, querySequences = c("333"), xAxisOffset = 1,
-                        expansionOffset = 10, minReadLength = 23, maxReadLength = 29, backgroundPositions = -9:-4,
+                        expansionOffset = 10, backgroundPositions = -9:-4,
                         checkPositions = -1, displayPValue = FALSE, xAxisLabel = "5' Relative Position",
-                        xAxisBreaks = c(-8, 0, 8))
+                        xAxisBreaks = c(-8, 0, 8), ylimMax = 0.6, ylimMaxModifier = 1)
 ```
-```{r figure_4D, fig.width = 5, fig.height = 6}
-plotSequenceFrequencies(arabidopsisGeneralReadsCPDSeqFreqAllRepsZT2Filtered[Position <= 7],
+```{r figure_4E, fig.width = 5, fig.height = 4}
+plotSequenceFrequencies(arabidopsisGeneralReadsCPDSeqFreqAllRepsZT2FilteredCombined[Position <= 7],
                         title = "Arabidopsis CPD ZT2 All Reps TGG-Filtered General Reads HYV Freq",
                         secondaryYAxisLabel = "Read Length", yAxisLabel = "HYV Frequency",
                         showFivePrimeCutSite = TRUE, querySequences = c("333"), xAxisOffset = 1,
-                        expansionOffset = 10, minReadLength = 24, maxReadLength = 30, backgroundPositions = -9:-4,
+                        expansionOffset = 10, backgroundPositions = -9:-4,
                         checkPositions = -1, displayPValue = FALSE, xAxisLabel = "5' Relative Position",
-                        xAxisBreaks = c(-8, 0, 8))
+                        xAxisBreaks = c(-8, 0, 8), ylimMax = 0.6, ylimMaxModifier = 1)
 ```
-```{r figure_4E, fig.width = 5, fig.height = 6}
-plotSequenceFrequencies(yeastGeneralReadsCPDSeqFreqAllReps20MinFiltered[Position <= 7],
+```{r figure_4F, fig.width = 5, fig.height = 4}
+plotSequenceFrequencies(yeastGeneralReadsCPDSeqFreqAllReps20MinFilteredCombined[Position <= 7],
                         title = "Yeast CPD 20min All Reps TGG-Filtered General Reads HYV Freq",
                         secondaryYAxisLabel = "Read Length", yAxisLabel = "HYV Frequency",
                         showFivePrimeCutSite = TRUE, querySequences = c("333"), xAxisOffset = 1,
-                        expansionOffset = 10, minReadLength = 22, maxReadLength = 25, backgroundPositions = -9:-4,
+                        expansionOffset = 10, backgroundPositions = -9:-4,
                         checkPositions = -1, displayPValue = FALSE, xAxisLabel = "5' Relative Position",
-                        xAxisBreaks = c(-8, 0, 8))
+                        xAxisBreaks = c(-8, 0, 8), ylimMax = 0.6, ylimMaxModifier = 1)
 ```
-```{r figure_4F, fig.width = 5, fig.height = 6}
-plotSequenceFrequencies(EColiGeneralReadsCPDSeqFreqAllReps5MinFiltered[Position <= 7],
+```{r figure_4G, fig.width = 5, fig.height = 4}
+plotSequenceFrequencies(EColiGeneralReadsCPDSeqFreqAllReps5MinFilteredCombined[Position <= 7],
                         title = "E. coli CPD 5min All Reps TGG-Filtered General Reads HYV Freq",
                         secondaryYAxisLabel = "Read Length", yAxisLabel = "HYV Frequency",
                         showFivePrimeCutSite = TRUE, querySequences = c("333"), xAxisOffset = 1,
-                        expansionOffset = 10, minReadLength = 11, maxReadLength = 13, xAxisLabel = "5' Relative Position",
-                        xAxisBreaks = c(-8, 0, 8))
+                        expansionOffset = 10, xAxisLabel = "5' Relative Position",
+                        xAxisBreaks = c(-8, 0, 8), ylimMax = 0.6, ylimMaxModifier = 1)
 ```
 
 
@@ -512,15 +529,11 @@ for (i in seq_along(NHF1CPDCCtoTTMMFreqZScoresAllRepsFiltered)) {
   ))
 }
 
-NHF1ThreePrimeMMAnchoredCPDCCtoTTSeqFreqAllRepsFiltered = NHF1CPDTimepoints
-for (i in seq_along(NHF1ThreePrimeMMAnchoredCPDCCtoTTSeqFreqAllRepsFiltered)) {
-  NHF1ThreePrimeMMAnchoredCPDCCtoTTSeqFreqAllRepsFiltered[[i]] = fread(generateFilePath(
-    NHF1ExcisionSiteDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
+NHF1ThreePrimeMMAnchoredCPDCCtoTTSeqFreqAllReps1hFiltered = fread(generateFilePath(
+    NHF1ExcisionSiteDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv", timepoint = "1h",
     cellType = "NHF1", lesion = "CPD", repitition = "all_reps", includedMismatches = "CC>TT",
-    timepoint = names(NHF1ThreePrimeMMAnchoredCPDCCtoTTSeqFreqAllRepsFiltered)[i],
-    strandPolarity = "three_prime", anchored = TRUE, sequence = "HYV", filtering = "TGG_filtered"
-  ))
-}
+    strandPolarity = "three_prime", anchored = TRUE, sequence = "HYV", filtering = "TGG_filtered",
+))
 
 NHF1CPDCCToTTGroupedStatsAllRepsFiltered = list(three_prime = NULL, five_prime = NULL)
 for (i in seq_along(NHF1CPDCCToTTGroupedStatsAllRepsFiltered)) {
@@ -551,36 +564,27 @@ for (i in seq_along(yeastCPDCCToTTGroupedStatsAllRepsFiltered)) {
 ```
 
 
-```{r figure_6A, fig.width = 5, fig.height = 5}
+```{r figure_6A, fig.width = 5, fig.height = 5.5}
 ### Just the 1h timepoint ###
 plotPositionAcrossTimepointAndReadLength(NHF1CPDCCtoTTMismatchDataAllRepsFiltered["1h"],
                                          title = "NHF1 CPD 1h All Reps TGG-Filtered CC>TT Mismatch Pos Freq",
                                          zScoreTables = NHF1CPDCCtoTTMMFreqZScoresAllRepsFiltered,
-                                         yAxisLabel = "Relative C>T Frequency")
+                                         yAxisLabel = "Relative CC>TT Frequency")
 
 ### All timepoints together ###
 # plotPositionAcrossTimepointAndReadLength(NHF1CPDCCtoTTMismatchDataAllRepsFiltered,
 #                                          title = "NHF1 CPD All Reps TGG-Filtered CC>TT Mismatch Pos Freq",
 #                                          zScoreTables = NHF1CPDCCtoTTMMFreqZScoresAllRepsFiltered,
-#                                          yAxisLabel = "Relative C>T Frequency")
+#                                          yAxisLabel = "Relative CC>TT Frequency")
 ```
 ```{r figure_6B, fig.width = 5, fig.height = 5}
-### Just the 1h timepoint ###
-plotSequenceFrequencies(NHF1ThreePrimeMMAnchoredCPDCCtoTTSeqFreqAllRepsFiltered$`1h`,
+plotSequenceFrequencies(NHF1ThreePrimeMMAnchoredCPDCCtoTTSeqFreqAllReps1hFiltered,
                         title = "NHF1 CPD 1h All Reps TGG-Filtered CC>TT 3' Anchored HYV Freq",
                         secondaryYAxisLabel = "5' Cut Site Distance", yAxisLabel = "HYV Frequency",
                         showFivePrimeCutSite = TRUE, querySequences = c("333"),
                         expansionOffset = 10, minReadLength = 19, maxReadLength = 25, endBasedBackgroundNum = 6,
                         endBasedCheckPositions = -9, displayPValue = FALSE, xAxisLabel = "Mismatch Relative Position",
                         xAxisOffset = 1)
-
-### All timepoints together ###
-# plotSequenceFrequencies(NHF1ThreePrimeMMAnchoredCPDCCtoTTSeqFreqAllRepsFiltered,
-#                         title = "NHF1 CPD All Reps TGG-Filtered CC>TT 3' Anchored YR Freq",
-#                         secondaryYAxisLabel = "5' Cut Site Distance", yAxisLabel = "YR Frequency",
-#                         showFivePrimeCutSite = TRUE, querySequences = c("CG","CA","TG","TA"),
-#                         expansionOffset = 10, minReadLength = 19, maxReadLength = 25, endBasedBackgroundNum = 8,
-#                         endBasedCheckPositions = -10, displayPValue = TRUE, xAxisLabel = "Mismatch Relative Position")
 ```
 ```{r figure_6C, fig.width = 7.5, fig.height = 5}
 ### Just the 1h timepoint ###
@@ -833,34 +837,36 @@ plotPositionAcrossTimepointAndReadLength(NHF1CPDMismatchDataAllRepsTGFiltered["1
 
 
 ```{r read_figure_S4_data}
-NHF1GeneralReadsSixFourSeqFreqAllReps20minFiltered = fread(generateFilePath(
+NHF1GeneralReadsSixFourSeqFreqAllReps20minFilteredCombined = fread(generateFilePath(
   NHF1GeneralReadSequenceDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
   cellType = "NHF1", lesion = "6-4", timepoint = "20min",
-  repitition = "all_reps", sequence = "HYV", filtering = "TGG_filtered"
+  repitition = "all_reps", sequence = "HYV", filtering = "TGG_filtered",
+  additionalInformation = "combined_read_lengths"
 ))
-GM12878GeneralReadsCisplatinSeqFreqRep1_90minFiltered = fread(generateFilePath(
+GM12878GeneralReadsCisplatinSeqFreqRep1_90minFilteredCombined = fread(generateFilePath(
   GM12878GeneralReadSequenceDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
   cellType = "GM12878", lesion = "cisplatin", timepoint = "90min",
-  repitition = "rep1", sequence = "HYV", filtering = "TGG_filtered"
+  repitition = "rep1", sequence = "HYV", filtering = "TGG_filtered",
+  additionalInformation = "combined_read_lengths"
 ))
 ```
 
 
-```{r figure_S4, fig.width = 5, fig.height = 6}
-plotSequenceFrequencies(NHF1GeneralReadsSixFourSeqFreqAllReps20minFiltered[Position <= 7],
+```{r figure_S4, fig.width = 5, fig.height = 4}
+plotSequenceFrequencies(NHF1GeneralReadsSixFourSeqFreqAllReps20minFilteredCombined[Position <= 7],
                         title = "NHF1 6-4 20min All Reps TGG-Filtered General Reads HYV Freq",
                         secondaryYAxisLabel = "Read Length", yAxisLabel = "HYV Frequency",
                         showFivePrimeCutSite = TRUE, querySequences = c("333"), xAxisBreaks = c(-8, 0, 8),
                         expansionOffset = 10, minReadLength = 23, maxReadLength = 29, backgroundPositions = -9:-4,
                         checkPositions = -1, displayPValue = FALSE, xAxisLabel = "5' Relative Position",
-                        xAxisOffset = 1)
-plotSequenceFrequencies(GM12878GeneralReadsCisplatinSeqFreqRep1_90minFiltered[Position <= 7],
+                        xAxisOffset = 1, ylimMax = 0.6, ylimMaxModifier = 1)
+plotSequenceFrequencies(GM12878GeneralReadsCisplatinSeqFreqRep1_90minFilteredCombined[Position <= 7],
                         title = "GM12878 cisplatin 90min Rep1 TGG-Filtered General Reads HYV Freq",
                         secondaryYAxisLabel = "Read Length", yAxisLabel = "HYV Frequency",
                         showFivePrimeCutSite = TRUE, querySequences = c("333"), xAxisBreaks = c(-8, 0, 8),
                         expansionOffset = 10, minReadLength = 23, maxReadLength = 29, backgroundPositions = -9:-4,
                         checkPositions = -1, displayPValue = FALSE, xAxisLabel = "5' Relative Position",
-                        xAxisOffset = 1)
+                        xAxisOffset = 1, ylimMax = 0.6, ylimMaxModifier = 1)
 ```
 
 
@@ -887,8 +893,8 @@ for (i in seq_along(NHF1CPDGGtoAAMMFreqZScoresAllRepsFiltered)) {
 ```
 
 
-```{r figure_S5, fig.width = 9, fig.height = 5}
-plotPositionAcrossTimepointAndReadLength(NHF1CPDGGtoAAMismatchDataAllRepsFiltered,
+```{r figure_S5, fig.width = 5, fig.height = 5.5}
+plotPositionAcrossTimepointAndReadLength(NHF1CPDGGtoAAMismatchDataAllRepsFiltered["1h"],
                                          title = "NHF1 CPD All Reps GG>AA Mismatch Pos Freq",
                                          zScoreTables = NHF1CPDGGtoAAMMFreqZScoresAllRepsFiltered,
                                          yAxisLabel = "Relative GG>AA Frequency")

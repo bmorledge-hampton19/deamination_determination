@@ -1,0 +1,171 @@
+---
+title: "Combined Read Length Sequence Frequency Generation"
+author: "Ben Morledge-Hampton"
+date: "5/2/2022"
+output: html_document
+params:
+  bioinformaticsDirectory:
+    label: "Bioinformatics Projects Directory"
+    value: C:/Bioinformatics_Projects
+    input: select
+    choices: [C:/Bioinformatics_Projects, F:/Bioinformatics_Projects]
+  filtering:
+    label: "Filtering"
+    value: NONE
+    input: select
+    choices: [NONE, TGG_filtered, TG_filtered]
+---
+
+
+```{r setup_chunk}
+library(knitr)
+
+expansionOffset = 10
+
+if (interactive()) {
+  bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
+  filtering = readline("Filtering identifier (Input nothing for no filtering):")
+  if (filtering == '') filtering = character()
+} else {
+  bioinformaticsDirectory = params$bioinformaticsDirectory
+  filtering = params$filtering
+  if (filtering == "NONE") filtering = character()
+}
+
+if (is.na(bioinformaticsDirectory)) stop("No bioinformatics directory given.")
+
+deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data")
+
+NHF1DataDirectory = file.path(deaminationDataDirectory, "NHF1")
+NHF1MismatchesByReadDataDirectory = file.path(NHF1DataDirectory, "mismatches_by_read")
+NHF1SequenceAndPositionDataDirectory = file.path(NHF1DataDirectory, "sequence_and_position_analysis")
+NHF1ExcisionSiteDataDirectory = file.path(NHF1DataDirectory, "excision_site_analysis")
+
+arabidopsisDataDirectory = file.path(deaminationDataDirectory, "Arabidopsis")
+arabidopsisMismatchesByReadDataDirectory = file.path(arabidopsisDataDirectory, "mismatches_by_read")
+arabidopsisSequenceAndPositionDataDirectory = file.path(arabidopsisDataDirectory, "sequence_and_position_analysis")
+arabidopsisExcisionSiteDataDirectory = file.path(arabidopsisDataDirectory, "excision_site_analysis")
+
+yeastDataDirectory = file.path(deaminationDataDirectory, "yeast")
+yeastMismatchesByReadDataDirectory = file.path(yeastDataDirectory, "mismatches_by_read")
+yeastSequenceAndPositionDataDirectory = file.path(yeastDataDirectory, "sequence_and_position_analysis")
+yeastExcisionSiteDataDirectory = file.path(yeastDataDirectory, "excision_site_analysis")
+
+GM12878DataDirectory = file.path(deaminationDataDirectory, "GM12878")
+GM12878SequenceAndPositionDataDirectory = file.path(GM12878DataDirectory, "sequence_and_position_analysis")
+
+EColiDataDirectory = file.path(deaminationDataDirectory, "E_coli_WT")
+EColiExcisionSiteDataDirectory = file.path(EColiDataDirectory, "excision_site_analysis")
+
+humanReadMinMax = c(22, 30)
+drosophilaReadMinMax = c(23, 32)
+arabidopsisReadMinMax = c(24, 30)
+yeastReadMinMax = c(22, 25)
+EColiReadMinMax = c(11, 13)
+```
+
+
+```{r source_functions}
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "UsefulFileSystemFunctions.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "DeaminationParseAndFilter.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "DeaminationAnchoredExcisionSiteAnalysis.R"))
+```
+
+
+```{r make_the_function}
+computeMMAnchoredCombinedReadLengthSeqFreq = function(
+    lesion, repetition, timepoint, cellType, mismatchesByReadDirectory, seqAndPosDirectory,
+    excisionSiteDirectory, queryPattern, sequencesName, readMinMax, mismatchType = "C>T"
+) {
+  
+  if (mismatchType == "C>T") {
+    fileNamingMismatchType = character()
+  } else {
+    fileNamingMismatchType = mismatchType
+  }
+  
+  # Get file paths for the expanded mismatch by read data
+  mismatchData = fread(generateFilePath(
+    mismatchesByReadDirectory, dataTypeStrings$mismatchesByRead, ".bed",
+    cellType = cellType, lesion = lesion, timepoint = timepoint, includedMismatches = fileNamingMismatchType,
+    repitition = repetition, expansionNum = expansionOffset, filtering = filtering
+  ))
+  
+  # Filter the reads by length and mismatch type (single C>T).
+  mismatchData = filterResults(mismatchData[V5 == mismatchType], minReadLength = readMinMax[1], maxReadLength = readMinMax[2])
+
+  # Simplify the data
+  mismatchData = simplifyTable(mismatchData, TRUE, expansionOffset = expansionOffset)
+
+  # Read mismatch frequency z-scores.
+  MMFreqZScore = fread(generateFilePath(
+    directory = seqAndPosDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
+    cellType = cellType, lesion = lesion, repitition = repetition,
+    timepoint = timepoint, filtering = filtering, includedMismatches = mismatchType
+  ))
+
+  # Further filter data by read position based on length
+  mismatchData = filterMismatchesByPositionAndReadLength(mismatchData, MMFreqZScore, expansionOffset = expansionOffset)
+  
+  # Orient data to mismatch positions.
+  threePrimeMMAnchoredData = orientDataToMismatch(mismatchData, THREE_PRIME, expansionOffset)
+  fivePrimeMMAnchoredData = orientDataToMismatch(mismatchData, FIVE_PRIME, expansionOffset)
+  mismatchData = NULL
+  
+  # Now that the data has been processed, combine read length information.
+  threePrimeMMAnchoredData[, Read_Length := NULL]
+  threePrimeMMAnchoredData[, Read_Length := "combined"]
+  fivePrimeMMAnchoredData[, Read_Length := NULL]
+  fivePrimeMMAnchoredData[, Read_Length := "combined"]
+
+  # Generate and write nucleotide frequency data.
+  threePrimeMMAnchoredNucFreq = tabulateNucFreqByPosTimepointAndLength(setNames(list(threePrimeMMAnchoredData), timepoint))
+  fwrite(threePrimeMMAnchoredNucFreq, sep = '\t', file = generateFilePath(
+    directory = excisionSiteDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv", includedMismatches = fileNamingMismatchType,
+    cellType = cellType, lesion = lesion, repitition = repetition, timepoint = timepoint, strandPolarity = "three_prime",
+    anchored = TRUE, filtering = filtering, additionalInformation = "combined_read_lengths"
+  ))
+  fivePrimeMMAnchoredNucFreq = tabulateNucFreqByPosTimepointAndLength(setNames(list(fivePrimeMMAnchoredData), timepoint))
+  fwrite(fivePrimeMMAnchoredNucFreq, sep = '\t', file = generateFilePath(
+    directory = excisionSiteDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv", includedMismatches = fileNamingMismatchType,
+    cellType = cellType, lesion = lesion, repitition = repetition, timepoint = timepoint, strandPolarity = "five_prime",
+    anchored = TRUE, filtering = filtering, additionalInformation = "combined_read_lengths"
+  ))
+
+  # Generate and write sequence frequency data.
+  threePrimeMMAnchoredSeqFreq = getSequenceFreqByReadLengthAndPos(threePrimeMMAnchoredData, queryPattern = queryPattern)
+  fwrite(threePrimeMMAnchoredSeqFreq, sep = '\t', file = generateFilePath(
+    directory = excisionSiteDirectory, dataTypeStrings$sequenceFrequency, ".tsv", includedMismatches = fileNamingMismatchType,
+    cellType = cellType, lesion = lesion, repitition = repetition, timepoint = timepoint, strandPolarity = "three_prime",
+    anchored = TRUE, sequence = sequencesName, filtering = filtering, additionalInformation = "combined_read_lengths"
+  ))
+  
+  fivePrimeMMAnchoredSeqFreq = getSequenceFreqByReadLengthAndPos(fivePrimeMMAnchoredData, queryPattern = queryPattern)
+  fwrite(fivePrimeMMAnchoredSeqFreq, sep = '\t', file = generateFilePath(
+    directory = excisionSiteDirectory, dataTypeStrings$sequenceFrequency, ".tsv", includedMismatches = fileNamingMismatchType,
+    cellType = cellType, lesion = lesion, repitition = repetition, timepoint = timepoint, strandPolarity = "five_prime",
+    anchored = TRUE, sequence = sequencesName, filtering = filtering, additionalInformation = "combined_read_lengths"
+  ))
+}
+```
+
+
+```{r compute_and_write_sequence_frequencies}
+HYV = c("ACA","ACC","ACG","ATA","ATC","ATG",
+        "CCA","CCC","CCG","CTA","CTC","CTG",
+        "TCA","TCC","TCG","TTA","TTC","TTG")
+HYVPattern = "^[ACT][CT][ACG]"
+
+
+computeMMAnchoredCombinedReadLengthSeqFreq(
+  "CPD", "all_reps", "1h", "NHF1", NHF1MismatchesByReadDataDirectory, NHF1SequenceAndPositionDataDirectory,
+  NHF1ExcisionSiteDataDirectory, HYVPattern, "HYV", humanReadMinMax
+)
+computeMMAnchoredCombinedReadLengthSeqFreq(
+  "CPD", "all_reps", "1h", "NHF1", NHF1MismatchesByReadDataDirectory, NHF1SequenceAndPositionDataDirectory,
+  NHF1ExcisionSiteDataDirectory, HYVPattern, "HYV", humanReadMinMax, mismatchType = "CC>TT"
+)
+```

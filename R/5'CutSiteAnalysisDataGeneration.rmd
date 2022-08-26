@@ -61,9 +61,9 @@ source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
 ```{r define_all_that_and_a_bag_of_chips_function}
 cutSiteAnalysis = function(lesion, repetition, timepoint, cellType, directory,
                            queryPattern, sequencesName, readMinMax,
-                           dataTypeString = dataTypeStrings$alignedReads, fileExtension = ".bed") {
+                           alsoComputeCombinedReadLengths = FALSE, alsoComputeNucFreq = FALSE) {
   readData = fread(generateFilePath(
-    directory, dataTypeString, fileExtension,
+    directory, dataTypeStrings$alignedReads , ".bed",
     cellType = cellType, lesion = lesion, timepoint = timepoint,
     repitition = repetition, expansionNum = expansionOffset, filtering = filtering
   ))
@@ -72,10 +72,50 @@ cutSiteAnalysis = function(lesion, repetition, timepoint, cellType, directory,
 
   seqFreq = getSequenceFreqByReadLengthAndPos(readData, queryPattern = queryPattern, posType = FIVE_PRIME)
   seqFreq[, Position := Position - 10]
+  
   fwrite(seqFreq, sep = '\t', file = generateFilePath(
-      directory = directory, dataTypeStrings$sequenceFrequency, ".tsv",
+    directory = directory, dataTypeStrings$sequenceFrequency, ".tsv",
+    cellType = cellType, lesion = lesion, repitition = repetition,
+    timepoint = timepoint, sequence = sequencesName, filtering = filtering))
+  
+  if (alsoComputeNucFreq) {
+    
+    nucFreq = tabulateNucFreqByPosTimepointAndLength(setNames(list(readData),timepoint), FIVE_PRIME)
+    nucFreq[, Position := Position - 10]
+    
+    fwrite(nucFreq, sep = '\t', file = generateFilePath(
+      directory = directory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
       cellType = cellType, lesion = lesion, repitition = repetition,
-      timepoint = timepoint, sequence = sequencesName, filtering = filtering))
+      timepoint = timepoint, filtering = filtering))
+    
+  }
+  
+  if (alsoComputeCombinedReadLengths) {
+    readData[, Read_Length := NULL]
+    readData[, Read_Length := "combined"]
+    
+    seqFreq = getSequenceFreqByReadLengthAndPos(readData, queryPattern = queryPattern, posType = FIVE_PRIME)
+    seqFreq[, Position := Position - 10]
+    
+    fwrite(seqFreq, sep = '\t', file = generateFilePath(
+        directory = directory, dataTypeStrings$sequenceFrequency, ".tsv",
+        cellType = cellType, lesion = lesion, repitition = repetition,
+        timepoint = timepoint, sequence = sequencesName, filtering = filtering,
+        additionalInformation = "combined_read_lengths"))
+    
+    if (alsoComputeNucFreq) {
+    
+      nucFreq = tabulateNucFreqByPosTimepointAndLength(setNames(list(readData),timepoint), FIVE_PRIME)
+      nucFreq[, Position := Position - 10]
+      
+      fwrite(nucFreq, sep = '\t', file = generateFilePath(
+        directory = directory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
+        cellType = cellType, lesion = lesion, repitition = repetition,
+        timepoint = timepoint, filtering = filtering, additionalInformation = "combined_read_lengths"))
+    
+  }
+    
+  }
 }
 ```
 
@@ -87,16 +127,17 @@ HYV = c("ACA","ACC","ACG","ATA","ATC","ATG",
 HYVPattern = "^[ACT][CT][ACG]"
 
 cutSiteAnalysis("CPD", "all_reps", "1h", "NHF1", NHF1GeneralReadSequenceDataDirectory,
-                HYVPattern, "HYV", humanReadMinMax)
+                HYVPattern, "HYV", humanReadMinMax, alsoComputeCombinedReadLengths = TRUE,
+                alsoComputeNucFreq = TRUE)
 cutSiteAnalysis("6-4", "all_reps", "20min", "NHF1", NHF1GeneralReadSequenceDataDirectory,
-                HYVPattern, "HYV", humanReadMinMax)
+                HYVPattern, "HYV", humanReadMinMax, alsoComputeCombineReadLengths = TRUE)
 cutSiteAnalysis("cisplatin", "rep1", "90min", "GM12878", GM12878GeneralReadSequenceDataDirectory,
-                HYVPattern, "HYV", humanReadMinMax)
+                HYVPattern, "HYV", humanReadMinMax, alsoComputeCombinedReadLengths = TRUE)
 cutSiteAnalysis("CPD", "all_reps", "20min", "yeast", yeastGeneralReadSequenceDataDirectory,
-                HYVPattern, "HYV", yeastReadMinMax)
+                HYVPattern, "HYV", yeastReadMinMax, alsoComputeCombinedReadLengths = TRUE)
 cutSiteAnalysis("CPD", "all_reps", "ZT2", "Arabidopsis", arabidopsisGeneralReadSequenceDataDirectory,
-                HYVPattern, "HYV", arabidopsisReadMinMax)
+                HYVPattern, "HYV", arabidopsisReadMinMax, alsoComputeCombinedReadLengths = TRUE)
 cutSiteAnalysis("CPD", "all_reps", "5min", "E_coli_WT", EColiGeneralReadSequenceDataDirectory,
-                HYVPattern, "HYV", EColiReadMinMax)
+                HYVPattern, "HYV", EColiReadMinMax, alsoComputeCombinedReadLengths = TRUE)
 ```
 

@@ -106,11 +106,10 @@ combineNucleotideFrequencies = function(frequencyData, combineNucleotides = list
 plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
                                           title = "Nuc Freq by Length and Timepoint",
                                           yAxisLabel = "Nucleotide Frequency", secondaryYAxisLabel = "Read Length",
-                                          yStripFontSize = 16,
+                                          yStripFontSize = 16, ylim = c(0,1.2), yAxisBreaks = c(0,0.5,1),
                                           combineNucleotides = list(), combinedNames = list(),
                                           showThreePrimeCutSite = FALSE, showFivePrimeCutSite = FALSE,
                                           expansionOffset = 0, xAxisBreaks = -3:3*10, xAxisLabel = NULL,
-                                          ylim = c(0,1.2), yAxisBreaks = c(0,0.5,1),
                                           minReadLength = NULL, maxReadLength = NULL) {
 
   if (is.null(xAxisLabel)) {
@@ -125,18 +124,24 @@ plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
     nucFreqTable = combineNucleotideFrequencies(nucFreqTable, combineNucleotides, combinedNames)
   }
 
-  if (!is.null(minReadLength)) nucFreqTable = nucFreqTable[Read_Length >= minReadLength]
-  if (!is.null(maxReadLength)) nucFreqTable = nucFreqTable[Read_Length <= maxReadLength]
+  combinedReadLengths = all(nucFreqTable$Read_Length == "combined")
+
+  if (!combinedReadLengths) {
+    if (!is.null(minReadLength)) nucFreqTable = nucFreqTable[Read_Length >= minReadLength]
+    if (!is.null(maxReadLength)) nucFreqTable = nucFreqTable[Read_Length <= maxReadLength]
+  }
 
   plot = ggplot(nucFreqTable, aes(Position, Frequency, fill = Nucleotide)) +
     geom_bar(position = "stack", stat = "identity") +
     labs(title = title, x = xAxisLabel, y = yAxisLabel) +
     blankBackground + defaultTextScaling
 
-  if (all(nucFreqTable$Timepoint == "NONE")) {
-    plot = plot + facet_grid(rows = vars(Read_Length))
-  } else {
+  if (any(nucFreqTable$Timepoint != "NONE") && !combinedReadLengths) {
     plot = plot + facet_grid(Read_Length~factor(Timepoint, levels = unique(nucFreqTable$Timepoint)))
+  } else if (any(nucFreqTable$Timepoint != "NONE") && combinedReadLengths) {
+    plot = plot + facet_grid(cols = vars(factor(Timepoint, levels = unique(nucFreqTable$Timepoint))))
+  } else if (all(nucFreqTable$Timepoint == "NONE") && !combinedReadLengths) {
+    plot = plot + facet_grid(rows = vars(Read_Length))
   }
 
   plot = plot +
@@ -146,8 +151,13 @@ plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
           axis.text.y.left = element_text(size = 10),
           strip.text.y = element_text(size = yStripFontSize)) +
     coord_cartesian(ylim = ylim) +
-    scale_y_continuous(sec.axis = dup_axis(~., name = secondaryYAxisLabel), breaks = yAxisBreaks) +
     scale_x_continuous(breaks = xAxisBreaks)
+
+  if (combinedReadLengths) {
+    plot = plot + scale_y_continuous(breaks = yAxisBreaks)
+  } else {
+    plot = plot + scale_y_continuous(sec.axis = dup_axis(~., name = secondaryYAxisLabel), breaks = yAxisBreaks)
+  }
 
   if (length(unique(nucFreqTable$Nucleotide)) == 1) {
     plot = plot + theme(legend.position = "none") + scale_fill_manual(values = "grey35")
@@ -226,13 +236,13 @@ getSequenceFreqByReadLengthAndPos = function(readSequencesTable, expectedNucleot
 
     sequences = readSequencesTable[Read_Length == readLength]$Read_Sequence
     if (!is.null(expectedNucleotideFrequencies)) {
-      if (!is.null(queryPattern)) stop("Background calculation not set up for queryPattern.")
+      if (!is.null(queryPattern)) stop("Background calculation for queryPattern not implemented.")
       readLengthSpecificNucFreq = expectedNucleotideFrequencies[Read_Length == readLength]
     }
     if (posType == THREE_PRIME) {
-      positions = -nchar(sequences[1]):(-1 - maxQueryLength + 1)
+      positions = -max(nchar(sequences)):(-maxQueryLength)
     } else if (posType == FIVE_PRIME) {
-      positions = 1:(nchar(sequences[1]) - maxQueryLength + 1)
+      positions = 1:(max(nchar(sequences)) - maxQueryLength + 1)
     } else stop("Unrecognized value for posType parameter.")
 
     frequencies = sapply(positions, function(position) {
@@ -369,12 +379,14 @@ plotSequenceEnrichment = function(enrichmentTablesByTimepoint, posType = THREE_P
 #   The position values for the x-axis will be incremented by the given value, but any indicated
 #   cut-sites will remain unchanged. (This is useful for adjusting which nucleotide in the sequence
 #   is used to orient the bars in the plot.)
+# Combining read lengths:
+#   If all of the entries in the "Read_Length" columns are the string "combined", no secondary y-axis will be plotted.)
 plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRIME,
                                    title = "Seq Freq by Length and Timepoint", yAxisLabel = "Sequence Frequency",
                                    secondaryYAxisLabel = "Read Length", yStripFontSize = 16,
                                    showThreePrimeCutSite = FALSE, showFivePrimeCutSite = FALSE,
                                    expansionOffset = 0, querySequences = c("TGG"), xAxisBreaks = -3:3*10,
-                                   minReadLength = NULL, maxReadLength = NULL,
+                                   minReadLength = NULL, maxReadLength = NULL, ylimMax = NULL, ylimMaxModifier = NULL,
                                    startBasedBackgroundNum = NULL, endBasedBackgroundNum = NULL, backgroundPositions = NULL,
                                    startBasedCheckPositions = NULL, endBasedCheckPositions = NULL, checkPositions = NULL,
                                    displayPValue = FALSE, zScoreCutoff = 4, significanceAsteriskBreakpoints = NULL,
@@ -402,13 +414,23 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
     }))
   }
 
+  combinedReadLengths = all(fullFrequencyTable$Read_Length == "combined")
+
   maxFrequency = signif(max(fullFrequencyTable$Frequency),digits = 2)
-  yAxisBreaks = c(0, maxFrequency/2, maxFrequency)
+  if (is.null(ylimMax)) {
+    yAxisBreaks = c(0, maxFrequency/2, maxFrequency)
+  } else {
+    yAxisBreaks = c(0, ylimMax/2, ylimMax)
+  }
 
   maxQueryLength = max(nchar(querySequences))
 
-  if (!is.null(minReadLength)) fullFrequencyTable = fullFrequencyTable[Read_Length >= minReadLength]
-  if (!is.null(maxReadLength)) fullFrequencyTable = fullFrequencyTable[Read_Length <= maxReadLength]
+  if (!combinedReadLengths) {
+    if (!is.null(minReadLength)) fullFrequencyTable = fullFrequencyTable[Read_Length >= minReadLength]
+    if (!is.null(maxReadLength)) fullFrequencyTable = fullFrequencyTable[Read_Length <= maxReadLength]
+  }
+
+  if (combinedReadLengths) fullFrequencyTable[,Read_Length := "combined"]
 
   # Determine zScores from background positions, if specified.
   if (!is.null(startBasedBackgroundNum) || !is.null(endBasedBackgroundNum) || !is.null(backgroundPositions)) {
@@ -481,10 +503,12 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
     plot = plot + geom_text(aes(label = Asterisks), size = 4, hjust = 0.5, vjust = 0, nudge_x = 0, nudge_y = -0.05)
   }
 
-  if (all(fullFrequencyTable$Timepoint == "NONE")) {
-    plot = plot + facet_grid(rows = vars(Read_Length))
-  } else {
+  if (any(fullFrequencyTable$Timepoint != "NONE") && !combinedReadLengths) {
     plot = plot + facet_grid(Read_Length~factor(Timepoint, levels = unique(fullFrequencyTable$Timepoint)))
+  } else if (any(fullFrequencyTable$Timepoint != "NONE") && combinedReadLengths) {
+    plot = plot + facet_grid(cols = vars(factor(Timepoint, levels = unique(fullFrequencyTable$Timepoint))))
+  } else if (all(fullFrequencyTable$Timepoint == "NONE") && !combinedReadLengths) {
+    plot = plot + facet_grid(rows = vars(Read_Length))
   }
 
   plot = plot +
@@ -493,14 +517,25 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
           axis.text.y = element_text(size = 10),
           axis.text.y.right = element_blank(), axis.ticks.y.right = element_blank(),
           strip.text.y = element_text(size = yStripFontSize)) +
-    scale_y_continuous(sec.axis = dup_axis(~., name = secondaryYAxisLabel), breaks = yAxisBreaks) +
     scale_x_continuous(breaks = xAxisBreaks)
 
-  if (displayPValue) {
-    plot = plot +  coord_cartesian(ylim = c(0,maxFrequency*1.4))
+  if (combinedReadLengths) {
+    plot = plot + scale_y_continuous(breaks = yAxisBreaks)
   } else {
-    plot = plot +  coord_cartesian(ylim = c(0,maxFrequency*1.2))
+    plot = plot + scale_y_continuous(sec.axis = dup_axis(~., name = secondaryYAxisLabel), breaks = yAxisBreaks)
   }
+
+  if (is.null(ylimMax)) ylimMax = maxFrequency
+
+  if (is.null(ylimMaxModifier)) {
+    if (displayPValue) {
+      ylimMaxModifier = 1.4
+    } else {
+      ylimMaxModifier = 1.2
+    }
+  }
+
+  plot = plot + coord_cartesian(ylim = c(0, ylimMax*ylimMaxModifier))
 
   if (showThreePrimeCutSite) {
     plot = plot + geom_vline(aes(xintercept = Cut_Site_Pos),
