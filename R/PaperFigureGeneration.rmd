@@ -445,7 +445,7 @@ plotNucFreqVsReadLengthBarPlot(NHF1GeneralReadsCPDNucFreqAllReps1hFilteredCombin
                                secondaryYAxisLabel = "Read Length", ylim = c(0,1),
                                posType = FIVE_PRIME, showFivePrimeCutSite = TRUE,
                                expansionOffset = 10,
-                               xAxisLabel = "Mismatch Relative Position")
+                               xAxisLabel = "5' Relative Position")
 ```
 ```{r figure_4D, fig.width = 5, fig.height = 4}
 plotSequenceFrequencies(NHF1GeneralReadsCPDSeqFreqAllReps1hFilteredCombined[Position <= 7],
