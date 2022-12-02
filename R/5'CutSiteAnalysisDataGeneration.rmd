@@ -61,7 +61,8 @@ source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
 ```{r define_all_that_and_a_bag_of_chips_function}
 cutSiteAnalysis = function(lesion, repetition, timepoint, cellType, directory,
                            queryPattern, sequencesName, readMinMax,
-                           alsoComputeCombinedReadLengths = FALSE, alsoComputeNucFreq = FALSE) {
+                           alsoComputeCombinedReadLengths = FALSE, alsoComputeNucFreq = FALSE,
+                           alsoCreateSequenceLogoInput = FALSE) {
   readData = fread(generateFilePath(
     directory, dataTypeStrings$alignedReads , ".bed",
     cellType = cellType, lesion = lesion, timepoint = timepoint,
@@ -77,6 +78,19 @@ cutSiteAnalysis = function(lesion, repetition, timepoint, cellType, directory,
     directory = directory, dataTypeStrings$sequenceFrequency, ".tsv",
     cellType = cellType, lesion = lesion, repitition = repetition,
     timepoint = timepoint, sequence = sequencesName, filtering = filtering))
+  
+  if (alsoCreateSequenceLogoInput) {
+    write(str_sub(readData$Read_Sequence, 1, 17), sep = '\n', file = generateFilePath(
+      directory, dataTypeStrings$sequenceLogoInput, ".txt",
+      cellType = cellType, lesion = lesion, repitition = repetition,
+      timepoint = timepoint, strandPolarity = FIVE_PRIME, filtering = filtering
+    ))
+    write(str_sub(readData$Read_Sequence, -14, -1), sep = '\n', file = generateFilePath(
+      generalReadSequenceDataDirectory, dataTypeStrings$sequenceLogoInput, ".txt",
+      cellType = cellType, lesion = lesion, repitition = repetition,
+      timepoint = timepoint, strandPolarity = THREE_PRIME, filtering = filtering
+    ))
+  }
   
   if (alsoComputeNucFreq) {
     
@@ -128,16 +142,21 @@ HYVPattern = "^[ACT][CT][ACG]"
 
 cutSiteAnalysis("CPD", "all_reps", "1h", "NHF1", NHF1GeneralReadSequenceDataDirectory,
                 HYVPattern, "HYV", humanReadMinMax, alsoComputeCombinedReadLengths = TRUE,
-                alsoComputeNucFreq = TRUE)
+                alsoComputeNucFreq = TRUE, alsoCreateSequenceLogoInput = TRUE)
 cutSiteAnalysis("6-4", "all_reps", "20min", "NHF1", NHF1GeneralReadSequenceDataDirectory,
-                HYVPattern, "HYV", humanReadMinMax, alsoComputeCombineReadLengths = TRUE)
+                HYVPattern, "HYV", humanReadMinMax, alsoComputeCombineReadLengths = TRUE,
+                alsoCreateSequenceLogoInput = TRUE)
 cutSiteAnalysis("cisplatin", "rep1", "90min", "GM12878", GM12878GeneralReadSequenceDataDirectory,
-                HYVPattern, "HYV", humanReadMinMax, alsoComputeCombinedReadLengths = TRUE)
+                HYVPattern, "HYV", humanReadMinMax, alsoComputeCombinedReadLengths = TRUE,
+                alsoCreateSequenceLogoInput = TRUE)
 cutSiteAnalysis("CPD", "all_reps", "20min", "yeast", yeastGeneralReadSequenceDataDirectory,
-                HYVPattern, "HYV", yeastReadMinMax, alsoComputeCombinedReadLengths = TRUE)
+                HYVPattern, "HYV", yeastReadMinMax, alsoComputeCombinedReadLengths = TRUE,
+                alsoCreateSequenceLogoInput = TRUE)
 cutSiteAnalysis("CPD", "all_reps", "ZT2", "Arabidopsis", arabidopsisGeneralReadSequenceDataDirectory,
-                HYVPattern, "HYV", arabidopsisReadMinMax, alsoComputeCombinedReadLengths = TRUE)
+                HYVPattern, "HYV", arabidopsisReadMinMax, alsoComputeCombinedReadLengths = TRUE,
+                alsoCreateSequenceLogoInput = TRUE)
 cutSiteAnalysis("CPD", "all_reps", "5min", "E_coli_WT", EColiGeneralReadSequenceDataDirectory,
-                HYVPattern, "HYV", EColiReadMinMax, alsoComputeCombinedReadLengths = TRUE)
+                HYVPattern, "HYV", EColiReadMinMax, alsoComputeCombinedReadLengths = TRUE,
+                alsoCreateSequenceLogoInput = TRUE)
 ```
 
