@@ -161,8 +161,8 @@ plotPositionAcrossTimepointAndReadLength = function(simplifiedTables, includedTy
   }
 
   plot = plot +
-    theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
-          strip.background = element_rect(color = "black", size = 1),
+    theme(panel.border = element_rect(color = "black", fill = NA, linewidth = 1),
+          strip.background = element_rect(color = "black", linewidth = 1),
           axis.text.y.right = element_blank(), axis.ticks.y.right = element_blank(),
           strip.text.y = element_text(size = 16)) +
     geom_vline(xintercept = modePosition) +
@@ -202,8 +202,8 @@ plotReadLengthFrequencies = function(readLengthCountTables, title = "Read Length
   }
 
   plot = plot +
-    theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
-          strip.background = element_rect(color = "black", size = 1),
+    theme(panel.border = element_rect(color = "black", fill = NA, linewidth = 1),
+          strip.background = element_rect(color = "black", linewidth = 1),
           axis.text = element_text(size = 15), strip.text.y = element_text(size = 16)) +
     scale_y_continuous(breaks = yAxisBreaks)
 
@@ -280,7 +280,7 @@ plotGroupedPositionStats = function(threePrimeGroupedStats, fivePrimeGroupedStat
   if (stat == POS_DIFF) {
     groupedStatsPlot =
       ggplot(aggregateData, aes(Read_Length, Absolute_Pos_Change, color = Timepoint, linetype = Position_Type)) +
-      geom_line(size = 1.5) + theme(legend.key.width = unit(3, "line")) +
+      geom_line(linewidth = 1.5) + theme(legend.key.width = unit(3, "line")) +
       scale_linetype_manual(values = c("3' Relative Position" = "dashed", "5' Relative Position" = "solid"))
   } else if (stat == IQR) {
     groupedStatsPlot =

@@ -161,12 +161,12 @@ plotZScoreAcrossTimepointAndReadLength = function(zScoreTables, title = "Mismatc
   }
 
   plot = plot +
-    theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
-          strip.background = element_rect(color = "black", size = 1),
+    theme(panel.border = element_rect(color = "black", fill = NA, linewidth = 1),
+          strip.background = element_rect(color = "black", linewidth = 1),
           axis.text.y = element_text(size = 12), strip.text.y = element_text(size = 16),
           axis.text.y.right = element_blank(), axis.ticks.y.right = element_blank()) +
     scale_x_continuous(breaks = xAxisBreaks) +
-    geom_hline(yintercept = zScoreCutoff, linetype = 2, size = 0.5)
+    geom_hline(yintercept = zScoreCutoff, linetype = 2, linewidth = 0.5)
 
   print(plot)
 

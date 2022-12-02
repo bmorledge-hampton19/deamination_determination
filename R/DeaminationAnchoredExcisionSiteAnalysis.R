@@ -145,8 +145,8 @@ plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
   }
 
   plot = plot +
-    theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
-          strip.background = element_rect(color = "black", size = 1),
+    theme(panel.border = element_rect(color = "black", fill = NA, linewidth = 1),
+          strip.background = element_rect(color = "black", linewidth = 1),
           axis.text.y.right = element_blank(), axis.ticks.y.right = element_blank(),
           axis.text.y.left = element_text(size = 10),
           strip.text.y = element_text(size = yStripFontSize)) +
@@ -340,8 +340,8 @@ plotSequenceEnrichment = function(enrichmentTablesByTimepoint, posType = THREE_P
   }
 
   plot = plot +
-    theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
-          strip.background = element_rect(color = "black", size = 1),
+    theme(panel.border = element_rect(color = "black", fill = NA, linewidth = 1),
+          strip.background = element_rect(color = "black", linewidth = 1),
           axis.text.y = element_text(size = yAxisTickTextSize),
           axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),
           strip.text.y = element_text(size = yStripFontSize)) +
@@ -512,8 +512,8 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
   }
 
   plot = plot +
-    theme(panel.border = element_rect(color = "black", fill = NA, size = 1),
-          strip.background = element_rect(color = "black", size = 1),
+    theme(panel.border = element_rect(color = "black", fill = NA, linewidth = 1),
+          strip.background = element_rect(color = "black", linewidth = 1),
           axis.text.y = element_text(size = 10),
           axis.text.y.right = element_blank(), axis.ticks.y.right = element_blank(),
           strip.text.y = element_text(size = yStripFontSize)) +
