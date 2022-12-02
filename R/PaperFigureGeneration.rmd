@@ -871,6 +871,26 @@ plotSequenceFrequencies(GM12878GeneralReadsCisplatinSeqFreqRep1_90minFilteredCom
 
 
 ```{r read_figure_S5_data}
+NHF1FivePrimeMismatchCPDNucFreqAllRepsFiltered = fread(generateFilePath(
+  NHF1ExcisionSiteDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
+  cellType = "NHF1", lesion = "CPD", repitition = "all_reps",
+  strandPolarity = "five_prime", anchored = TRUE, filtering = "TGG_filtered"
+))
+```
+
+
+```{r figure_S5, fig.width = 6.5, fig.height = 6}
+plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsFiltered[Timepoint == "1h"], 
+                               title = "NHF1 CPD 1h All Reps TGG-Filtered 5' Anchored Nuc Freq",
+                               secondaryYAxisLabel = "3' Cut Site Distance",
+                               posType = THREE_PRIME, showThreePrimeCutSite = TRUE,
+                               expansionOffset = 10, minReadLength = 6, maxReadLength = 12,
+                               xAxisLabel = "Mismatch Relative Position")
+```
+
+
+
+```{r read_figure_S6_data}
 NHF1CPDGGtoAAMismatchDataAllRepsFiltered = NHF1CPDTimepoints
 for (i in seq_along(NHF1CPDGGtoAAMismatchDataAllRepsFiltered)) {
   NHF1CPDGGtoAAMismatchDataAllRepsFiltered[[i]] = fread(generateFilePath(
@@ -893,7 +913,7 @@ for (i in seq_along(NHF1CPDGGtoAAMMFreqZScoresAllRepsFiltered)) {
 ```
 
 
-```{r figure_S5, fig.width = 5, fig.height = 5.5}
+```{r figure_S6, fig.width = 5, fig.height = 5.5}
 plotPositionAcrossTimepointAndReadLength(NHF1CPDGGtoAAMismatchDataAllRepsFiltered["1h"],
                                          title = "NHF1 CPD All Reps GG>AA Mismatch Pos Freq",
                                          zScoreTables = NHF1CPDGGtoAAMMFreqZScoresAllRepsFiltered,
