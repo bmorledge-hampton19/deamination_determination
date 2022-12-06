@@ -86,7 +86,7 @@ cutSiteAnalysis = function(lesion, repetition, timepoint, cellType, directory,
       timepoint = timepoint, strandPolarity = FIVE_PRIME, filtering = filtering
     ))
     write(str_sub(readData$Read_Sequence, -14, -1), sep = '\n', file = generateFilePath(
-      generalReadSequenceDataDirectory, dataTypeStrings$sequenceLogoInput, ".txt",
+      directory, dataTypeStrings$sequenceLogoInput, ".txt",
       cellType = cellType, lesion = lesion, repitition = repetition,
       timepoint = timepoint, strandPolarity = THREE_PRIME, filtering = filtering
     ))
