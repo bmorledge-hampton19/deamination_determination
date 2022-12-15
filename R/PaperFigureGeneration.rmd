@@ -876,12 +876,34 @@ NHF1FivePrimeMismatchCPDNucFreqAllRepsFiltered = fread(generateFilePath(
   cellType = "NHF1", lesion = "CPD", repitition = "all_reps",
   strandPolarity = "five_prime", anchored = TRUE, filtering = "TGG_filtered"
 ))
+arabidopsisFivePrimeMismatchCPDNucFreqAllRepsFiltered = fread(generateFilePath(
+  arabidopsisExcisionSiteDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
+  cellType = "Arabidopsis", lesion = "CPD", repitition = "all_reps",
+  strandPolarity = "five_prime", anchored = TRUE, filtering = "TGG_filtered"
+))
+yeastFivePrimeMismatchCPDNucFreqAllRepsFiltered = fread(generateFilePath(
+  yeastExcisionSiteDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
+  cellType = "yeast", lesion = "CPD", repitition = "all_reps",
+  strandPolarity = "five_prime", anchored = TRUE, filtering = "TGG_filtered"
+))
 ```
 
 
 ```{r figure_S5, fig.width = 6.5, fig.height = 6}
 plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsFiltered[Timepoint == "1h"], 
                                title = "NHF1 CPD 1h All Reps TGG-Filtered 5' Anchored Nuc Freq",
+                               secondaryYAxisLabel = "3' Cut Site Distance",
+                               posType = THREE_PRIME, showThreePrimeCutSite = TRUE,
+                               expansionOffset = 10, minReadLength = 6, maxReadLength = 12,
+                               xAxisLabel = "Mismatch Relative Position")
+plotNucFreqVsReadLengthBarPlot(arabidopsisFivePrimeMismatchCPDNucFreqAllRepsFiltered[Timepoint == "ZT2"], 
+                               title = "Arabidopsis CPD 1h All Reps TGG-Filtered 5' Anchored Nuc Freq",
+                               secondaryYAxisLabel = "3' Cut Site Distance",
+                               posType = THREE_PRIME, showThreePrimeCutSite = TRUE,
+                               expansionOffset = 10, minReadLength = 6, maxReadLength = 12,
+                               xAxisLabel = "Mismatch Relative Position")
+plotNucFreqVsReadLengthBarPlot(yeastFivePrimeMismatchCPDNucFreqAllRepsFiltered[Timepoint == "20min"], 
+                               title = "Yeast CPD 1h All Reps TGG-Filtered 5' Anchored Nuc Freq",
                                secondaryYAxisLabel = "3' Cut Site Distance",
                                posType = THREE_PRIME, showThreePrimeCutSite = TRUE,
                                expansionOffset = 10, minReadLength = 6, maxReadLength = 12,
