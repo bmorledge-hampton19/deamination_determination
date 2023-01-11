@@ -109,8 +109,8 @@ plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
                                           yStripFontSize = 16, ylim = c(0,1.2), yAxisBreaks = c(0,0.5,1),
                                           combineNucleotides = list(), combinedNames = list(),
                                           showThreePrimeCutSite = FALSE, showFivePrimeCutSite = FALSE,
-                                          expansionOffset = 0, xAxisBreaks = -3:3*10, xAxisLabel = NULL,
-                                          minReadLength = NULL, maxReadLength = NULL) {
+                                          expansionOffset = 0, xlim = NULL, xAxisBreaks = -3:3*10, xAxisLabel = NULL,
+                                          minReadLength = NULL, maxReadLength = NULL, positionOffset = 0) {
 
   if (is.null(xAxisLabel)) {
     if (posType == THREE_PRIME) {
@@ -131,7 +131,12 @@ plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
     if (!is.null(maxReadLength)) nucFreqTable = nucFreqTable[Read_Length <= maxReadLength]
   }
 
-  plot = ggplot(nucFreqTable, aes(Position, Frequency, fill = Nucleotide)) +
+  if (is.null(xlim)) {
+    xlim = c(min(nucFreqTable$Position)-1 + positionOffset,
+             max(nucFreqTable$Position)+1 + positionOffset)
+  }
+
+  plot = ggplot(nucFreqTable, aes(Position + positionOffset, Frequency, fill = Nucleotide)) +
     geom_bar(position = "stack", stat = "identity") +
     labs(title = title, x = xAxisLabel, y = yAxisLabel) +
     blankBackground + defaultTextScaling
@@ -150,7 +155,7 @@ plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
           axis.text.y.right = element_blank(), axis.ticks.y.right = element_blank(),
           axis.text.y.left = element_text(size = 10),
           strip.text.y = element_text(size = yStripFontSize)) +
-    coord_cartesian(ylim = ylim) +
+    coord_cartesian(ylim = ylim, xlim = xlim, expand = FALSE) +
     scale_x_continuous(breaks = xAxisBreaks)
 
   if (combinedReadLengths) {
@@ -166,13 +171,13 @@ plotNucFreqVsReadLengthBarPlot = function(nucFreqTable, posType = THREE_PRIME,
   }
 
   if (showThreePrimeCutSite) {
-    plot = plot + geom_vline(aes(xintercept = Cut_Site_Pos),
+    plot = plot + geom_vline(aes(xintercept = Cut_Site_Pos + positionOffset),
                              nucFreqTable[,.(Cut_Site_Pos = max(Position) - expansionOffset + 0.5),
                                           by = list(Read_Length, Timepoint)],
                              linetype = "dashed")
   }
   if (showFivePrimeCutSite) {
-    plot = plot + geom_vline(aes(xintercept = Cut_Site_Pos),
+    plot = plot + geom_vline(aes(xintercept = Cut_Site_Pos + positionOffset),
                              nucFreqTable[,.(Cut_Site_Pos = min(Position) + expansionOffset - 0.5),
                                           by = list(Read_Length, Timepoint)],
                              linetype = "dashed")
@@ -374,10 +379,10 @@ plotSequenceEnrichment = function(enrichmentTablesByTimepoint, posType = THREE_P
 #   start (near 0) or end of the x-axis. The bar plot is colored based on whether the frequency at each position
 #   meets a z-score threshold with respect to this background. The positions which are checked can be specified
 #   using the same start- or end-based notation.
-# Notes on xAxisOffset:
-#   This offset is applied after statistics and serves purely to change the visuals on the graph.
-#   The position values for the x-axis will be incremented by the given value, but any indicated
-#   cut-sites will remain unchanged. (This is useful for adjusting which nucleotide in the sequence
+# Notes on xAxisOffset and positionOffset:
+#   Both offsets are applied after statistics and serves purely to change the visuals on the graph.
+#   The position values for the x-axis will be incremented by the given values, but cut-site positions will only be
+#   changed by positionOffset, not xAxisOffset. (This is useful for adjusting which nucleotide in the sequence
 #   is used to orient the bars in the plot.)
 # Combining read lengths:
 #   If all of the entries in the "Read_Length" columns are the string "combined", no secondary y-axis will be plotted.)
@@ -386,11 +391,11 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
                                    secondaryYAxisLabel = "Read Length", yStripFontSize = 16,
                                    showThreePrimeCutSite = FALSE, showFivePrimeCutSite = FALSE,
                                    expansionOffset = 0, querySequences = c("TGG"), xAxisBreaks = -3:3*10,
-                                   minReadLength = NULL, maxReadLength = NULL, ylimMax = NULL, ylimMaxModifier = NULL,
+                                   minReadLength = NULL, maxReadLength = NULL, xlim = NULL, ylimMax = NULL, ylimMaxModifier = NULL,
                                    startBasedBackgroundNum = NULL, endBasedBackgroundNum = NULL, backgroundPositions = NULL,
                                    startBasedCheckPositions = NULL, endBasedCheckPositions = NULL, checkPositions = NULL,
                                    displayPValue = FALSE, zScoreCutoff = 4, significanceAsteriskBreakpoints = NULL,
-                                   xAxisLabel = NULL, xAxisOffset = 0, defaultColor = "grey35") {
+                                   xAxisLabel = NULL, xAxisOffset = 0, positionOffset = 0, defaultColor = "grey35") {
 
   if (is.null(xAxisLabel)) {
     if (posType == THREE_PRIME) {
@@ -479,7 +484,12 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
     }
   }
 
-  plot = ggplot(fullFrequencyTable, aes(Position + xAxisOffset, Frequency)) +
+  if (is.null(xlim)) {
+    xlim = c(min(fullFrequencyTable$Position)-1 + xAxisOffset + positionOffset,
+             max(fullFrequencyTable$Position)+1 + xAxisOffset + positionOffset)
+  }
+
+  plot = ggplot(fullFrequencyTable, aes(Position + xAxisOffset + positionOffset, Frequency)) +
     labs(title = title, x = xAxisLabel, y = yAxisLabel) +
     blankBackground + defaultTextScaling
 
@@ -535,17 +545,17 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
     }
   }
 
-  plot = plot + coord_cartesian(ylim = c(0, ylimMax*ylimMaxModifier))
+  plot = plot + coord_cartesian(ylim = c(0, ylimMax*ylimMaxModifier), xlim = xlim, expand = FALSE)
 
   if (showThreePrimeCutSite) {
-    plot = plot + geom_vline(aes(xintercept = Cut_Site_Pos),
+    plot = plot + geom_vline(aes(xintercept = Cut_Site_Pos + positionOffset),
                              fullFrequencyTable[,.(Cut_Site_Pos = max(Position) - expansionOffset +
                                                      maxQueryLength - 0.5),
                                                 by = list(Read_Length, Timepoint)],
                              linetype = "dashed")
   }
   if (showFivePrimeCutSite) {
-    plot = plot + geom_vline(aes(xintercept = Cut_Site_Pos),
+    plot = plot + geom_vline(aes(xintercept = Cut_Site_Pos + positionOffset),
                              fullFrequencyTable[,.(Cut_Site_Pos = min(Position) + expansionOffset - 0.5),
                                                 by = list(Read_Length, Timepoint)],
                              linetype = "dashed")

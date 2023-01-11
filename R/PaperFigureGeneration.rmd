@@ -101,7 +101,8 @@ plotTrinucleotideContext(NHF1CPDMismatchDataAllReps$`1h`, includedTypes = c("C>T
 ```
 ```{r figure_1D}
 plotMismatchPositionFrequencies(NHF1CPDMismatchDataAllReps$`1h`, includedTypes = c("C>T"),
-                                title = "NHF1 CPD 1h All Reps C>T Mismatch Pos Frequencies")
+                                title = "NHF1 CPD 1h All Reps C>T Mismatch Pos Frequencies",
+                                xAxisBreaks = c(-1,-10,-20,-30))
 ```
 
 
@@ -137,7 +138,8 @@ for (i in seq_along(NHF1CPDTGGSeqFreqAllReps)) {
 plotPositionAcrossTimepointAndReadLength(NHF1CPDMismatchDataAllReps["1h"], includedTypes = c("C>T"),
                                          title = "NHF1 CPD 1h All Reps C>T Mismatch Pos Freq",
                                          yAxisLabel = "Relative C>T Frequency",
-                                         zScoreTables = NHF1CPDMMFreqZScoresAllReps)
+                                         zScoreTables = NHF1CPDMMFreqZScoresAllReps,
+                                         xAxisBreaks = c(-1,-10,-20,-30))
 
 ### All timepoints together ###
 # plotPositionAcrossTimepointAndReadLength(NHF1CPDMismatchDataAllReps, includedTypes = c("C>T"),
@@ -152,7 +154,7 @@ plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllReps[Timepoint 
                                secondaryYAxisLabel = "3' Cut Site Distance",
                                posType = FIVE_PRIME, showThreePrimeCutSite = TRUE,
                                expansionOffset = 10, minReadLength = 1, maxReadLength = 8,
-                               xAxisLabel = "Mismatch Relative Position")
+                               xAxisLabel = "Mismatch Relative Position", positionOffset = -1)
 
 ### All timepoints together ###
 # plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllReps, 
@@ -166,7 +168,7 @@ plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllReps[Timepoint 
 ### Just the 1h timepoint ###
 plotSequenceFrequencies(NHF1CPDTGGSeqFreqAllReps$`1h`, title = "NHF1 CPD 1h All Reps General Read TGG Freq",
                         showThreePrimeCutSite = TRUE, showFivePrimeCutSite = TRUE, querySequences = c("TGG"),
-                        expansionOffset = 10, minReadLength = 20, maxReadLength = 27,
+                        expansionOffset = 10, minReadLength = 20, maxReadLength = 27, positionOffset = 10,
                         yAxisLabel = "TGG Trinucleotide Frequency", defaultColor = "Black")
 
 
@@ -267,15 +269,15 @@ for (i in seq_along(yeastCPDGroupedStatsAllRepsFiltered)) {
 plotPositionAcrossTimepointAndReadLength(NHF1CPDMismatchDataAllRepsTGGFiltered["1h"], includedTypes = c("C>T"),
                                          title = "NHF1 CPD 1h All Reps TGG-Filtered C>T Mismatch Pos Freq",
                                          zScoreTables = NHF1CPDMMFreqZScoresAllRepsTGGFiltered,
-                                         yAxisLabel = "Relative C>T Frequency")
+                                         yAxisLabel = "Relative C>T Frequency", xAxisBreaks = c(-1,-10,-20,-30))
 plotPositionAcrossTimepointAndReadLength(arabidopsisCPDMismatchDataAllRepsFiltered["ZT2"], includedTypes = c("C>T"),
                                          title = "Arabidopsis CPD ZT2 All Reps TGG-Filtered C>T Mismatch Pos Freq",
                                          zScoreTables = arabidopsisCPDMMFreqZScoresAllRepsFiltered,
-                                         yAxisLabel = "Relative C>T Frequency")
+                                         yAxisLabel = "Relative C>T Frequency", xAxisBreaks = c(-1,-10,-20,-30))
 plotPositionAcrossTimepointAndReadLength(yeastCPDMismatchDataAllRepsFiltered["20min"], includedTypes = c("C>T"),
                                          title = "Yeast CPD 20min All Reps TGG-Filtered C>T Mismatch Pos Freq",
                                          zScoreTables = yeastCPDMMFreqZScoresAllRepsFiltered,
-                                         yAxisLabel = "Relative C>T Frequency")
+                                         yAxisLabel = "Relative C>T Frequency", xAxisBreaks = c(-1,-10,-20,-30))
 
 
 ### All timepoints together ###
@@ -297,15 +299,18 @@ plotPositionAcrossTimepointAndReadLength(yeastCPDMismatchDataAllRepsFiltered["20
 plotPositionAcrossTimepointAndReadLength(NHF1CPDMismatchDataAllRepsTGGFiltered["1h"], includedTypes = c("C>T"),
                                          title = "NHF1 CPD 1h All Reps TGG-Filtered C>T Mismatch Pos Freq",
                                          zScoreTables = NHF1CPDMMFreqZScoresAllRepsTGGFiltered,
-                                         posType = FIVE_PRIME, yAxisLabel = "Relative C>T Frequency")
+                                         posType = FIVE_PRIME, yAxisLabel = "Relative C>T Frequency",
+                                         xAxisBreaks = c(1,10,20,30))
 plotPositionAcrossTimepointAndReadLength(arabidopsisCPDMismatchDataAllRepsFiltered["ZT2"], includedTypes = c("C>T"),
                                          title = "Arabidopsis CPD ZT2 All Reps TGG-Filtered C>T Mismatch Pos Freq",
                                          zScoreTables = arabidopsisCPDMMFreqZScoresAllRepsFiltered,
-                                         posType = FIVE_PRIME, yAxisLabel = "Relative C>T Frequency")
+                                         posType = FIVE_PRIME, yAxisLabel = "Relative C>T Frequency",
+                                         xAxisBreaks = c(1,10,20,30))
 plotPositionAcrossTimepointAndReadLength(yeastCPDMismatchDataAllRepsFiltered["20min"], includedTypes = c("C>T"),
                                          title = "Yeast CPD 20min All Reps TGG-Filtered C>T Mismatch Pos Freq",
                                          zScoreTables = yeastCPDMMFreqZScoresAllRepsFiltered,
-                                         posType = FIVE_PRIME, yAxisLabel = "Relative C>T Frequency")
+                                         posType = FIVE_PRIME, yAxisLabel = "Relative C>T Frequency",
+                                         xAxisBreaks = c(1,10,20,30))
 
 
 ### All timepoints together ###
@@ -411,7 +416,7 @@ plotNucFreqVsReadLengthBarPlot(NHF1ThreePrimeMismatchCPDNucFreqAllRepsFiltered[T
                                secondaryYAxisLabel = "5' Cut Site Distance",
                                posType = FIVE_PRIME, showFivePrimeCutSite = TRUE,
                                expansionOffset = 10, minReadLength = 19, maxReadLength = 25,
-                               xAxisLabel = "Mismatch Relative Position")
+                               xAxisLabel = "Mismatch Relative Position", positionOffset = 1)
 ```
 ```{r figure_4B, fig.width = 5, fig.height = 6}
 # ### Just the 1h timepoint (asterisks) ###
@@ -429,7 +434,8 @@ plotSequenceFrequencies(NHF1ThreePrimeMMAnchoredCPDSeqFreqAllRepsFiltered$`1h`,
                         secondaryYAxisLabel = "5' Cut Site Distance", yAxisLabel = "HYV Frequency",
                         showFivePrimeCutSite = TRUE, querySequences = c("333"), xAxisOffset = 1,
                         expansionOffset = 10, minReadLength = 19, maxReadLength = 25, endBasedBackgroundNum = 6,
-                        endBasedCheckPositions = -9, displayPValue = FALSE, xAxisLabel = "Mismatch Relative Position")
+                        endBasedCheckPositions = -9, displayPValue = FALSE, xAxisLabel = "Mismatch Relative Position",
+                        xAxisBreaks = c(-2,-10,-20,-30), xlim = c(-35, -4))
 
 ### All timepoints together ###
 # plotSequenceFrequencies(NHF1ThreePrimeMMAnchoredCPDSeqFreqAllRepsFiltered,
@@ -444,7 +450,7 @@ plotNucFreqVsReadLengthBarPlot(NHF1GeneralReadsCPDNucFreqAllReps1hFilteredCombin
                                title = "NHF1 CPD 1h All Reps TGG-Filtered Nuc Freq",
                                secondaryYAxisLabel = "Read Length", ylim = c(0,1),
                                posType = FIVE_PRIME, showFivePrimeCutSite = TRUE,
-                               expansionOffset = 10,
+                               expansionOffset = 10, xAxisBreaks = c(-9,0,7),
                                xAxisLabel = "5' Relative Position")
 ```
 ```{r figure_4D, fig.width = 5, fig.height = 4}
@@ -475,12 +481,12 @@ plotSequenceFrequencies(yeastGeneralReadsCPDSeqFreqAllReps20MinFilteredCombined[
                         xAxisBreaks = c(-8, 0, 8), ylimMax = 0.6, ylimMaxModifier = 1)
 ```
 ```{r figure_4G, fig.width = 5, fig.height = 4}
-plotSequenceFrequencies(EColiGeneralReadsCPDSeqFreqAllReps5MinFilteredCombined[Position <= 7],
+plotSequenceFrequencies(EColiGeneralReadsCPDSeqFreqAllReps5MinFilteredCombined[Position <= 5],
                         title = "E. coli CPD 5min All Reps TGG-Filtered General Reads HYV Freq",
                         secondaryYAxisLabel = "Read Length", yAxisLabel = "HYV Frequency",
                         showFivePrimeCutSite = TRUE, querySequences = c("333"), xAxisOffset = 1,
                         expansionOffset = 10, xAxisLabel = "5' Relative Position",
-                        xAxisBreaks = c(-8, 0, 8), ylimMax = 0.6, ylimMaxModifier = 1)
+                        xlim = c(-9,7), xAxisBreaks = c(-8, 0, 6), ylimMax = 0.6, ylimMaxModifier = 1)
 ```
 
 
@@ -502,7 +508,8 @@ print(
       geom_bar(stat = "identity", position = "dodge") +
       labs(title = "NHF1 CPD 1h All Reps Tandem Mismatch Counts", x = "Mismatch Type", y = "Tandem Mismatch Count") +
       geom_text(aes(label=Tandem_Mismatches_Count), position = position_dodge(width = 0.9), vjust = -0.25, size = 5) +
-      blankBackground + defaultTextScaling + scale_fill_brewer(palette = "Set1") + coord_cartesian(ylim = c(0,200000))
+      blankBackground + defaultTextScaling + scale_fill_brewer(palette = "Set1") +
+      coord_cartesian(ylim = c(0,200000), expand = FALSE)
   )
 ```
 
@@ -569,7 +576,7 @@ for (i in seq_along(yeastCPDCCToTTGroupedStatsAllRepsFiltered)) {
 plotPositionAcrossTimepointAndReadLength(NHF1CPDCCtoTTMismatchDataAllRepsFiltered["1h"],
                                          title = "NHF1 CPD 1h All Reps TGG-Filtered CC>TT Mismatch Pos Freq",
                                          zScoreTables = NHF1CPDCCtoTTMMFreqZScoresAllRepsFiltered,
-                                         yAxisLabel = "Relative CC>TT Frequency")
+                                         yAxisLabel = "Relative CC>TT Frequency", xAxisBreaks = c(-30,-20,-10,-1))
 
 ### All timepoints together ###
 # plotPositionAcrossTimepointAndReadLength(NHF1CPDCCtoTTMismatchDataAllRepsFiltered,
@@ -584,7 +591,7 @@ plotSequenceFrequencies(NHF1ThreePrimeMMAnchoredCPDCCtoTTSeqFreqAllReps1hFiltere
                         showFivePrimeCutSite = TRUE, querySequences = c("333"),
                         expansionOffset = 10, minReadLength = 19, maxReadLength = 25, endBasedBackgroundNum = 6,
                         endBasedCheckPositions = -9, displayPValue = FALSE, xAxisLabel = "Mismatch Relative Position",
-                        xAxisOffset = 1)
+                        xAxisOffset = 1, xAxisBreaks = c(-2,-10,-20,-30), xlim = c(-35,-4))
 ```
 ```{r figure_6C, fig.width = 7.5, fig.height = 5}
 ### Just the 1h timepoint ###
@@ -655,7 +662,8 @@ plotTrinucleotideContext(NHF1SixFourMismatchDataAllReps$`20min`, includedTypes =
                          title = "NHF1 6-4 20min All Reps Mismatch Trinuc Context")
 
 plotMismatchPositionFrequencies(NHF1SixFourMismatchDataAllReps$`20min`, includedTypes = c("C>T"),
-                                title = "NHF1 6-4 20min All Reps Mismatch Pos Frequencies")
+                                title = "NHF1 6-4 20min All Reps Mismatch Pos Frequencies",
+                                xAxisBreaks = c(-1,-10,-20,-30))
 
 plotMismatchTypeFrequencies(GM12878CisplatinMismatchDataAllReps$`90min`,
                             title = "GM12878 Cisplatin 90min All Reps Mismatch Type Frequencies")
@@ -664,10 +672,12 @@ plotTrinucleotideContext(GM12878CisplatinMismatchDataAllReps$`90min`, includedTy
                          title = "GM12878 Cisplatin 90min All Reps Mismatch Trinuc Context")
 
 plotMismatchPositionFrequencies(GM12878CisplatinMismatchDataAllReps$`90min`, includedTypes = c("C>T"),
-                                title = "GM12878 Cisplatin 90min All Reps Mismatch Pos Frequencies")
+                                title = "GM12878 Cisplatin 90min All Reps Mismatch Pos Frequencies",
+                                xAxisBreaks = c(-1,-10,-20,-30))
 
 plotMismatchPositionFrequencies(NHF1CPDMismatchDataAllReps$`1h`, omittedTypes = c("C>T"),
-                                title = "NHF1 CPD 1h All Reps !C>T Mismatch Pos Frequencies")
+                                title = "NHF1 CPD 1h All Reps !C>T Mismatch Pos Frequencies",
+                                xAxisBreaks = c(-1,-10,-20,-30))
 ```
 
 
@@ -718,7 +728,8 @@ plotTrinucleotideContext(arabidopsisCPDMismatchDataAllReps$ZT2, includedTypes = 
                          title = "Arabidopsis CPD ZT2 All Reps Mismatch Trinuc Context")
 
 plotMismatchPositionFrequencies(arabidopsisCPDMismatchDataAllReps$ZT2, includedTypes = c("C>T"),
-                                title = "Arabidopsis CPD ZT2 All Reps Mismatch Pos Frequencies")
+                                title = "Arabidopsis CPD ZT2 All Reps Mismatch Pos Frequencies",
+                                xAxisBreaks = c(-1,-10,-20,-30))
 
 
 plotMismatchTypeFrequencies(yeastCPDMismatchDataAllReps$`20min`,
@@ -728,7 +739,8 @@ plotTrinucleotideContext(yeastCPDMismatchDataAllReps$`20min`, includedTypes = c(
                          title = "Yeast CPD 20min All Reps Mismatch Trinuc Context")
 
 plotMismatchPositionFrequencies(yeastCPDMismatchDataAllReps$`20min`, includedTypes = c("C>T"),
-                                title = "Yeast CPD 20min All Reps Mismatch Pos Frequencies")
+                                title = "Yeast CPD 20min All Reps Mismatch Pos Frequencies",
+                                xAxisBreaks = c(-1,-10,-20,-30))
 
 
 plotMismatchTypeFrequencies(CSBCPDMismatchDataAllReps$`1h`,
@@ -739,7 +751,7 @@ plotTrinucleotideContext(CSBCPDMismatchDataAllReps$`1h`, includedTypes = c("C>T"
 
 plotMismatchPositionFrequencies(CSBCPDMismatchDataAllReps$`1h`, includedTypes = c("C>T"),
                                 title = "CS-B CPD 1h All Reps Mismatch Pos Frequencies",
-                                ylim = c(0,0.25))
+                                ylim = c(0,0.25), xAxisBreaks = c(-1,-10,-20,-30))
 
 
 plotMismatchTypeFrequencies(XPCCPDMismatchDataAllReps$`1h`,
@@ -750,7 +762,7 @@ plotTrinucleotideContext(XPCCPDMismatchDataAllReps$`1h`, includedTypes = c("C>T"
 
 plotMismatchPositionFrequencies(XPCCPDMismatchDataAllReps$`1h`, includedTypes = c("C>T"),
                                 title = "XP-C CPD 1h All Reps Mismatch Pos Frequencies",
-                                ylim = c(0,0.25))
+                                ylim = c(0,0.25), xAxisBreaks = c(-1,-10,-20,-30))
 ```
 
 
@@ -793,7 +805,7 @@ plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsTGGFiltered
                                secondaryYAxisLabel = "3' Cut Site Distance",
                                posType = FIVE_PRIME, showThreePrimeCutSite = TRUE,
                                expansionOffset = 10, minReadLength = 1, maxReadLength = 8,
-                               xAxisLabel = "Mismatch Relative Position")
+                               xAxisLabel = "Mismatch Relative Position", positionOffset = -1)
 
 ### All timepoints together ###
 # plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsTGGFiltered, 
@@ -810,7 +822,7 @@ plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsTGFiltered[
                                secondaryYAxisLabel = "3' Cut Site Distance",
                                posType = FIVE_PRIME, showThreePrimeCutSite = TRUE,
                                expansionOffset = 10, minReadLength = 1, maxReadLength = 8,
-                               xAxisLabel = "Mismatch Relative Position")
+                               xAxisLabel = "Mismatch Relative Position", positionOffset = -1)
 
 ### All timepoints together ###
 # plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsTGFiltered, 
@@ -820,12 +832,28 @@ plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsTGFiltered[
 #                                expansionOffset = 10, minReadLength = 1, maxReadLength = 8,
 #                                xAxisLabel = "Mismatch Relative Position")
 ```
+```{r figure_S3C, fig.width = 5, fig.height = 5}
+### Just the 1h timepoint ###
+plotPositionAcrossTimepointAndReadLength(NHF1CPDMismatchDataAllRepsTGGFiltered["1h"], includedTypes = c("C>T"),
+                                         title = "NHF1 CPD 1h All Reps TG-Filtered C>T Mismatch Pos Freq",
+                                         zScoreTables = NHF1CPDMMFreqZScoresAllRepsTGFiltered,
+                                         posType = THREE_PRIME, yAxisLabel = "Relative C>T Frequency",
+                                         xAxisBreaks = c(-1,-10,-20,-30))
+
+
+### All timepoints together ###
+# plotPositionAcrossTimepointAndReadLength(NHF1CPDMismatchDataAllRepsTGFiltered, includedTypes = c("C>T"),
+#                                          title = "NHF1 CPD All Reps TG-Filtered C>T Mismatch Pos Freq",
+#                                          zScoreTables = NHF1CPDMMFreqZScoresAllRepsTGFiltered,
+#                                          posType = THREE_PRIME, yAxisLabel = "Relative C>T Frequency")
+```
 ```{r figure_S3D, fig.width = 5, fig.height = 5}
 ### Just the 1h timepoint ###
 plotPositionAcrossTimepointAndReadLength(NHF1CPDMismatchDataAllRepsTGFiltered["1h"], includedTypes = c("C>T"),
                                          title = "NHF1 CPD 1h All Reps TG-Filtered C>T Mismatch Pos Freq",
                                          zScoreTables = NHF1CPDMMFreqZScoresAllRepsTGFiltered,
-                                         posType = THREE_PRIME, yAxisLabel = "Relative C>T Frequency")
+                                         posType = THREE_PRIME, yAxisLabel = "Relative C>T Frequency",
+                                         xAxisBreaks = c(-1,-10,-20,-30))
 
 
 ### All timepoints together ###
@@ -895,19 +923,19 @@ plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsFiltered[Ti
                                secondaryYAxisLabel = "3' Cut Site Distance",
                                posType = THREE_PRIME, showThreePrimeCutSite = TRUE,
                                expansionOffset = 10, minReadLength = 6, maxReadLength = 12,
-                               xAxisLabel = "Mismatch Relative Position")
+                               xAxisLabel = "Mismatch Relative Position", positionOffset = -1)
 plotNucFreqVsReadLengthBarPlot(arabidopsisFivePrimeMismatchCPDNucFreqAllRepsFiltered[Timepoint == "ZT2"], 
                                title = "Arabidopsis CPD 1h All Reps TGG-Filtered 5' Anchored Nuc Freq",
                                secondaryYAxisLabel = "3' Cut Site Distance",
                                posType = THREE_PRIME, showThreePrimeCutSite = TRUE,
                                expansionOffset = 10, minReadLength = 6, maxReadLength = 12,
-                               xAxisLabel = "Mismatch Relative Position")
+                               xAxisLabel = "Mismatch Relative Position", positionOffset = -1)
 plotNucFreqVsReadLengthBarPlot(yeastFivePrimeMismatchCPDNucFreqAllRepsFiltered[Timepoint == "20min"], 
                                title = "Yeast CPD 1h All Reps TGG-Filtered 5' Anchored Nuc Freq",
                                secondaryYAxisLabel = "3' Cut Site Distance",
                                posType = THREE_PRIME, showThreePrimeCutSite = TRUE,
                                expansionOffset = 10, minReadLength = 6, maxReadLength = 12,
-                               xAxisLabel = "Mismatch Relative Position")
+                               xAxisLabel = "Mismatch Relative Position", positionOffset = -1)
 ```
 
 
@@ -939,5 +967,6 @@ for (i in seq_along(NHF1CPDGGtoAAMMFreqZScoresAllRepsFiltered)) {
 plotPositionAcrossTimepointAndReadLength(NHF1CPDGGtoAAMismatchDataAllRepsFiltered["1h"],
                                          title = "NHF1 CPD All Reps GG>AA Mismatch Pos Freq",
                                          zScoreTables = NHF1CPDGGtoAAMMFreqZScoresAllRepsFiltered,
-                                         yAxisLabel = "Relative GG>AA Frequency")
+                                         yAxisLabel = "Relative GG>AA Frequency",
+                                         xAxisBreaks = c(-1,-10,-20,-30))
 ```
