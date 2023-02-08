@@ -317,7 +317,7 @@ plotGroupedPositionStats = function(threePrimeGroupedStats, fivePrimeGroupedStat
 
 # Plots the trinucleotide context for a set of mismatches
 plotTrinucleotideContext = function(simplifiedMismatchTable, includedTypes = list(), omittedTypes = list(),
-                                    title = "Trinucleotide Context") {
+                                    title = "Trinucleotide Context", printDipyFreq = FALSE) {
 
   if ( length(includedTypes) > 0 && length(omittedTypes) > 0) {
     stop("Included types and omitted types given simultaneously")
@@ -338,5 +338,9 @@ plotTrinucleotideContext = function(simplifiedMismatchTable, includedTypes = lis
       theme(legend.position = "none", axis.text.x = element_text(size = 12)) +
       blankBackground + defaultTextScaling + scale_fill_brewer(palette = "Set1")
   )
+
+  if (printDipyFreq) {
+    print(sum(trinucContextFrequencies[grepl("[CT][CT]", Trinuc_Context), Freq]))
+  }
 
 }
