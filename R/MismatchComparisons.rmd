@@ -1,0 +1,127 @@
+---
+title: "Mismatch Comparisons"
+author: "Ben Morledge-Hampton"
+date: "2023-02-18"
+output: html_document
+params:
+  bioinformaticsDirectory:
+    label: "Bioinformatics Projects Directory"
+    value: C:/Bioinformatics_Projects
+    input: select
+    choices: [C:/Bioinformatics_Projects, F:/Bioinformatics_Projects]
+  filtering:
+    label: "Filtering"
+    value: NONE
+    input: select
+    choices: [NONE, TGG_filtered, TG_filtered]
+---
+
+
+```{r setup_chunk}
+library(knitr)
+
+if (interactive()) {
+  bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
+  filtering = readline("Filtering identifier (Input nothing for no filtering):")
+  if (filtering == '') filtering = character()
+} else {
+  bioinformaticsDirectory = params$bioinformaticsDirectory
+  filtering = params$filtering
+  if (filtering == "NONE") filtering = character()
+}
+
+if (is.na(bioinformaticsDirectory)) stop("No bioinformatics directory given.")
+
+deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data")
+
+NHF1DataDirectory = file.path(deaminationDataDirectory, "NHF1")
+NHF1MismatchesByReadDataDirectory = file.path(NHF1DataDirectory, "mismatches_by_read")
+
+NHF1CPDTimepoints = list(`1h` = NULL, `8h` = NULL, `24h` = NULL, `48h` = NULL)
+```
+
+
+```{r source_functions}
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "UsefulFileSystemFunctions.R"))
+```
+
+
+```{r parse_mismatches_by_read_metadata}
+
+summarizeMismatchesByReadMetadata = function(dataDirectory, cellType, lesion, timepoint, verbose = FALSE) {
+  
+  if (verbose) {
+    print(paste0("Working with ", lesion, " lesions in ", cellType, " cells after ", timepoint, " of repair:"))
+  }
+  
+  rawMetadata = fread(generateFilePath(
+    file.path(dataDirectory,"mismatches_by_read"), dataTypeStrings$mismatchesByRead,
+    ".metadata", cellType = cellType, lesion = lesion, repitition = "all_reps",
+    timepoint = timepoint
+  ))
+  
+  totalAlignedReads = sum(rawMetadata[V1 == "Total_Aligned_Reads:", V2])
+  totalMismatches = sum(rawMetadata[V1 == "Mismatches:", V2])
+ 
+  singleMismatchesByRead = fread(generateFilePath(
+    file.path(dataDirectory,"sequence_and_position_analysis"), dataTypeStrings$simplifiedMismatches,
+    ".tsv", cellType = cellType, lesion = lesion, repitition = "all_reps",
+    timepoint = timepoint
+  ))
+  
+  filteredMismatches = singleMismatchesByRead[,.N]
+  singleCtoT_Mismatches = singleMismatchesByRead[Mismatch == "C>T" ,.N]
+  
+  tandemMismatchesByRead = fread(generateFilePath(
+    file.path(dataDirectory,"sequence_and_position_analysis"), dataTypeStrings$simplifiedMismatches,
+    ".tsv", cellType = cellType, lesion = lesion, repitition = "all_reps",
+    timepoint = timepoint, includedMismatches = "CC>TT"
+  ))
+  
+  CCtoTT_Mismatches = tandemMismatchesByRead[,.N]
+  
+  filteredMismatchesProportion = filteredMismatches/totalMismatches
+  
+  singleCtoT_FilteredMismatchProportion = singleCtoT_Mismatches/totalMismatches
+  
+  singleCtoT_ReadProportion = singleCtoT_Mismatches/totalAlignedReads
+  CCtoTT_ReadProportion = CCtoTT_Mismatches/totalAlignedReads
+  singleToTandemRatio = singleCtoT_Mismatches/CCtoTT_Mismatches
+  
+  if (verbose) {
+    print(paste0("  Total Aligned Reads: ", totalAlignedReads))
+    print(paste0("  Total Mismatches: ", totalMismatches))
+    print(paste0("  Filtered Mismatches: ", filteredMismatches))
+    print(paste0("    Proportion of mismatches retained after filtering: ", filteredMismatchesProportion))
+    print(paste0("  Single C>T Mismatches: ", singleCtoT_Mismatches))
+    print(paste0("    Proportion of filtered mismatches that are C>T: ", singleCtoT_FilteredMismatchProportion))
+    print(paste0("    Proportion of reads with a single C>T mismatch: ", singleCtoT_ReadProportion))
+    print(paste0("  Tandem CC>TT Mismatches: ", CCtoTT_Mismatches))
+    print(paste0("    Proportion of reads with a tandem CC>TT mismatch: ", CCtoTT_ReadProportion))
+    print(paste0("    Ratio of single C>T mismatches to tandem CC>TT mismatches: ", singleToTandemRatio))
+  }
+  
+  return(data.table(Cell_Type = cellType, Lesion = lesion, Timepoint = timepoint,
+                    Total_Aligned_Reads = totalAlignedReads, Total_Mismatches = totalMismatches,
+                    Filtered_Mismatches = filteredMismatches, Filtered_Mismatches_Proportion = filteredMismatchesProportion,
+                    Single_C_to_T_Mismatches = singleCtoT_Mismatches,
+                    Single_C_to_T_Filtered_Mismatch_Proportion = singleCtoT_FilteredMismatchProportion,
+                    Single_C_to_T_Read_Proportion = singleCtoT_ReadProportion, CC_to_TT_Mismatches = CCtoTT_Mismatches,
+                    CC_to_TT_Read_Proportion = CCtoTT_ReadProportion, Single_To_Tandem_Ratio = singleToTandemRatio))
+  
+}
+```
+
+
+```{r Mismatch_Comparisons}
+
+results = rbindlist(lapply(names(NHF1CPDTimepoints), function(timepoint) {
+  summarizeMismatchesByReadMetadata(NHF1DataDirectory, "NHF1", "CPD", timepoint, TRUE)
+}))
+
+fwrite(results, file.path(NHF1DataDirectory, "mismatches_by_read", "NHF1_CPD_mismatch_metadata_summary.tsv"),
+       sep = '\t')
+
+```
+
