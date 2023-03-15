@@ -272,7 +272,8 @@ IQR = "IQR"
 STDEV = "Standard Deviation"
 # Plots grouped stats across timepoints and positioning type (3' vs. 5')
 plotGroupedPositionStats = function(threePrimeGroupedStats, fivePrimeGroupedStats, stat,
-                                    title = paste(stat,"Over Time"), xAxisBreaks = waiver()) {
+                                    title = paste(stat,"Over Time"), xAxisBreaks = waiver(),
+                                    yAxisTitle = NULL, ylim = NULL) {
 
   # Combine the two data sets with an extra column for the position type
   threePrimeGroupedStats = copy(threePrimeGroupedStats)
@@ -300,9 +301,11 @@ plotGroupedPositionStats = function(threePrimeGroupedStats, fivePrimeGroupedStat
     stop(paste("Unrecognized stat:",stat))
   }
 
+  if (is.null(yAxisTitle)) yAxisTitle = stat
+
   groupedStatsPlot = groupedStatsPlot + blankBackground + defaultTextScaling +
-    labs(title = title, x = "Read Length", y = stat) +
-    scale_x_continuous(breaks = xAxisBreaks)
+    labs(title = title, x = "Read Length", y = yAxisTitle) +
+    scale_x_continuous(breaks = xAxisBreaks) + coord_cartesian(ylim = ylim)
 
   if (all(aggregateData$Timepoint == "NONE")) {
     groupedStatsPlot = groupedStatsPlot + scale_color_manual(values = "black")
@@ -317,7 +320,7 @@ plotGroupedPositionStats = function(threePrimeGroupedStats, fivePrimeGroupedStat
 
 # Plots the trinucleotide context for a set of mismatches
 plotTrinucleotideContext = function(simplifiedMismatchTable, includedTypes = list(), omittedTypes = list(),
-                                    title = "Trinucleotide Context", printDipyFreq = FALSE) {
+                                    title = "Trinucleotide Context", printDipyFreq = FALSE, ylim = NULL) {
 
   if ( length(includedTypes) > 0 && length(omittedTypes) > 0) {
     stop("Included types and omitted types given simultaneously")
@@ -334,7 +337,7 @@ plotTrinucleotideContext = function(simplifiedMismatchTable, includedTypes = lis
     ggplot(trinucContextFrequencies, aes(Trinuc_Context, Freq, fill = str_sub(Trinuc_Context, 1, 1))) +
       geom_bar(stat = "identity") +
       labs(title = title, x = "Trinucleotide Context", y = "Relative Frequency") +
-      guides(x = guide_axis(angle = 45)) +
+      guides(x = guide_axis(angle = 45)) + coord_cartesian(ylim = ylim) +
       theme(legend.position = "none", axis.text.x = element_text(size = 12)) +
       blankBackground + defaultTextScaling + scale_fill_brewer(palette = "Set1")
   )
