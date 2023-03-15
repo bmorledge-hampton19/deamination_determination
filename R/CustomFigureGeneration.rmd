@@ -1,0 +1,144 @@
+---
+title: "Custom Figure Generation"
+author: "Ben Morledge-Hampton"
+date: "6/21/2022"
+output: html_document
+params:
+  bioinformaticsDirectory:
+    label: "Bioinformatics Projects Directory"
+    value: C:/Bioinformatics_Projects
+    input: select
+    choices: [C:/Bioinformatics_Projects, F:/Bioinformatics_Projects]
+---
+
+```{r setup_chunk}
+library(knitr)
+
+NHF1CPDTimepoints = list(`1h` = NULL, `8h` = NULL, `24h` = NULL, `48h` = NULL)
+NHF1SixFourTimepoints = list(`5min` = NULL, `20min` = NULL, `1h` = NULL)
+arabidopsisCPDTimepoints = list(`ZT2` = NULL, `ZT14` = NULL)
+yeastCPDTimepoints = list(`5min` = NULL, `20min` = NULL, `1h` = NULL)
+GM12878CisplatinTimepoints = list(`90min` = NULL)
+CSBCPDTimepoints = list(`1h` = NULL)
+XPCCPDTimepoints = list(`1h` = NULL)
+EColiCPDTimepoints = list(`5min` = NULL)
+
+if (interactive()) {
+  bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
+} else {
+  bioinformaticsDirectory = params$bioinformaticsDirectory
+}
+
+opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5, 
+               fig.path = paste0(file.path("deamination_analysis_output","custom_figures"),
+                                 .Platform$file.sep))
+
+deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data")
+
+NHF1DataDirectory = file.path(deaminationDataDirectory, "NHF1")
+NHF1MismatchesByReadDataDirectory = file.path(NHF1DataDirectory, "mismatches_by_read")
+NHF1SequenceAndPositionDataDirectory = file.path(NHF1DataDirectory, "sequence_and_position_analysis")
+NHF1ExcisionSiteDataDirectory = file.path(NHF1DataDirectory, "excision_site_analysis")
+NHF1GeneralReadSequenceDataDirectory = file.path(NHF1DataDirectory, "general_read_sequences")
+
+arabidopsisDataDirectory = file.path(deaminationDataDirectory, "Arabidopsis")
+arabidopsisSequenceAndPositionDataDirectory = file.path(arabidopsisDataDirectory, "sequence_and_position_analysis")
+arabidopsisExcisionSiteDataDirectory = file.path(arabidopsisDataDirectory, "excision_site_analysis")
+arabidopsisGeneralReadSequenceDataDirectory = file.path(arabidopsisDataDirectory, "general_read_sequences")
+
+yeastDataDirectory = file.path(deaminationDataDirectory, "yeast")
+yeastSequenceAndPositionDataDirectory = file.path(yeastDataDirectory, "sequence_and_position_analysis")
+yeastExcisionSiteDataDirectory = file.path(yeastDataDirectory, "excision_site_analysis")
+yeastGeneralReadSequenceDataDirectory = file.path(yeastDataDirectory, "general_read_sequences")
+
+GM12878DataDirectory = file.path(deaminationDataDirectory, "GM12878")
+GM12878SequenceAndPositionDataDirectory = file.path(GM12878DataDirectory, "sequence_and_position_analysis")
+GM12878GeneralReadSequenceDataDirectory = file.path(GM12878DataDirectory, "general_read_sequences")
+
+CSBDataDirectory = file.path(deaminationDataDirectory, "CS-B")
+CSBSequenceAndPositionDataDirectory = file.path(CSBDataDirectory, "sequence_and_position_analysis")
+
+XPCDataDirectory = file.path(deaminationDataDirectory, "XP-C")
+XPCSequenceAndPositionDataDirectory = file.path(XPCDataDirectory, "sequence_and_position_analysis")
+
+EColiDataDirectory = file.path(deaminationDataDirectory, "E_coli_WT")
+EColiExcisionSiteDataDirectory = file.path(EColiDataDirectory, "excision_site_analysis")
+EColiGeneralReadSequenceDataDirectory = file.path(EColiDataDirectory, "general_read_sequences")
+```
+
+
+```{r source_functions}
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "UsefulFileSystemFunctions.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "DeaminationParseAndFilter.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "DeaminationSequenceAndPositionAnalysis.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "DeaminationAnchoredExcisionSiteAnalysis.R"))
+```
+
+```{r read_custom_figure_3_data}
+NHF1CPDGroupedStatsAllRepsFiltered = list(three_prime = NULL, five_prime = NULL)
+for (i in seq_along(NHF1CPDGroupedStatsAllRepsFiltered)) {
+  NHF1CPDGroupedStatsAllRepsFiltered[[i]] = fread(generateFilePath(
+    NHF1SequenceAndPositionDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
+    cellType = "NHF1", lesion = "CPD", repitition = "all_reps", filtering = "TGG_filtered",
+    strandPolarity = names(NHF1CPDGroupedStatsAllRepsFiltered)[i]
+  ))
+}
+
+arabidopsisCPDGroupedStatsAllRepsFiltered = list(three_prime = NULL, five_prime = NULL)
+for (i in seq_along(arabidopsisCPDGroupedStatsAllRepsFiltered)) {
+  arabidopsisCPDGroupedStatsAllRepsFiltered[[i]] = fread(generateFilePath(
+    arabidopsisSequenceAndPositionDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
+    cellType = "Arabidopsis", lesion = "CPD", repitition = "all_reps", filtering = "TGG_filtered",
+    strandPolarity = names(arabidopsisCPDGroupedStatsAllRepsFiltered)[i]
+  ))
+}
+
+yeastCPDGroupedStatsAllRepsFiltered = list(three_prime = NULL, five_prime = NULL)
+for (i in seq_along(yeastCPDGroupedStatsAllRepsFiltered)) {
+  yeastCPDGroupedStatsAllRepsFiltered[[i]] = fread(generateFilePath(
+    yeastSequenceAndPositionDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
+    cellType = "yeast", lesion = "CPD", repitition = "all_reps", filtering = "TGG_filtered",
+    strandPolarity = names(yeastCPDGroupedStatsAllRepsFiltered)[i]
+  ))
+}
+```
+
+
+```{r figure_3C, fig.width = 8, fig.height = 3}
+### Just the 1h timepoint ###
+plotGroupedPositionStats(NHF1CPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
+                         NHF1CPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"],
+                         POS_DIFF, title = "NHF1 CPD 1h All Reps TGG-Filtered C>T Mismatch Pos Diff",
+                         xAxisBreaks = c(22:30), yAxisTitle = "Pos Diff")
+
+plotGroupedPositionStats(arabidopsisCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "ZT2"],
+                         arabidopsisCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "ZT2"],
+                         POS_DIFF, title = "Arabidopsis CPD 1h All Reps TGG-Filtered C>T Mismatch Pos Diff",
+                           xAxisBreaks = c(24:30), yAxisTitle = "Pos Diff")
+
+plotGroupedPositionStats(yeastCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "20min"],
+                         yeastCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "20min"],
+                         POS_DIFF, title = "Yeast CPD 1h All Reps TGG-Filtered C>T Mismatch Pos Diff",
+                         xAxisBreaks = c(22:25), yAxisTitle = "Pos Diff")
+
+
+### All timepoints together ###
+# plotGroupedPositionStats(NHF1CPDGroupedStatsAllRepsFiltered$three_prime,
+#                          NHF1CPDGroupedStatsAllRepsFiltered$five_prime,
+#                          POS_DIFF, title = "NHF1 CPD All Reps TGG-Filtered C>T Mismatch Pos Diff",
+#                          xAxisBreaks = c(22:30))
+# 
+# plotGroupedPositionStats(arabidopsisCPDGroupedStatsAllRepsFiltered$three_prime,
+#                          arabidopsisCPDGroupedStatsAllRepsFiltered$five_prime,
+#                          POS_DIFF, title = "Arabidopsis CPD All Reps TGG-Filtered C>T Mismatch Pos Diff",
+#                          xAxisBreaks = c(24:30))
+# 
+# plotGroupedPositionStats(yeastCPDGroupedStatsAllRepsFiltered$three_prime,
+#                          yeastCPDGroupedStatsAllRepsFiltered$five_prime,
+#                          POS_DIFF, title = "Yeast CPD All Reps TGG-Filtered C>T Mismatch Pos Diff",
+#                          xAxisBreaks = c(22:25))
+```
