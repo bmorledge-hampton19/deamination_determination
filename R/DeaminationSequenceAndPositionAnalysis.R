@@ -286,16 +286,17 @@ plotGroupedPositionStats = function(threePrimeGroupedStats, fivePrimeGroupedStat
 
   if (stat == POS_DIFF) {
     groupedStatsPlot =
-      ggplot(aggregateData, aes(Read_Length, Absolute_Pos_Change, color = Timepoint, linetype = Position_Type)) +
+      ggplot(aggregateData, aes(Read_Length, Absolute_Pos_Change, color = Position_Type, linetype = Timepoint)) +
       geom_line(linewidth = 1.5) + theme(legend.key.width = unit(3, "line")) +
-      scale_linetype_manual(values = c("3' Relative Position" = "dashed", "5' Relative Position" = "solid"))
+      scale_color_brewer(palette = "Set1")
   } else if (stat == IQR) {
     groupedStatsPlot =
-      ggplot(aggregateData, aes(Read_Length, IQR, color = Timepoint, shape = Position_Type)) +
+      ggplot(aggregateData, aes(Read_Length, IQR, shape = Timepoint, color = Position_Type)) +
       geom_jitter(height = 0, size = 3)
   } else if (stat == STDEV) {
     groupedStatsPlot =
-      ggplot(aggregateData, aes(Read_Length, Standard_Deviation, color = Timepoint, shape = Position_Type)) +
+      ggplot(aggregateData, aes(Read_Length, Standard_Deviation, shape = Timepoint, color = Position_Type)) +
+      scale_color_brewer(palette = "Set1") +
       geom_jitter(height = 0, size = 3)
   } else {
     stop(paste("Unrecognized stat:",stat))
@@ -307,13 +308,40 @@ plotGroupedPositionStats = function(threePrimeGroupedStats, fivePrimeGroupedStat
     labs(title = title, x = "Read Length", y = yAxisTitle) +
     scale_x_continuous(breaks = xAxisBreaks) + coord_cartesian(ylim = ylim)
 
-  if (all(aggregateData$Timepoint == "NONE")) {
-    groupedStatsPlot = groupedStatsPlot + scale_color_manual(values = "black")
-  } else if (length(unique(aggregateData$Timepoint)) == 1) {
-    groupedStatsPlot = groupedStatsPlot + scale_color_manual(values = "black")
-  } else groupedStatsPlot = groupedStatsPlot + scale_color_brewer(palette = "Set1")
-
   print(groupedStatsPlot)
+
+}
+
+
+# Gets the percentage of variation on the 3' end from position difference stats.
+# I.e. The area between the curves on the position difference plots.
+# Optionally, mismatch data can be given to weight read lengths based on their frequency.
+# If endpointVariation is true, a simplified calculation involving only the highest read lengths is returned.
+getThreePrimeVariation = function(threePrimeGroupedStats, fivePrimeGroupedStats,
+                                  mismatchData = NULL, endpointVariation = FALSE) {
+
+  if (endpointVariation) {
+    threePrimeEndpointPosDiff = threePrimeGroupedStats[Read_Length == max(Read_Length), Absolute_Pos_Change]
+    fivePrimeEndpointPosDiff = fivePrimeGroupedStats[Read_Length == max(Read_Length), Absolute_Pos_Change]
+    return(threePrimeEndpointPosDiff/(threePrimeEndpointPosDiff+fivePrimeEndpointPosDiff))
+  }
+
+  readLengths = threePrimeGroupedStats$Read_Length
+  if (!is.null(mismatchData)) {
+    mismatchFrequenciesByReadLength = mismatchData[, .N, by = Read_Length][, Freq := N/sum(N)]
+  } else {
+    mismatchFrequenciesByReadLength = data.table(Read_Length = readLengths, Freq = 1)
+  }
+
+  threePrimeGroupedStats = merge(threePrimeGroupedStats, mismatchFrequenciesByReadLength, by = "Read_Length")
+  threePrimeGroupedStats[, Weighted_Pos_Change := Absolute_Pos_Change * Freq]
+  threePrimePosDiffSum = sum(threePrimeGroupedStats$Weighted_Pos_Change)
+
+  fivePrimeGroupedStats = merge(fivePrimeGroupedStats, mismatchFrequenciesByReadLength, by = "Read_Length")
+  fivePrimeGroupedStats[, Weighted_Pos_Change := Absolute_Pos_Change * Freq]
+  fivePrimePosDiffSum = sum(fivePrimeGroupedStats$Weighted_Pos_Change)
+
+  return(threePrimePosDiffSum/(threePrimePosDiffSum+fivePrimePosDiffSum))
 
 }
 
