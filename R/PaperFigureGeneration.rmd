@@ -297,12 +297,34 @@ plotGroupedPositionStats(NHF1CPDGroupedStatsAllRepsFiltered$three_prime[Timepoin
                          NHF1CPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"],
                          POS_DIFF, title = "NHF1 CPD 1h All Reps TGG-Filtered C>T Mismatch Pos Diff",
                          xAxisBreaks = c(22:30), ylim = c(0,5))
+print(paste("3' endpoint variation: ",
+            getThreePrimeVariation(NHF1CPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
+                                   NHF1CPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"],
+                                   endpointVariation = TRUE)))
+print(paste("3' variation (unweighted): ",
+            getThreePrimeVariation(NHF1CPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
+                                   NHF1CPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"])))
+print(paste("3' variation (weighted): ",
+            getThreePrimeVariation(NHF1CPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
+                                   NHF1CPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"],
+                                   mismatchData = NHF1CPDMismatchDataAllRepsTGGFiltered$`1h`)))
 ```
 ```{r figure_3F, fig.width = 7.5, fig.height = 5}
 plotGroupedPositionStats(arabidopsisCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "ZT2"],
                          arabidopsisCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "ZT2"],
                          POS_DIFF, title = "Arabidopsis CPD 1h All Reps TGG-Filtered C>T Mismatch Pos Diff",
                          xAxisBreaks = c(24:30), ylim = c(0,5))
+print(paste("3' endpoint variation: ",
+            getThreePrimeVariation(arabidopsisCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "ZT2"],
+                                   arabidopsisCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "ZT2"],
+                                   endpointVariation = TRUE)))
+print(paste("3' variation (unweighted): ",
+            getThreePrimeVariation(arabidopsisCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "ZT2"],
+                                   arabidopsisCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "ZT2"])))
+print(paste("3' variation (weighted): ",
+            getThreePrimeVariation(arabidopsisCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "ZT2"],
+                                   arabidopsisCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "ZT2"],
+                                   mismatchData = arabidopsisCPDMismatchDataAllRepsFiltered$ZT2)))
 ```
 
 
@@ -494,12 +516,32 @@ for (i in seq_along(NHF1CPDCCToTTGroupedStatsAllRepsFiltered)) {
   ))
 }
 
+arabidopsisCPDCCtoTTMismatchDataAllRepsFiltered = arabidopsisCPDTimepoints
+for (i in seq_along(arabidopsisCPDCCtoTTMismatchDataAllRepsFiltered)) {
+  arabidopsisCPDCCtoTTMismatchDataAllRepsFiltered[[i]] = fread(generateFilePath(
+    arabidopsisSequenceAndPositionDataDirectory, dataTypeStrings$simplifiedMismatches, ".tsv",
+    cellType = "Arabidopsis", lesion = "CPD", repitition = "all_reps",
+    filtering = "TGG_filtered", includedMismatches = "CC>TT",
+    timepoint = names(arabidopsisCPDCCtoTTMismatchDataAllRepsFiltered)[i]
+  ))
+}
+
 arabidopsisCPDCCToTTGroupedStatsAllRepsFiltered = list(three_prime = NULL, five_prime = NULL)
 for (i in seq_along(arabidopsisCPDCCToTTGroupedStatsAllRepsFiltered)) {
   arabidopsisCPDCCToTTGroupedStatsAllRepsFiltered[[i]] = fread(generateFilePath(
     arabidopsisSequenceAndPositionDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
     cellType = "Arabidopsis", lesion = "CPD", repitition = "all_reps", filtering = "TGG_filtered",
     strandPolarity = names(arabidopsisCPDCCToTTGroupedStatsAllRepsFiltered)[i], includedMismatches = "CC>TT"
+  ))
+}
+
+yeastCPDCCtoTTMismatchDataAllRepsFiltered = yeastCPDTimepoints
+for (i in seq_along(yeastCPDCCtoTTMismatchDataAllRepsFiltered)) {
+  yeastCPDCCtoTTMismatchDataAllRepsFiltered[[i]] = fread(generateFilePath(
+    yeastSequenceAndPositionDataDirectory, dataTypeStrings$simplifiedMismatches, ".tsv",
+    cellType = "yeast", lesion = "CPD", repitition = "all_reps",
+    filtering = "TGG_filtered", includedMismatches = "CC>TT",
+    timepoint = names(yeastCPDCCtoTTMismatchDataAllRepsFiltered)[i]
   ))
 }
 
@@ -537,43 +579,58 @@ plotSequenceFrequencies(NHF1ThreePrimeMMAnchoredCPDCCtoTTSeqFreqAllReps1hFiltere
                         xAxisOffset = 1, xAxisBreaks = c(-2,-10,-20,-30), xlim = c(-35,-4))
 ```
 ```{r figure_6C, fig.width = 7.5, fig.height = 5}
-### Just the 1h timepoint ###
 plotGroupedPositionStats(NHF1CPDCCToTTGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
                          NHF1CPDCCToTTGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"],
                          POS_DIFF, title = "NHF1 CPD 1h All Reps TGG-Filtered CC>TT Mismatch Pos Diff",
                          xAxisBreaks = c(22:30))
 
-### All timepoints together ###
-# plotGroupedPositionStats(NHF1CPDCCToTTGroupedStatsAllRepsFiltered$three_prime,
-#                          NHF1CPDCCToTTGroupedStatsAllRepsFiltered$five_prime,
-#                          POS_DIFF, title = "NHF1 CPD All Reps TGG-Filtered CC>TT Mismatch Pos Diff",
-#                          xAxisBreaks = c(22:30))
+print(paste("3' endpoint variation: ",
+            getThreePrimeVariation(NHF1CPDCCToTTGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
+                                   NHF1CPDCCToTTGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"],
+                                   endpointVariation = TRUE)))
+print(paste("3' variation (unweighted): ",
+            getThreePrimeVariation(NHF1CPDCCToTTGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
+                                   NHF1CPDCCToTTGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"])))
+print(paste("3' variation (weighted): ",
+            getThreePrimeVariation(NHF1CPDCCToTTGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
+                                   NHF1CPDCCToTTGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"],
+                                   mismatchData = NHF1CPDCCtoTTMismatchDataAllRepsFiltered$`1h`)))
 ```
 ```{r figure_6D, fig.width = 7.5, fig.height = 5}
-### Just the 1h timepoint ###
 plotGroupedPositionStats(arabidopsisCPDCCToTTGroupedStatsAllRepsFiltered$three_prime[Timepoint == "ZT2"],
                          arabidopsisCPDCCToTTGroupedStatsAllRepsFiltered$five_prime[Timepoint == "ZT2"],
                          POS_DIFF, title = "Arabidopsis CPD 1h All Reps TGG-Filtered CC>TT Mismatch Pos Diff",
                          xAxisBreaks = c(24:30), ylim = c(0,5))
 
-### All timepoints together ###
-# plotGroupedPositionStats(arabidopsisCPDCCToTTGroupedStatsAllRepsFiltered$three_prime,
-#                          arabidopsisCPDCCToTTGroupedStatsAllRepsFiltered$five_prime,
-#                          POS_DIFF, title = "Arabidopsis CPD All Reps TGG-Filtered CC>TT Mismatch Pos Diff",
-#                          xAxisBreaks = c(24:30))
+print(paste("3' endpoint variation: ",
+            getThreePrimeVariation(arabidopsisCPDCCToTTGroupedStatsAllRepsFiltered$three_prime[Timepoint == "ZT2"],
+                                   arabidopsisCPDCCToTTGroupedStatsAllRepsFiltered$five_prime[Timepoint == "ZT2"],
+                                   endpointVariation = TRUE)))
+print(paste("3' variation (unweighted): ",
+            getThreePrimeVariation(arabidopsisCPDCCToTTGroupedStatsAllRepsFiltered$three_prime[Timepoint == "ZT2"],
+                                   arabidopsisCPDCCToTTGroupedStatsAllRepsFiltered$five_prime[Timepoint == "ZT2"])))
+print(paste("3' variation (weighted): ",
+            getThreePrimeVariation(arabidopsisCPDCCToTTGroupedStatsAllRepsFiltered$three_prime[Timepoint == "ZT2"],
+                                   arabidopsisCPDCCToTTGroupedStatsAllRepsFiltered$five_prime[Timepoint == "ZT2"],
+                                   mismatchData = arabidopsisCPDCCtoTTMismatchDataAllRepsFiltered$ZT2)))
 ```
 ```{r figure_6E, fig.width = 7.5, fig.height = 5}
-### Just the 1h timepoint ###
 plotGroupedPositionStats(yeastCPDCCToTTGroupedStatsAllRepsFiltered$three_prime[Timepoint == "20min"],
                          yeastCPDCCToTTGroupedStatsAllRepsFiltered$five_prime[Timepoint == "20min"],
                          POS_DIFF, title = "Yeast CPD 1h All Reps TGG-Filtered CC>TT Mismatch Pos Diff",
                          xAxisBreaks = c(22:25))
 
-### All timepoints together ###
-# plotGroupedPositionStats(yeastCPDCCToTTGroupedStatsAllRepsFiltered$three_prime,
-#                          yeastCPDCCToTTGroupedStatsAllRepsFiltered$five_prime,
-#                          POS_DIFF, title = "Yeast CPD All Reps TGG-Filtered CC>TT Mismatch Pos Diff",
-#                          xAxisBreaks = c(22:25))
+print(paste("3' endpoint variation: ",
+            getThreePrimeVariation(yeastCPDCCToTTGroupedStatsAllRepsFiltered$three_prime[Timepoint == "20min"],
+                                   yeastCPDCCToTTGroupedStatsAllRepsFiltered$five_prime[Timepoint == "20min"],
+                                   endpointVariation = TRUE)))
+print(paste("3' variation (unweighted): ",
+            getThreePrimeVariation(yeastCPDCCToTTGroupedStatsAllRepsFiltered$three_prime[Timepoint == "20min"],
+                                   yeastCPDCCToTTGroupedStatsAllRepsFiltered$five_prime[Timepoint == "20min"])))
+print(paste("3' variation (weighted): ",
+            getThreePrimeVariation(yeastCPDCCToTTGroupedStatsAllRepsFiltered$three_prime[Timepoint == "20min"],
+                                   yeastCPDCCToTTGroupedStatsAllRepsFiltered$five_prime[Timepoint == "20min"],
+                                   mismatchData = yeastCPDCCtoTTMismatchDataAllRepsFiltered$`20min`)))
 ```
 
 
@@ -954,6 +1011,18 @@ plotGroupedPositionStats(yeastCPDGroupedStatsAllRepsFiltered$three_prime[Timepoi
                          yeastCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "20min"],
                          POS_DIFF, title = "Yeast CPD 1h All Reps TGG-Filtered C>T Mismatch Pos Diff",
                          xAxisBreaks = c(22:25), ylim = c(0,2.5))
+
+print(paste("3' endpoint variation: ",
+            getThreePrimeVariation(yeastCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "20min"],
+                                   yeastCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "20min"],
+                                   endpointVariation = TRUE)))
+print(paste("3' variation (unweighted): ",
+            getThreePrimeVariation(yeastCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "20min"],
+                                   yeastCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "20min"])))
+print(paste("3' variation (weighted): ",
+            getThreePrimeVariation(yeastCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "20min"],
+                                   yeastCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "20min"],
+                                   mismatchData = yeastCPDMismatchDataAllRepsFiltered$`20min`)))
 ```
 
 
