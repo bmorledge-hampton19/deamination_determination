@@ -13,7 +13,7 @@ Using mismatches in XR-seq reads to pinpoint CPD positions
 ## Project Overview
 
 #### Accompanying Literature
-The code in this repository was used to produce the findings in [NO LINK YET](). This paper contains additional insight into the analysis using this code.
+The code in this repository was used to produce the findings in [LINK TO PAPER ONCE PUBLISHED](). This paper contains additional insight into the analysis using this code.
 
 #### Background
 Cytosine nucleotides deaminate much faster in cyclobutane pyrimidine dimers (CPDs) than in undamaged DNA. Because of this, XR-sequencing reads, which represent fragments from nucleotide excision repair of various helix-distorting lesions such as CPDs (more information [here](http://genesdev.cshlp.org/content/29/9/948)) may contain C>T mismatches where the CPD was present. Normally, the position of these lesions in the original repair fragment can only be estimated, but by identifying these C>T mismatches, the lesion positions can be pinpointed more accurately.
@@ -27,7 +27,7 @@ For tandem mismatches (specifically, CC>TT) an alternative method must be used. 
 ## Dependencies and File System Naming Conventions
 
 #### A Disclaimer...
-Admittedly, the software in this repository was largely not designed with other users in mind. Despite this, the core analysis is still very much reproducible after taking a few steps to set up a specific environment and following a few conventions pertaining to the project's file system structure. In the event that the following steps are insufficient to reproduce the desired results, you are more than welcome to [post an issue](../../issues) or email me directly at b.morledge-hampton@wsu.edu. It is also worth noting that we plan to produce a more user-friendly software package with the same functionality in the near future.
+Admittedly, the software in this repository was largely not designed with other users in mind. Despite this, the core analysis is still very much reproducible after taking a few steps to set up a specific environment and following a few conventions pertaining to the project's file system structure. In the event that the following steps are insufficient to reproduce the desired results, you are more than welcome to [post an issue](../../issues) or email me directly at b.morledge-hampton@wsu.edu. If there is sufficient interest in the future, we will consider producing a more user-friendly software package with the same functionality.
 
 #### Dependencies
 Besides the code in this repository, the analysis requires that the following packages are installed (The most up-to-date version of each package is recommended):
