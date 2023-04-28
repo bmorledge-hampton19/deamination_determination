@@ -7,7 +7,7 @@ FIVE_PRIME = "five_prime"
 
 # Default text scaling
 defaultTextScaling = theme(plot.title = element_text(size = 22, hjust = 0.5),
-                           axis.title = element_text(size = 22), axis.text = element_text(size = 18),
+                           axis.title = element_text(size = 22), axis.text = element_text(size = 18, color = "black"),
                            legend.title = element_text(size = 22), legend.text = element_text(size = 18),
                            strip.text = element_text(size = 22))
 
