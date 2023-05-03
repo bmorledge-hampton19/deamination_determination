@@ -41,7 +41,7 @@ Besides the code in this repository, the analysis requires that the following pa
   - [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
   - [samtools](http://www.htslib.org/)
   - [trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic)
-  - [WebLogo] (https://github.com/WebLogo/weblogo)
+  - [WebLogo](https://github.com/WebLogo/weblogo)
 
 ##### Optional Dependencies
 Although not required, the scripts in [this repository](https://github.com/bmorledge-hampton19/xrlesionfinder/tree/main/xrlesionfinder) may be helpful for [trimming](https://github.com/bmorledge-hampton19/xrlesionfinder/blob/main/xrlesionfinder/AlignmentAndFormatting/TrimAdaptorSequences.py) and [aligning](https://github.com/bmorledge-hampton19/xrlesionfinder/blob/main/xrlesionfinder/AlignmentAndFormatting/TrimmedFastqToSam.py) sequencing reads and [parsing them to bed](https://github.com/bmorledge-hampton19/xrlesionfinder/blob/main/xrlesionfinder/AlignmentAndFormatting/SamToBed.py). If desired, these three operations can be chained together using the [AlignXRSeqReads.py](https://github.com/bmorledge-hampton19/xrlesionfinder/blob/main/xrlesionfinder/AlignmentAndFormatting/AlignXRSeqReads.py) script.
