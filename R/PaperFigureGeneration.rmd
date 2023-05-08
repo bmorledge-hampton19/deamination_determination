@@ -934,7 +934,7 @@ plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsTGFiltered[
 ```{r figure_S7C, fig.width = 5, fig.height = 5}
 ### Just the 1h timepoint ###
 plotPositionAcrossTimepointAndReadLength(NHF1CPDMismatchDataAllRepsTGGFiltered["1h"], includedTypes = c("C>T"),
-                                         title = "NHF1 CPD 1h All Reps TG-Filtered C>T Mismatch Pos Freq",
+                                         title = "NHF1 CPD 1h All Reps TGG-Filtered C>T Mismatch Pos Freq",
                                          zScoreTables = NHF1CPDMMFreqZScoresAllRepsTGFiltered,
                                          posType = THREE_PRIME, yAxisLabel = "Relative C>T Frequency",
                                          xAxisBreaks = c(-1,-10,-20,-30))
