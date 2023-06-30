@@ -73,7 +73,8 @@ def getReadLengthVsGCContent(samFilePaths: List[str], outputDir = None,
 
 def main():
     # Create the Tkinter dialog.
-    with TkinterDialog(workingDirectory=os.path.join(os.path.dirname(os.path.dirname(__file__)),"data")) as dialog:
+    with TkinterDialog(workingDirectory=os.path.join(os.path.dirname(os.path.dirname(__file__)),"data"),
+                       title = "Get Read Length Vs. Nucleotide Frequency") as dialog:
         dialog.createMultipleFileSelector("Sam Read Files:",0,".sam.gz",("Sam Files",(".sam.gz",".sam")), 
                                           additionalFileEndings = [".sam"])
         dialog.createTextField("Acceptable Read Lengths: ", 1, 0, defaultText = "23-31")

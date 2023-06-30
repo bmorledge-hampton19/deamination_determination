@@ -73,7 +73,7 @@ def main():
         workingDirectory = os.path.dirname(__file__)
 
     #Create the Tkinter UI
-    with TkinterDialog(workingDirectory=workingDirectory) as dialog:
+    with TkinterDialog(workingDirectory=workingDirectory, title = "Compare Tandem Mismatch Counts") as dialog:
         dialog.createFileSelector("Parent Directory:", 0, directory = True)
         dialog.createTextField("Reference Sequence: ", 1, 0, defaultText = "CC")
         dialog.createTextField("Mismatched Sequence: ", 2, 0, defaultText = "TT")

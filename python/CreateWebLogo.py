@@ -47,7 +47,7 @@ def createWebLogo(inputFilePaths: List[str], composition):
 
 def main():
 
-    with TkinterDialog(workingDirectory = os.path.join(__file__,"..")) as dialog:
+    with TkinterDialog(workingDirectory = os.path.join(__file__,".."), title = "Create Web Logo") as dialog:
         dialog.createMultipleFileSelector("Sequence logo input files:", 0, "sequence_logo_input.txt", ("text files", ".txt"),
                                           additionalFileEndings = ["sequence_logo_input_TGG_filtered.txt"])
 

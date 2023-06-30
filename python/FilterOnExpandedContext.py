@@ -98,7 +98,7 @@ def filterOnExpandedContext(expandedContextFilePaths: List[str], threePrimeBlack
 
 def main():
     # Create the Tkinter dialog.
-    with TkinterDialog(workingDirectory=os.path.join(__file__,"..","..")) as dialog:
+    with TkinterDialog(workingDirectory=os.path.join(__file__,"..",".."), title = "Filter on Expanded Context") as dialog:
         dialog.createMultipleFileSelector("Expanded context files:",0,"bp_expanded.bed",("Bed files",".bed"))
         dialog.createCheckbox("Filter companion unexpanded files:", 1, 0)
         dialog.createTextField("3' Blacklist sequences:", 2, 0, defaultText="TGG")

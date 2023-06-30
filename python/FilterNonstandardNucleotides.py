@@ -28,7 +28,7 @@ def filterNonstandardNucleotides(inputFilePaths: List[str]):
 
 def main():
 
-    with TkinterDialog(workingDirectory = os.path.join(__file__,"..")) as dialog:
+    with TkinterDialog(workingDirectory = os.path.join(__file__,".."), title = "Filter Non-standard Nucleotides") as dialog:
         dialog.createMultipleFileSelector("Simple text nucleotide files:", 0, "simple_nuc.txt", ("text files", ".txt"))
 
     filterNonstandardNucleotides(dialog.selections.getFilePathGroups()[0])

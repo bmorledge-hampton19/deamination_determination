@@ -75,7 +75,7 @@ def findPotentialTandemDeaminations(inputFastqFilePaths: List[str], referenceSeq
 
 def main():
     # Create the Tkinter dialog.
-    with TkinterDialog(workingDirectory=os.path.join(__file__,"..","..")) as dialog:
+    with TkinterDialog(workingDirectory=os.path.join(__file__,"..",".."), title = "Find Potential Tandem Mismatches") as dialog:
         dialog.createMultipleFileSelector("Trimmed Fastq Files:",0,"trimmed.fastq.gz",
                                           ("Fastq Files",(".fastq.gz",".fastq")), 
                                         additionalFileEndings = ["trimmed.fastq"])

@@ -67,7 +67,8 @@ def samBedToCustomBed(samBedFilePaths: List[str], customSuffix: str = "mismatche
 
 def main():
     # Create the Tkinter dialog.
-    dialog = TkinterDialog(workingDirectory=os.path.join(os.path.dirname(os.path.dirname(__file__)),"data"))
+    dialog = TkinterDialog(workingDirectory=os.path.join(os.path.dirname(os.path.dirname(__file__)),"data"),
+                           title = "SamBedToCustomBed")
     dialog.createMultipleFileSelector("Mismatched Reads Bed Files:",0,"mismatches_by_read.bed",("Bed Files",".bed"))
     dialog.createTextField("Acceptable Read Lengths: ", 1, 0, defaultText = "23-31")
     dialog.createTextField("Max Mismatches: ", 2, 0, defaultText = "2")
