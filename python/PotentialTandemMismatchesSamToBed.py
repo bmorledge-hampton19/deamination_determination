@@ -99,7 +99,7 @@ def potentialTandemMismatchesSamToBed(samFilePaths: List[str], outputDir = None)
 def main():
     # Create the Tkinter dialog.
     with TkinterDialog(workingDirectory=os.path.join(__file__,"..",".."),
-                       title = "Potential Tandem Mismatches: Sam to Bed") as dialog:
+                       title = "Potential Tandem Mismatches Sam to Bed") as dialog:
         dialog.createMultipleFileSelector("Sam Read Files:",0,".sam.gz",("Sam Files",(".sam.gz",".sam")), 
                                         additionalFileEndings = [".sam"])
         with dialog.createDynamicSelector(1, 0) as outputDirDynSel:
