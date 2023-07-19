@@ -4,6 +4,7 @@ library(data.table)
 # A list containing the strings designated to files containing a specific type of data.
 dataTypeStrings =
   list(mismatchesByRead = "mismatches_by_read",
+       mismatchesByReadTfbs = "mismatches_by_read_TFBS_formatted",
        simplifiedMismatches = "simplified_mismatches",
        mismatchPositionStats = "mismatch_position_stats",
        nucleosomePeriodicity = "deamination_periodicity_results",
@@ -14,7 +15,11 @@ dataTypeStrings =
        mismatchFrequencyZScores = "mismatch_frequency_z-scores",
        readLengthcounts = "read_length_counts",
        tandemMismatchCountsComparison = "tandem_mismatch_counts_comparison",
-       sequenceLogoInput = "sequence_logo_input")
+       sequenceLogoInput = "sequence_logo_input",
+       tfbsRelativeData = "TFBS_relative_data",
+       tfbsRelativePositionCounts = "TFBS_relative_position_counts",
+       tfbsRelativeCutSiteCounts = "TFBS_relative_cut_site_counts"
+       )
 
 generateFilePath = function(directory, dataTypeString, fileExtension,
                             cellType = NA, lesion = NA, timepoint = NA, repitition = NA,
