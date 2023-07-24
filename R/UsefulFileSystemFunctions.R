@@ -4,7 +4,7 @@ library(data.table)
 # A list containing the strings designated to files containing a specific type of data.
 dataTypeStrings =
   list(mismatchesByRead = "mismatches_by_read",
-       mismatchesByReadTfbs = "mismatches_by_read_TFBS_formatted",
+       mismatchesByReadRelationFormatted = "mismatches_by_read_relation_formatted",
        simplifiedMismatches = "simplified_mismatches",
        mismatchPositionStats = "mismatch_position_stats",
        nucleosomePeriodicity = "deamination_periodicity_results",
@@ -16,9 +16,10 @@ dataTypeStrings =
        readLengthcounts = "read_length_counts",
        tandemMismatchCountsComparison = "tandem_mismatch_counts_comparison",
        sequenceLogoInput = "sequence_logo_input",
-       tfbsRelativeData = "TFBS_relative_data",
-       tfbsRelativePositionCounts = "TFBS_relative_position_counts",
-       tfbsRelativeCutSiteCounts = "TFBS_relative_cut_site_counts"
+       featureRelativeData = "feature_relative_data",
+       featureRelativePositionCounts = "feature_relative_position_counts",
+       featureRelativeCutSiteCounts = "feature_relative_cut_site_counts",
+       featureRelativeMeanCutSiteDistance = "feature_relative_mean_cut_site_distance"
        )
 
 generateFilePath = function(directory, dataTypeString, fileExtension,
@@ -33,8 +34,8 @@ generateFilePath = function(directory, dataTypeString, fileExtension,
     stop("Included mismatches and omitted mismatches given simultaneously")
   }
 
-  includedMismatches = lapply(includedMismatches, function(x) str_replace(x, '>', "_to_"))
-  omittedMismatches = lapply(omittedMismatches, function(x) str_replace(x, '>', "_to_"))
+  includedMismatches = lapply(includedMismatches, function(x) str_replace_all(x, '>', "_to_"))
+  omittedMismatches = lapply(omittedMismatches, function(x) str_replace_all(x, '>', "_to_"))
 
   if (!is.na(expansionNum) && expansionNum > 0) expansionText = paste0(expansionNum,"bp_expanded")
   else expansionText = NA
