@@ -397,7 +397,7 @@ plotNucFreqVsReadLengthBarPlot(NHF1ThreePrimeMismatchCPDNucFreqAllRepsFiltered[T
 plotSequenceFrequencies(NHF1ThreePrimeMMAnchoredCPDSeqFreqAllRepsFiltered$`1h`,
                         title = "NHF1 CPD 1h All Reps TGG-Filtered 3' Anchored HYV Freq",
                         secondaryYAxisLabel = "5' Cut Site Distance", yAxisLabel = "HYV Frequency",
-                        showFivePrimeCutSite = TRUE, querySequences = c("333"), xAxisOffset = 1,
+                        showFivePrimeCutSite = TRUE, querySequences = c("333"), xAxisOffset = 1, positionOffset = 1,
                         expansionOffset = 10, minReadLength = 19, maxReadLength = 25, endBasedBackgroundNum = 6,
                         endBasedCheckPositions = -9, displayPValue = FALSE, xAxisLabel = "Mismatch Relative Position",
                         xAxisBreaks = c(-2,-10,-20,-30), xlim = c(-35, -4))
@@ -576,7 +576,7 @@ plotSequenceFrequencies(NHF1ThreePrimeMMAnchoredCPDCCtoTTSeqFreqAllReps1hFiltere
                         showFivePrimeCutSite = TRUE, querySequences = c("333"),
                         expansionOffset = 10, minReadLength = 19, maxReadLength = 24, endBasedBackgroundNum = 6,
                         endBasedCheckPositions = -9, displayPValue = FALSE, xAxisLabel = "Mismatch Relative Position",
-                        xAxisOffset = 1, xAxisBreaks = c(-2,-10,-20,-30), xlim = c(-35,-4))
+                        xAxisOffset = 1, positionOffset = 1, xAxisBreaks = c(-2,-10,-20,-30), xlim = c(-35,-4))
 ```
 ```{r figure_6C, fig.width = 7.5, fig.height = 5}
 plotGroupedPositionStats(NHF1CPDCCToTTGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
