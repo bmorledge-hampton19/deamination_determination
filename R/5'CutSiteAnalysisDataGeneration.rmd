@@ -41,6 +41,8 @@ DmGeneralReadSequenceDataDirectory = file.path(deaminationDataDirectory, "Dm", "
 arabidopsisGeneralReadSequenceDataDirectory = file.path(deaminationDataDirectory, "Arabidopsis", "general_read_sequences")
 yeastGeneralReadSequenceDataDirectory = file.path(deaminationDataDirectory, "yeast", "general_read_sequences")
 EColiGeneralReadSequenceDataDirectory = file.path(deaminationDataDirectory, "E_coli_WT", "general_read_sequences")
+CSBGeneralReadSequenceDataDirectory = file.path(deaminationDataDirectory, "CS-B", "general_read_sequences")
+XPCGeneralReadSequenceDataDirectory = file.path(deaminationDataDirectory, "XP-C", "general_read_sequences")
 
 humanReadMinMax = c(22, 30)
 drosophilaReadMinMax = c(23, 32)
@@ -141,6 +143,12 @@ HYV = c("ACA","ACC","ACG","ATA","ATC","ATG",
 HYVPattern = "^[ACT][CT][ACG]"
 
 cutSiteAnalysis("CPD", "all_reps", "1h", "NHF1", NHF1GeneralReadSequenceDataDirectory,
+                HYVPattern, "HYV", humanReadMinMax, alsoComputeCombinedReadLengths = TRUE,
+                alsoComputeNucFreq = TRUE, alsoCreateSequenceLogoInput = TRUE)
+cutSiteAnalysis("CPD", "all_reps", "1h", "CS-B", CSBGeneralReadSequenceDataDirectory,
+                HYVPattern, "HYV", humanReadMinMax, alsoComputeCombinedReadLengths = TRUE,
+                alsoComputeNucFreq = TRUE, alsoCreateSequenceLogoInput = TRUE)
+cutSiteAnalysis("CPD", "all_reps", "1h", "XP-C", XPCGeneralReadSequenceDataDirectory,
                 HYVPattern, "HYV", humanReadMinMax, alsoComputeCombinedReadLengths = TRUE,
                 alsoComputeNucFreq = TRUE, alsoCreateSequenceLogoInput = TRUE)
 cutSiteAnalysis("6-4", "all_reps", "20min", "NHF1", NHF1GeneralReadSequenceDataDirectory,
