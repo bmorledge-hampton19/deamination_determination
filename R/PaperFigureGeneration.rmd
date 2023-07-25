@@ -966,6 +966,122 @@ plotPositionAcrossTimepointAndReadLength(NHF1CPDMismatchDataAllRepsTGFiltered["1
 
 
 ```{r read_figure_S8_data}
+CSBCPDMismatchDataAllRepsTGGFiltered = CSBCPDTimepoints
+for (i in seq_along(CSBCPDMismatchDataAllRepsTGGFiltered)) {
+  CSBCPDMismatchDataAllRepsTGGFiltered[[i]] = fread(generateFilePath(
+    CSBSequenceAndPositionDataDirectory, dataTypeStrings$simplifiedMismatches, ".tsv",
+    cellType = "CS-B", lesion = "CPD", timepoint = names(CSBCPDMismatchDataAllRepsTGGFiltered)[i],
+    repitition = "all_reps", filtering = "TGG_filtered"
+  ))
+}
+XPCCPDMismatchDataAllRepsTGGFiltered = XPCCPDTimepoints
+for (i in seq_along(XPCCPDMismatchDataAllRepsTGGFiltered)) {
+  XPCCPDMismatchDataAllRepsTGGFiltered[[i]] = fread(generateFilePath(
+    XPCSequenceAndPositionDataDirectory, dataTypeStrings$simplifiedMismatches, ".tsv",
+    cellType = "XP-C", lesion = "CPD", timepoint = names(XPCCPDMismatchDataAllRepsTGGFiltered)[i],
+    repitition = "all_reps", filtering = "TGG_filtered"
+  ))
+}
+
+CSBCPDMMFreqZScoresAllRepsTGGFiltered = CSBCPDTimepoints
+for (i in seq_along(CSBCPDMMFreqZScoresAllRepsTGGFiltered)) {
+  CSBCPDMMFreqZScoresAllRepsTGGFiltered[[i]] = fread(generateFilePath(
+    CSBSequenceAndPositionDataDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
+    cellType = "CS-B", lesion = "CPD", repitition = "all_reps", filtering = "TGG_filtered",
+    timepoint = names(CSBCPDMMFreqZScoresAllRepsTGGFiltered)[i], includedMismatches = c("C>T")
+  ))
+}
+XPCCPDMMFreqZScoresAllRepsTGGFiltered = XPCCPDTimepoints
+for (i in seq_along(XPCCPDMMFreqZScoresAllRepsTGGFiltered)) {
+  XPCCPDMMFreqZScoresAllRepsTGGFiltered[[i]] = fread(generateFilePath(
+    XPCSequenceAndPositionDataDirectory, dataTypeStrings$mismatchFrequencyZScores, ".tsv",
+    cellType = "XP-C", lesion = "CPD", repitition = "all_reps", filtering = "TGG_filtered",
+    timepoint = names(XPCCPDMMFreqZScoresAllRepsTGGFiltered)[i], includedMismatches = c("C>T")
+  ))
+}
+
+CSBCPDGroupedStatsAllRepsFiltered = list(three_prime = NULL, five_prime = NULL)
+for (i in seq_along(CSBCPDGroupedStatsAllRepsFiltered)) {
+  CSBCPDGroupedStatsAllRepsFiltered[[i]] = fread(generateFilePath(
+    CSBSequenceAndPositionDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
+    cellType = "CS-B", lesion = "CPD", repitition = "all_reps", filtering = "TGG_filtered",
+    strandPolarity = names(CSBCPDGroupedStatsAllRepsFiltered)[i]
+  ))
+}
+XPCCPDGroupedStatsAllRepsFiltered = list(three_prime = NULL, five_prime = NULL)
+for (i in seq_along(XPCCPDGroupedStatsAllRepsFiltered)) {
+  XPCCPDGroupedStatsAllRepsFiltered[[i]] = fread(generateFilePath(
+    XPCSequenceAndPositionDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
+    cellType = "XP-C", lesion = "CPD", repitition = "all_reps", filtering = "TGG_filtered",
+    strandPolarity = names(XPCCPDGroupedStatsAllRepsFiltered)[i]
+  ))
+}
+```
+
+
+```{r figure_S8A, fig.width = 5, fig.height = 5}
+plotPositionAcrossTimepointAndReadLength(CSBCPDMismatchDataAllRepsTGGFiltered["1h"], includedTypes = c("C>T"),
+                                         title = "CSB CPD 1h All Reps TGG-Filtered C>T Mismatch Pos Freq",
+                                         zScoreTables = CSBCPDMMFreqZScoresAllRepsTGGFiltered,
+                                         yAxisLabel = "Relative C>T Frequency", xAxisBreaks = c(-1,-10,-20,-30))
+```
+```{r figure_S8B, fig.width = 5, fig.height = 5}
+plotPositionAcrossTimepointAndReadLength(XPCCPDMismatchDataAllRepsTGGFiltered["1h"], includedTypes = c("C>T"),
+                                         title = "CSB CPD 1h All Reps TGG-Filtered C>T Mismatch Pos Freq",
+                                         zScoreTables = CSBCPDMMFreqZScoresAllRepsTGGFiltered,
+                                         yAxisLabel = "Relative C>T Frequency", xAxisBreaks = c(-1,-10,-20,-30))
+```
+```{r figure_S8C, fig.width = 5, fig.height = 5}
+plotPositionAcrossTimepointAndReadLength(CSBCPDMismatchDataAllRepsTGGFiltered["1h"], includedTypes = c("C>T"),
+                                         title = "CSB CPD 1h All Reps TGG-Filtered C>T Mismatch Pos Freq",
+                                         zScoreTables = CSBCPDMMFreqZScoresAllRepsTGGFiltered,
+                                         posType = FIVE_PRIME, yAxisLabel = "Relative C>T Frequency",
+                                         xAxisBreaks = c(1,10,20,30))
+```
+```{r figure_S8D, fig.width = 5, fig.height = 5}
+plotPositionAcrossTimepointAndReadLength(XPCCPDMismatchDataAllRepsTGGFiltered["1h"], includedTypes = c("C>T"),
+                                         title = "XPC CPD 1h All Reps TGG-Filtered C>T Mismatch Pos Freq",
+                                         zScoreTables = XPCCPDMMFreqZScoresAllRepsTGGFiltered,
+                                         posType = FIVE_PRIME, yAxisLabel = "Relative C>T Frequency",
+                                         xAxisBreaks = c(1,10,20,30))
+```
+```{r figure_S8E, fig.width = 7.5, fig.height = 5}
+plotGroupedPositionStats(CSBCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
+                         CSBCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"],
+                         POS_DIFF, title = "CSB CPD 1h All Reps TGG-Filtered C>T Mismatch Pos Diff",
+                         xAxisBreaks = c(22:30), ylim = c(0,5))
+print(paste("3' endpoint variation: ",
+            getThreePrimeVariation(CSBCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
+                                   CSBCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"],
+                                   endpointVariation = TRUE)))
+print(paste("3' variation (unweighted): ",
+            getThreePrimeVariation(CSBCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
+                                   CSBCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"])))
+print(paste("3' variation (weighted): ",
+            getThreePrimeVariation(CSBCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
+                                   CSBCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"],
+                                   mismatchData = NHF1CPDMismatchDataAllRepsTGGFiltered$`1h`)))
+```
+```{r figure_S8F, fig.width = 7.5, fig.height = 5}
+plotGroupedPositionStats(XPCCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
+                         XPCCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"],
+                         POS_DIFF, title = "XPC CPD 1h All Reps TGG-Filtered C>T Mismatch Pos Diff",
+                         xAxisBreaks = c(22:30), ylim = c(0,5))
+print(paste("3' endpoint variation: ",
+            getThreePrimeVariation(XPCCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
+                                   XPCCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"],
+                                   endpointVariation = TRUE)))
+print(paste("3' variation (unweighted): ",
+            getThreePrimeVariation(XPCCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
+                                   XPCCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"])))
+print(paste("3' variation (weighted): ",
+            getThreePrimeVariation(XPCCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
+                                   XPCCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"],
+                                   mismatchData = NHF1CPDMismatchDataAllRepsTGGFiltered$`1h`)))
+```
+
+
+```{r read_figure_S9_data}
 yeastCPDMismatchDataAllRepsFiltered = yeastCPDTimepoints
 for (i in seq_along(yeastCPDMismatchDataAllRepsFiltered)) {
   yeastCPDMismatchDataAllRepsFiltered[[i]] = fread(generateFilePath(
@@ -995,20 +1111,20 @@ for (i in seq_along(yeastCPDGroupedStatsAllRepsFiltered)) {
 ```
 
 
-```{r figure_S8A, fig.width = 5, fig.height = 5}
+```{r figure_S9A, fig.width = 5, fig.height = 5}
 plotPositionAcrossTimepointAndReadLength(yeastCPDMismatchDataAllRepsFiltered["20min"], includedTypes = c("C>T"),
                                          title = "Yeast CPD 20min All Reps TGG-Filtered C>T Mismatch Pos Freq",
                                          zScoreTables = yeastCPDMMFreqZScoresAllRepsFiltered,
                                          yAxisLabel = "Relative C>T Frequency", xAxisBreaks = c(-1,-10,-20,-30))
 ```
-```{r figure_S8B, fig.width = 5, fig.height = 5}
+```{r figure_S9B, fig.width = 5, fig.height = 5}
 plotPositionAcrossTimepointAndReadLength(yeastCPDMismatchDataAllRepsFiltered["20min"], includedTypes = c("C>T"),
                                          title = "Yeast CPD 20min All Reps TGG-Filtered C>T Mismatch Pos Freq",
                                          zScoreTables = yeastCPDMMFreqZScoresAllRepsFiltered,
                                          posType = FIVE_PRIME, yAxisLabel = "Relative C>T Frequency",
                                          xAxisBreaks = c(1,10,20,30))
 ```
-```{r figure_S8C, fig.width = 7.5, fig.height = 5}
+```{r figure_S9C, fig.width = 7.5, fig.height = 5}
 plotGroupedPositionStats(yeastCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "20min"],
                          yeastCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "20min"],
                          POS_DIFF, title = "Yeast CPD 1h All Reps TGG-Filtered C>T Mismatch Pos Diff",
@@ -1028,8 +1144,7 @@ print(paste("3' variation (weighted): ",
 ```
 
 
-
-```{r read_figure_S9_data}
+```{r read_figure_S10_data}
 NHF1GeneralReadsSixFourSeqFreqAllReps20minFilteredCombined = fread(generateFilePath(
   NHF1GeneralReadSequenceDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
   cellType = "NHF1", lesion = "6-4", timepoint = "20min",
@@ -1042,10 +1157,20 @@ GM12878GeneralReadsCisplatinSeqFreqRep1_90minFilteredCombined = fread(generateFi
   repitition = "rep1", sequence = "HYV", filtering = "TGG_filtered",
   additionalInformation = "combined_read_lengths"
 ))
+CSBGeneralReadsCPDSeqFreqAllReps1hFilteredCombined = fread(generateFilePath(
+  CSBGeneralReadSequenceDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
+  cellType = "CS-B", lesion = "CPD", timepoint = "1h", repitition = "all_reps",
+  sequence = "HYV", filtering = "TGG_filtered", additionalInformation = "combined_read_lengths"
+))
+XPCGeneralReadsCPDSeqFreqAllReps1hFilteredCombined = fread(generateFilePath(
+  XPCGeneralReadSequenceDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
+  cellType = "XP-C", lesion = "CPD", timepoint = "1h", repitition = "all_reps",
+  sequence = "HYV", filtering = "TGG_filtered", additionalInformation = "combined_read_lengths"
+))
 ```
 
 
-```{r figure_S9, fig.width = 5, fig.height = 4}
+```{r figure_S10, fig.width = 5, fig.height = 4}
 plotSequenceFrequencies(NHF1GeneralReadsSixFourSeqFreqAllReps20minFilteredCombined[Position <= 7],
                         title = "NHF1 6-4 20min All Reps TGG-Filtered General Reads HYV Freq",
                         secondaryYAxisLabel = "Read Length", yAxisLabel = "HYV Frequency",
@@ -1060,10 +1185,24 @@ plotSequenceFrequencies(GM12878GeneralReadsCisplatinSeqFreqRep1_90minFilteredCom
                         expansionOffset = 10, minReadLength = 23, maxReadLength = 29, backgroundPositions = -9:-4,
                         checkPositions = -1, displayPValue = FALSE, xAxisLabel = "5' Relative Position",
                         xAxisOffset = 1, ylimMax = 0.6, ylimMaxModifier = 1)
+plotSequenceFrequencies(CSBGeneralReadsCPDSeqFreqAllReps1hFilteredCombined[Position <= 7],
+                        title = "CSB CPD 1h All Reps TGG-Filtered General Reads HYV Freq",
+                        secondaryYAxisLabel = "Read Length", yAxisLabel = "HYV Frequency",
+                        showFivePrimeCutSite = TRUE, querySequences = c("333"), xAxisOffset = 1,
+                        expansionOffset = 10, backgroundPositions = -9:-4,
+                        checkPositions = -1, displayPValue = FALSE, xAxisLabel = "5' Relative Position",
+                        xAxisBreaks = c(-8, 0, 8), ylimMax = 0.6, ylimMaxModifier = 1)
+plotSequenceFrequencies(XPCGeneralReadsCPDSeqFreqAllReps1hFilteredCombined[Position <= 7],
+                        title = "XPC CPD 1h All Reps TGG-Filtered General Reads HYV Freq",
+                        secondaryYAxisLabel = "Read Length", yAxisLabel = "HYV Frequency",
+                        showFivePrimeCutSite = TRUE, querySequences = c("333"), xAxisOffset = 1,
+                        expansionOffset = 10, backgroundPositions = -9:-4,
+                        checkPositions = -1, displayPValue = FALSE, xAxisLabel = "5' Relative Position",
+                        xAxisBreaks = c(-8, 0, 8), ylimMax = 0.6, ylimMaxModifier = 1)
 ```
 
 
-```{r read_figure_S10_data}
+```{r read_figure_S11_data}
 NHF1FivePrimeMismatchCPDNucFreqAllRepsFiltered = fread(generateFilePath(
   NHF1ExcisionSiteDataDirectory, dataTypeStrings$nucleotideFrequencyData, ".tsv",
   cellType = "NHF1", lesion = "CPD", repitition = "all_reps",
@@ -1082,7 +1221,7 @@ yeastFivePrimeMismatchCPDNucFreqAllRepsFiltered = fread(generateFilePath(
 ```
 
 
-```{r figure_S10, fig.width = 6.5, fig.height = 6}
+```{r figure_S11, fig.width = 6.5, fig.height = 6}
 plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsFiltered[Timepoint == "1h"], 
                                title = "NHF1 CPD 1h All Reps TGG-Filtered 5' Anchored Nuc Freq",
                                secondaryYAxisLabel = "3' Cut Site Distance",
@@ -1105,7 +1244,7 @@ plotNucFreqVsReadLengthBarPlot(yeastFivePrimeMismatchCPDNucFreqAllRepsFiltered[T
 
 
 
-```{r read_figure_S11_data}
+```{r read_figure_S12_data}
 NHF1CPDGGtoAAMismatchDataAllRepsFiltered = NHF1CPDTimepoints
 for (i in seq_along(NHF1CPDGGtoAAMismatchDataAllRepsFiltered)) {
   NHF1CPDGGtoAAMismatchDataAllRepsFiltered[[i]] = fread(generateFilePath(
@@ -1128,95 +1267,10 @@ for (i in seq_along(NHF1CPDGGtoAAMMFreqZScoresAllRepsFiltered)) {
 ```
 
 
-```{r figure_S11, fig.width = 5, fig.height = 5.5}
+```{r figure_S12, fig.width = 5, fig.height = 5.5}
 plotPositionAcrossTimepointAndReadLength(NHF1CPDGGtoAAMismatchDataAllRepsFiltered["1h"],
                                          title = "NHF1 CPD All Reps GG>AA Mismatch Pos Freq",
                                          zScoreTables = NHF1CPDGGtoAAMMFreqZScoresAllRepsFiltered,
                                          yAxisLabel = "Relative GG>AA Frequency",
                                          xAxisBreaks = c(-1,-10,-20,-30))
 ```
-
-
-```{r ???_data}
-CSBGeneralReadsCPDSeqFreqAllReps1hFilteredCombined = fread(generateFilePath(
-  CSBGeneralReadSequenceDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
-  cellType = "CS-B", lesion = "CPD", timepoint = "1h", repitition = "all_reps",
-  sequence = "HYV", filtering = "TGG_filtered", additionalInformation = "combined_read_lengths"
-))
-
-XPCGeneralReadsCPDSeqFreqAllReps1hFilteredCombined = fread(generateFilePath(
-  XPCGeneralReadSequenceDataDirectory, dataTypeStrings$sequenceFrequency, ".tsv",
-  cellType = "XP-C", lesion = "CPD", timepoint = "1h", repitition = "all_reps",
-  sequence = "HYV", filtering = "TGG_filtered", additionalInformation = "combined_read_lengths"
-))
-
-CSBCPDGroupedStatsAllRepsFiltered = list(three_prime = NULL, five_prime = NULL)
-for (i in seq_along(CSBCPDGroupedStatsAllRepsFiltered)) {
-  CSBCPDGroupedStatsAllRepsFiltered[[i]] = fread(generateFilePath(
-    CSBSequenceAndPositionDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
-    cellType = "CS-B", lesion = "CPD", repitition = "all_reps", filtering = "TGG_filtered",
-    strandPolarity = names(CSBCPDGroupedStatsAllRepsFiltered)[i]
-  ))
-}
-
-XPCCPDGroupedStatsAllRepsFiltered = list(three_prime = NULL, five_prime = NULL)
-for (i in seq_along(XPCCPDGroupedStatsAllRepsFiltered)) {
-  XPCCPDGroupedStatsAllRepsFiltered[[i]] = fread(generateFilePath(
-    XPCSequenceAndPositionDataDirectory, dataTypeStrings$mismatchPositionStats, ".tsv",
-    cellType = "XP-C", lesion = "CPD", repitition = "all_reps", filtering = "TGG_filtered",
-    strandPolarity = names(XPCCPDGroupedStatsAllRepsFiltered)[i]
-  ))
-}
-```
-
-
-```{r ???}
-plotSequenceFrequencies(CSBGeneralReadsCPDSeqFreqAllReps1hFilteredCombined[Position <= 7],
-                        title = "CSB CPD 1h All Reps TGG-Filtered General Reads HYV Freq",
-                        secondaryYAxisLabel = "Read Length", yAxisLabel = "HYV Frequency",
-                        showFivePrimeCutSite = TRUE, querySequences = c("333"), xAxisOffset = 1,
-                        expansionOffset = 10, backgroundPositions = -9:-4,
-                        checkPositions = -1, displayPValue = FALSE, xAxisLabel = "5' Relative Position",
-                        xAxisBreaks = c(-8, 0, 8), ylimMax = 0.6, ylimMaxModifier = 1)
-
-plotSequenceFrequencies(XPCGeneralReadsCPDSeqFreqAllReps1hFilteredCombined[Position <= 7],
-                        title = "XPC CPD 1h All Reps TGG-Filtered General Reads HYV Freq",
-                        secondaryYAxisLabel = "Read Length", yAxisLabel = "HYV Frequency",
-                        showFivePrimeCutSite = TRUE, querySequences = c("333"), xAxisOffset = 1,
-                        expansionOffset = 10, backgroundPositions = -9:-4,
-                        checkPositions = -1, displayPValue = FALSE, xAxisLabel = "5' Relative Position",
-                        xAxisBreaks = c(-8, 0, 8), ylimMax = 0.6, ylimMaxModifier = 1)
-
-plotGroupedPositionStats(CSBCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
-                         CSBCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"],
-                         POS_DIFF, title = "CSB CPD 1h All Reps TGG-Filtered C>T Mismatch Pos Diff",
-                         xAxisBreaks = c(22:30), ylim = c(0,5))
-print(paste("3' endpoint variation: ",
-            getThreePrimeVariation(CSBCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
-                                   CSBCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"],
-                                   endpointVariation = TRUE)))
-print(paste("3' variation (unweighted): ",
-            getThreePrimeVariation(CSBCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
-                                   CSBCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"])))
-print(paste("3' variation (weighted): ",
-            getThreePrimeVariation(CSBCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
-                                   CSBCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"],
-                                   mismatchData = NHF1CPDMismatchDataAllRepsTGGFiltered$`1h`)))
-
-plotGroupedPositionStats(XPCCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
-                         XPCCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"],
-                         POS_DIFF, title = "XPC CPD 1h All Reps TGG-Filtered C>T Mismatch Pos Diff",
-                         xAxisBreaks = c(22:30), ylim = c(0,5))
-print(paste("3' endpoint variation: ",
-            getThreePrimeVariation(XPCCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
-                                   XPCCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"],
-                                   endpointVariation = TRUE)))
-print(paste("3' variation (unweighted): ",
-            getThreePrimeVariation(XPCCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
-                                   XPCCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"])))
-print(paste("3' variation (weighted): ",
-            getThreePrimeVariation(XPCCPDGroupedStatsAllRepsFiltered$three_prime[Timepoint == "1h"],
-                                   XPCCPDGroupedStatsAllRepsFiltered$five_prime[Timepoint == "1h"],
-                                   mismatchData = NHF1CPDMismatchDataAllRepsTGGFiltered$`1h`)))
-```
-
