@@ -65,31 +65,33 @@ for (CPDTimepoint in names(CPDTimepoints)) {
         featureRelativeDataDirectory, dataTypeStrings$featureRelativePositionCounts, ".tsv",
         cellType = cellType, lesion = "CPD", repitition = "all_reps", filtering = filtering,
         timepoint = CPDTimepoint, includedMismatches = mismatchType,
-        additionalInformation = paste0(tfbs,"_related")
+        additionalInformation = paste0(tfbs,"_related_strand_aligned")
       ))
       
       meanThreePrimeCutSiteDistanceData = fread(generateFilePath(
         featureRelativeDataDirectory, dataTypeStrings$featureRelativeMeanCutSiteDistance, ".tsv", strandPolarity = THREE_PRIME,
         cellType = cellType, lesion = "CPD", repitition = "all_reps", filtering = filtering,
         timepoint = CPDTimepoint, includedMismatches = mismatchType,
-        additionalInformation = paste0(tfbs,"_related")
+        additionalInformation = paste0(tfbs,"_related_strand_aligned")
       ))
       
       meanFivePrimeCutSiteDistanceData = fread(generateFilePath(
         featureRelativeDataDirectory, dataTypeStrings$featureRelativeMeanCutSiteDistance, ".tsv", strandPolarity = FIVE_PRIME,
         cellType = cellType, lesion = "CPD", repitition = "all_reps", filtering = filtering,
         timepoint = CPDTimepoint, includedMismatches = mismatchType,
-        additionalInformation = paste0(tfbs,"_related")
+        additionalInformation = paste0(tfbs,"_related_strand_aligned")
       ))
 
       plotFeatureRelativeCounts(featureRelativePositionData, FEATURE_RELATIVE_POSITION,
+                                plotCountsMirror = TRUE, smoothCountsData = FALSE, mainYAxisLabel = "C>T Mismatches",
+                                countsPlotColor = "black", countsMirrorColor = "gold2",
                                 title = paste(cellType, "CPD", CPDTimepoint, mismatchType, tfbs, "Aligned Strands"))
       
-      plotFeatureRelativeCounts(featureRelativePositionData, FEATURE_RELATIVE_POSITION, meanThreePrimeCutSiteDistanceData,
-                                THREE_PRIME, title = paste(cellType, "CPD", CPDTimepoint, mismatchType, tfbs, "Aligned Strands"))
-      
-      plotFeatureRelativeCounts(featureRelativePositionData, FEATURE_RELATIVE_POSITION, meanFivePrimeCutSiteDistanceData,
-                                FIVE_PRIME, title = paste(cellType, "CPD", CPDTimepoint, mismatchType, tfbs, "Aligned Strands"))
+      plotFeatureRelativeCounts(meanThreePrimeCutSiteDistanceData, FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
+                                smoothCountsData = FALSE, countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
+                                meanCutSiteDistanceTable = meanFivePrimeCutSiteDistanceData,
+                                cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
+                                title = paste(cellType, "CPD", CPDTimepoint, mismatchType, tfbs, "Aligned Strands"))
       
     }
   }
@@ -107,31 +109,32 @@ for (CPDTimepoint in names(CPDTimepoints)) {
         featureRelativeDataDirectory, dataTypeStrings$featureRelativePositionCounts, ".tsv",
         cellType = cellType, lesion = "CPD", repitition = "all_reps", filtering = filtering,
         timepoint = CPDTimepoint, includedMismatches = mismatchType,
-        additionalInformation = paste0(nucMap,"_related")
+        additionalInformation = paste0(nucMap,"_related_strand_aligned")
       ))
       
       meanThreePrimeCutSiteDistanceData = fread(generateFilePath(
         featureRelativeDataDirectory, dataTypeStrings$featureRelativeMeanCutSiteDistance, ".tsv", strandPolarity = THREE_PRIME,
         cellType = cellType, lesion = "CPD", repitition = "all_reps", filtering = filtering,
         timepoint = CPDTimepoint, includedMismatches = mismatchType,
-        additionalInformation = paste0(nucMap,"_related")
+        additionalInformation = paste0(nucMap,"_related_strand_aligned")
       ))
       
       meanFivePrimeCutSiteDistanceData = fread(generateFilePath(
         featureRelativeDataDirectory, dataTypeStrings$featureRelativeMeanCutSiteDistance, ".tsv", strandPolarity = FIVE_PRIME,
         cellType = cellType, lesion = "CPD", repitition = "all_reps", filtering = filtering,
         timepoint = CPDTimepoint, includedMismatches = mismatchType,
-        additionalInformation = paste0(nucMap,"_related")
+        additionalInformation = paste0(nucMap,"_related_strand_aligned")
       ))
 
       plotFeatureRelativeCounts(featureRelativePositionData, FEATURE_RELATIVE_POSITION,
+                                plotCountsMirror = TRUE, smoothCountsData = FALSE, mainYAxisLabel = "C>T Mismatches",
                                 title = paste(cellType, "CPD", CPDTimepoint, mismatchType, nucMap, "Aligned Strands"))
       
-      plotFeatureRelativeCounts(featureRelativePositionData, FEATURE_RELATIVE_POSITION, meanThreePrimeCutSiteDistanceData,
-                                THREE_PRIME, title = paste(cellType, "CPD", CPDTimepoint, mismatchType, nucMap, "Aligned Strands"))
-      
-      plotFeatureRelativeCounts(featureRelativePositionData, FEATURE_RELATIVE_POSITION, meanFivePrimeCutSiteDistanceData,
-                                FIVE_PRIME, title = paste(cellType, "CPD", CPDTimepoint, mismatchType, nucMap, "Aligned Strands"))
+      plotFeatureRelativeCounts(meanThreePrimeCutSiteDistanceData, FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
+                                smoothCountsData = FALSE, countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
+                                meanCutSiteDistanceTable = meanFivePrimeCutSiteDistanceData,
+                                cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
+                                title = paste(cellType, "CPD", CPDTimepoint, mismatchType, nucMap, "Aligned Strands"))
       
     }
   }
