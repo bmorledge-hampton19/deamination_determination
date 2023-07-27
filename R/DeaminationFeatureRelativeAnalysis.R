@@ -11,6 +11,11 @@ FEATURE_RELATIVE_THREE_PRIME_CUT_SITE = "Feature_Relative_Three_Prime_Cut_Site"
 FEATURE_RELATIVE_FIVE_PRIME_CUT_SITE = "Feature_Relative_Five_Prime_Cut_Site"
 MEAN_THREE_PRIME_CUT_SITE_DISTANCE = "Mean_Three_Prime_Cut_Site_Distance"
 MEAN_FIVE_PRIME_CUT_SITE_DISTANCE = "Mean_Five_Prime_Cut_Site_Distance"
+COUNTS = "N"
+RELATIVE_FREQUENCY = "Relative_Frequency"
+
+LINE = "line"
+BAR = "bar"
 
 
 
@@ -98,39 +103,54 @@ getFeatureRelativeCounts = function(table, dataType, strandAlign = FALSE) {
     }
   } else stop("Unrecognized value for feature parameter")
 
-  if (strandAlign) {
-
-    if (dataType == MEAN_THREE_PRIME_CUT_SITE_DISTANCE || dataType == MEAN_FIVE_PRIME_CUT_SITE_DISTANCE) {
-      positionCol = FEATURE_RELATIVE_POSITION
-      dataCol = dataType
-    } else {
-      positionCol = dataType
-      dataCol = "N"
-    }
-
-    return(table[,c(..positionCol, ..dataCol)])
-
+  if (dataType == MEAN_THREE_PRIME_CUT_SITE_DISTANCE || dataType == MEAN_FIVE_PRIME_CUT_SITE_DISTANCE) {
+    positionCol = FEATURE_RELATIVE_POSITION
+    dataCol = dataType
   } else {
-    return(table)
+    positionCol = dataType
+    dataCol = "N"
+  }
+
+  fullRange = data.table(Position = min(table[[positionCol]]):max(table[[positionCol]]))
+  table = merge.data.table(table, fullRange, by.x = positionCol, by.y = "Position", all = TRUE)
+  if (dataCol == "N") {table[is.na(N), N := 0]}
+
+  if (strandAlign) {
+    return(table[order(table[[positionCol]]),c(..positionCol, ..dataCol)])
+  } else {
+    return(table[order(table[[positionCol]])])
   }
 
 }
 
 
 # This function plots counts of feature-relative features, as specified by the "feature" parameter.
-plotFeatureRelativeCounts = function(countsTable, countsDataType,
+plotFeatureRelativeCounts = function(countsTable, countsDataType, countsYVar = COUNTS,
+                                     plotCountsMirror = FALSE, smoothCountsData = FALSE,
+                                     countsPlotType = LINE, countsPlotColor = "black", countsMirrorColor = "gray",
                                      meanCutSiteDistanceTable = NULL, cutSiteStrandPolarity = NULL,
+                                     smoothMeanCutSiteDistance = FALSE,
                                      title = NULL, sameStrand = NULL, xlim = NULL, xAxisBreaks = waiver(),
-                                     relativeFreqMax = NULL, meanCutSiteDistanceMin = NULL, meanCutSiteDistanceMax = NULL,
+                                     mainYAxisMin = NULL, mainYAxisMax = NULL, mainYAxisLabel = NULL,
+                                     meanCutSiteDistanceMin = NULL, meanCutSiteDistanceMax = NULL,
                                      secondaryAxisBreaks = waiver()) {
 
   countsTable = copy(countsTable)
-  if (!is.null(sameStrand)) {
-    countsTable = countsTable[Same_Strand == sameStrand]
-  }
-  countsTable[, Relative_Frequency := N/sum(N)]
+  if (!is.null(sameStrand)) { countsTable = countsTable[Same_Strand == sameStrand | is.na(sameStrand)] }
+  if (countsYVar == RELATIVE_FREQUENCY) { countsTable[, Relative_Frequency := N/sum(N)] }
 
-  if (is.null(relativeFreqMax)) {relativeFreqMax = max(countsTable$Relative_Frequency) * 1.1}
+  if (smoothCountsData) {
+    countsTable[,c(paste0(countsYVar,"_Smoothed")) := frollmean(countsTable[[countsYVar]], 5, align = "center", na.rm = TRUE)]
+    countsYVar = paste0(countsYVar,"_Smoothed")
+  }
+  countsTable = countsTable[complete.cases(countsTable)]
+
+  adjustmentFactor = (max(countsTable[[countsYVar]]) - min(countsTable[[countsYVar]]))*0.05
+  if (is.null(mainYAxisMax)) {mainYAxisMax = max(countsTable[[countsYVar]]) + adjustmentFactor}
+  if (is.null(mainYAxisMin)) {
+    mainYAxisMin = min(countsTable[[countsYVar]])
+    if (mainYAxisMin != 0) mainYAxisMin = mainYAxisMin - adjustmentFactor
+  }
 
   if (countsDataType == FEATURE_RELATIVE_POSITION) {
     xAxisLabel = "Feature Relative Position"
@@ -157,34 +177,60 @@ plotFeatureRelativeCounts = function(countsTable, countsDataType,
       stop("Unrecognized value for cut site strand polarity")
     }
 
+    if (!is.null(sameStrand)) { meanCutSiteDistanceTable = meanCutSiteDistanceTable[Same_Strand == sameStrand | is.na(sameStrand)] }
+
+    if (smoothMeanCutSiteDistance) {
+      meanCutSiteDistanceTable[,c(paste0(meanCutSiteDistanceCol,"_Smoothed")) :=
+                                 frollmean(meanCutSiteDistanceTable[[meanCutSiteDistanceCol]], 5, align = "center", na.rm = TRUE)]
+      meanCutSiteDistanceCol = paste0(meanCutSiteDistanceCol,"_Smoothed")
+    }
+    meanCutSiteDistanceTable = meanCutSiteDistanceTable[complete.cases(meanCutSiteDistanceTable)]
+
     countsTable = merge.data.table(countsTable, meanCutSiteDistanceTable, by = FEATURE_RELATIVE_POSITION)
 
     adjustmentFactor = (max(countsTable[[meanCutSiteDistanceCol]]) - min(countsTable[[meanCutSiteDistanceCol]]))*0.05
     if (is.null(meanCutSiteDistanceMin)) {meanCutSiteDistanceMin = min(countsTable[[meanCutSiteDistanceCol]]) - adjustmentFactor}
     if (is.null(meanCutSiteDistanceMax)) {meanCutSiteDistanceMax = max(countsTable[[meanCutSiteDistanceCol]]) + adjustmentFactor}
-    yAxisRatio = relativeFreqMax/(meanCutSiteDistanceMax-meanCutSiteDistanceMin)
+    yAxisRatio = (mainYAxisMax-mainYAxisMin)/(meanCutSiteDistanceMax-meanCutSiteDistanceMin)
 
   }
 
-  plot = ggplot(countsTable, aes(x = !!sym(countsDataType), y = Relative_Frequency)) +
-                geom_bar(stat = "identity") + coord_cartesian(xlim = xlim, expand = FALSE) +
-                scale_x_continuous(breaks = xAxisBreaks) +
-                labs(title = title, x = xAxisLabel, y = "Relative Frequency") +
-                blankBackground + defaultTextScaling
+  plot = ggplot(countsTable, aes(x = !!sym(countsDataType), y = !!sym(countsYVar)))
+
+  if (countsPlotType == BAR) {
+    plot = plot + geom_bar(stat = "identity") + coord_cartesian(xlim = xlim, expand = FALSE, fill = countsPlotColor)
+  } else if (countsPlotType == LINE) {
+    plot = plot + geom_line(linewidth = 1, color = countsPlotColor)
+  }
+  if (is.null(mainYAxisLabel)) {mainYAxisLabel = countsYVar}
+  plot = plot +
+    scale_x_continuous(breaks = xAxisBreaks) +
+    labs(title = title, x = xAxisLabel, y = mainYAxisLabel) +
+    blankBackground + defaultTextScaling +
+    theme(axis.text.y.left = element_text(size = 18, color = countsPlotColor),
+          axis.title.y.left = element_text(size = 22, color = countsPlotColor))
+
+  if (plotCountsMirror) {
+    mirroredCountsTable = countsTable[countsTable[[countsDataType]] <= 0, c(..countsDataType, ..countsYVar)]
+    mirroredCountsTable[,c(countsDataType) := -mirroredCountsTable[[countsDataType]]]
+    plot = plot + geom_line(aes(x = !!sym(countsDataType), y = !!sym(countsYVar)), data = mirroredCountsTable,
+                            linewidth = 1, color = countsMirrorColor)
+  }
 
   if (!is.null(meanCutSiteDistanceTable)) {
     plot = plot +
       geom_line(aes(x = !!sym(FEATURE_RELATIVE_POSITION),
-                    y = (countsTable[[meanCutSiteDistanceCol]] - meanCutSiteDistanceMin) * yAxisRatio ),
+                    y = countsTable[[meanCutSiteDistanceCol]] * yAxisRatio - (meanCutSiteDistanceMax*yAxisRatio-mainYAxisMax)),
                 linewidth = 1, color = lineColor) +
-      scale_y_continuous(breaks = secondaryAxisBreaks, limits = c(0,relativeFreqMax), expand = expansion(),
-                         sec.axis = sec_axis(~. / yAxisRatio + meanCutSiteDistanceMin, name = secondaryAxisLabel)) +
+      scale_y_continuous(breaks = secondaryAxisBreaks, limits = c(mainYAxisMin,mainYAxisMax), expand = expansion(),
+                         sec.axis = sec_axis(~. / yAxisRatio + (meanCutSiteDistanceMax-mainYAxisMax/yAxisRatio),
+                                             name = secondaryAxisLabel)) +
       theme(axis.text.y.right = element_text(size = 18, color = lineColor),
             axis.title.y.right = element_text(size = 22, color = lineColor))
 
   } else {
 
-    plot = plot + scale_y_continuous(limits = c(0,relativeFreqMax), expand = expansion())
+    plot = plot + scale_y_continuous(limits = c(mainYAxisMin,mainYAxisMax), expand = expansion())
 
   }
 
