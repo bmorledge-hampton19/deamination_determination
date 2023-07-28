@@ -19,7 +19,8 @@ dataTypeStrings =
        featureRelativeData = "feature_relative_data",
        featureRelativePositionCounts = "feature_relative_position_counts",
        featureRelativeCutSiteCounts = "feature_relative_cut_site_counts",
-       featureRelativeMeanCutSiteDistance = "feature_relative_mean_cut_site_distance"
+       featureRelativeMeanCutSiteDistance = "feature_relative_mean_cut_site_distance",
+       pairedCutSiteDistances = "paired_cut_site_distances"
        )
 
 generateFilePath = function(directory, dataTypeString, fileExtension,
