@@ -22,7 +22,7 @@ library(knitr)
 
 cellType = "NHF1"
 CPDTimepoints = list(`1h` = NULL, `8h` = NULL, `24h` = NULL, `48h` = NULL)
-mismatchTypes = list(`C>T_CC>TT` = NULL)
+mismatchTypes = list(`C>T` = NULL, `CC>TT` = NULL, `C>T_CC>TT` = NULL)
 features = list(`CTCF_known1_DHS` = NULL, `CTCF_known1_non-DHS` = NULL, `hg19_mnase_all` = NULL)
 
 
