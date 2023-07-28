@@ -13,6 +13,7 @@ def formatMismatchesForRelation(mismatchesByReadFilePath: str, zScoresFilePath, 
                                 sortOutput = True, verbose = False):
     """
     Filters mismatches by read to acceptable mismatch patterns in reads of valid length at positions with zscores greater than or equal to the given z-score cutoff.
+    Also filter reads with sequences containing 'N' nucleotides (to keep things consistent with R pipeline).
     The bed entry is also formatted so that it is focused directly on the mismatched position(s) and read sequence is replaced with its length.
     The resulting file is sorted, first by chromosome, then by start position and end position.
     The output suffix is appended to the new file path just after "mismatches_by_read".
@@ -68,6 +69,8 @@ def formatMismatchesForRelation(mismatchesByReadFilePath: str, zScoresFilePath, 
 
             position = float(splitLine[3])
             if not zscoreDictionary[readLength][position]: continue
+
+            if 'N' in splitLine[6]: continue
 
             # Recenter the coordinates on the mismatch (0-based)
             if splitLine[5] == '+': mismatchCoordinate = int(splitLine[2]) + position
