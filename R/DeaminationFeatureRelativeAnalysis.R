@@ -86,21 +86,27 @@ getFeatureRelativeCounts = function(table, dataType, strandAlign = FALSE) {
   } else if (dataType == MEAN_THREE_PRIME_CUT_SITE_DISTANCE) {
     if (strandAlign) {
       table[Same_Strand == FALSE, Feature_Relative_Mismatch_Pos := -Feature_Relative_Mismatch_Pos]
-      table = table[,.(Mean_Three_Prime_Cut_Site_Distance = mean(abs(Read_Relative_Mismatch_Pos))),
+      table = table[,.(Mean_Three_Prime_Cut_Site_Distance = mean(abs(Read_Relative_Mismatch_Pos)),
+                       Standard_Deviation = sd(abs(Read_Relative_Mismatch_Pos)), N = .N),
                     by = list(Feature_Relative_Mismatch_Pos)]
     } else {
-      table = table[,.(Mean_Three_Prime_Cut_Site_Distance = mean(abs(Read_Relative_Mismatch_Pos))),
+      table = table[,.(Mean_Three_Prime_Cut_Site_Distance = mean(abs(Read_Relative_Mismatch_Pos)),
+                       Standard_Deviation = sd(abs(Read_Relative_Mismatch_Pos)), N = .N),
                     by = list(Feature_Relative_Mismatch_Pos, Same_Strand)]
     }
+    table[,Standard_Error := Standard_Deviation/sqrt(N)]
   } else if (dataType == MEAN_FIVE_PRIME_CUT_SITE_DISTANCE) {
     if (strandAlign) {
       table[Same_Strand == FALSE, Feature_Relative_Mismatch_Pos := -Feature_Relative_Mismatch_Pos]
-      table = table[,.(Mean_Five_Prime_Cut_Site_Distance = mean(Read_Length-abs(Read_Relative_Mismatch_Pos)+1)),
+      table = table[,.(Mean_Five_Prime_Cut_Site_Distance = mean(Read_Length-abs(Read_Relative_Mismatch_Pos)+1),
+                       Standard_Deviation = sd(Read_Length-abs(Read_Relative_Mismatch_Pos)+1), N = .N),
                     by = list(Feature_Relative_Mismatch_Pos)]
     } else {
-      table = table[,.(Mean_Five_Prime_Cut_Site_Distance = mean(Read_Length-abs(Read_Relative_Mismatch_Pos)+1)),
+      table = table[,.(Mean_Five_Prime_Cut_Site_Distance = mean(Read_Length-abs(Read_Relative_Mismatch_Pos)+1),
+                       Standard_Deviation = sd(Read_Length-abs(Read_Relative_Mismatch_Pos)+1), N = .N),
                     by = list(Feature_Relative_Mismatch_Pos, Same_Strand)]
     }
+    table[,Standard_Error := Standard_Deviation/sqrt(N)]
   } else stop("Unrecognized value for feature parameter")
 
   if (dataType == MEAN_THREE_PRIME_CUT_SITE_DISTANCE || dataType == MEAN_FIVE_PRIME_CUT_SITE_DISTANCE) {
@@ -115,11 +121,7 @@ getFeatureRelativeCounts = function(table, dataType, strandAlign = FALSE) {
   table = merge.data.table(table, fullRange, by.x = positionCol, by.y = "Position", all = TRUE)
   if (dataCol == "N") {table[is.na(N), N := 0]}
 
-  if (strandAlign) {
-    return(table[order(table[[positionCol]]),c(..positionCol, ..dataCol)])
-  } else {
     return(table[order(table[[positionCol]])])
-  }
 
 }
 
