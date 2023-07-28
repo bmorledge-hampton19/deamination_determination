@@ -9,7 +9,7 @@ from benbiohelpers.InputParsing.ParseToIterable import parseToIterable
 
 def formatMismatchesForRelation(mismatchesByReadFilePath: str, zScoresFilePath, zScoreCutoff = 4,
                                 acceptableReadLengths = range(22,31), acceptableMismatchTypes: List[str] = ["C>T", "CC>TT"],
-                                outputSuffix = "_relation_formatted", addMismatchTypesToName = True, outputToTmpDir = True,
+                                outputSuffix = "_relation_formatted", addMismatchTypesToName = True, outputToTmpDir = False,
                                 sortOutput = True, verbose = False):
     """
     Filters mismatches by read to acceptable mismatch patterns in reads of valid length at positions with zscores greater than or equal to the given z-score cutoff.
