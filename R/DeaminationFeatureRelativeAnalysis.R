@@ -133,7 +133,7 @@ plotFeatureRelativeCounts = function(countsTable, countsDataType, countsYVar = C
                                      meanCutSiteDistanceTable = NULL, cutSiteStrandPolarity = NULL,
                                      smoothMeanCutSiteDistance = FALSE,
                                      title = NULL, sameStrand = NULL, xlim = NULL, xAxisBreaks = waiver(),
-                                     mainYAxisMin = NULL, mainYAxisMax = NULL, mainYAxisLabel = NULL,
+                                     mainYAxisMin = NULL, mainYAxisMax = NULL, xAxisLabel = NULL, mainYAxisLabel = NULL,
                                      meanCutSiteDistanceMin = NULL, meanCutSiteDistanceMax = NULL,
                                      secondaryAxisBreaks = waiver()) {
 
@@ -155,13 +155,13 @@ plotFeatureRelativeCounts = function(countsTable, countsDataType, countsYVar = C
   }
 
   if (countsDataType == FEATURE_RELATIVE_POSITION) {
-    xAxisLabel = "Feature Relative Position"
+    if (is.null(xAxisLabel)) xAxisLabel = "Feature Relative Position"
     if (is.null(title)) title = "Feature Relative Mismatch Position Frequencies"
   } else if (countsDataType == FEATURE_RELATIVE_THREE_PRIME_CUT_SITE){
-    xAxisLabel = "Feature Relative 3' Cut Site"
+    if (is.null(xAxisLabel)) xAxisLabel = "Feature Relative 3' Cut Site"
     if (is.null(title)) title = "Feature Relative 3' Cut Site Position Frequencies"
   } else if (countsDataType == FEATURE_RELATIVE_FIVE_PRIME_CUT_SITE) {
-    xAxisLabel = "Feature Relative 5' Cut Site"
+    if (is.null(xAxisLabel)) xAxisLabel = "Feature Relative 5' Cut Site"
     if (is.null(title)) title = "Feature Relative 5' Cut Site Position Frequencies"
   } else stop("Unrecognized value for data type parameter")
 
@@ -200,12 +200,13 @@ plotFeatureRelativeCounts = function(countsTable, countsDataType, countsYVar = C
   plot = ggplot(countsTable, aes(x = !!sym(countsDataType), y = !!sym(countsYVar)))
 
   if (countsPlotType == BAR) {
-    plot = plot + geom_bar(stat = "identity") + coord_cartesian(xlim = xlim, expand = FALSE, fill = countsPlotColor)
+    plot = plot + geom_bar(stat = "identity", fill = countsPlotColor)
   } else if (countsPlotType == LINE) {
     plot = plot + geom_line(linewidth = 1, color = countsPlotColor)
   }
   if (is.null(mainYAxisLabel)) {mainYAxisLabel = countsYVar}
   plot = plot +
+    coord_cartesian(xlim = xlim, expand = FALSE) +
     scale_x_continuous(breaks = xAxisBreaks) +
     labs(title = title, x = xAxisLabel, y = mainYAxisLabel) +
     blankBackground + defaultTextScaling +
