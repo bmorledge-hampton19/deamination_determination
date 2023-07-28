@@ -1,0 +1,67 @@
+---
+title: "5'CutSiteAnalysisDataGeneration"
+author: "Ben MOrledge-Hampton"
+date: '2022-07-14'
+output: html_document
+params:
+  bioinformaticsDirectory:
+    label: "Bioinformatics Projects Directory"
+    value: C:/Bioinformatics_Projects
+    input: select
+    choices: [C:/Bioinformatics_Projects, F:/Bioinformatics_Projects]
+---
+
+
+```{r setup_chunk}
+library(knitr)
+
+expansionOffset = 10
+filtering = "TGG_filtered"
+
+if (interactive()) {
+  bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
+} else {
+  bioinformaticsDirectory = params$bioinformaticsDirectory
+}
+
+if (is.na(bioinformaticsDirectory)) stop("No bioinformatics directory given.")
+
+opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5, 
+               fig.path = paste0(file.path("deamination_analysis_output","combined",
+                                           paste(c(filtering,"correlation_analysis"), collapse = '_')),
+                                 .Platform$file.sep))
+
+deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data")
+NHF1CutSiteCorrelationDirectory = file.path(deaminationDataDirectory, "NHF1", "cut_site_correlation")
+```
+
+
+```{r source_functions}
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "UsefulFileSystemFunctions.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "CutSiteCorrelationAnalysis.R"))
+```
+
+
+```{r define_all_that_and_a_bag_of_chips_function}
+cutSiteCorrelationAnalysisFigureGeneration = function(lesion, repetition, timepoint, cellType, directory,
+                                                    includedMismatches = c("CC>TT")) {
+  pairedCutSiteDistances = fread(generateFilePath(
+    directory, dataTypeStrings$pairedCutSiteDistances , ".tsv",
+    cellType = cellType, lesion = lesion, timepoint = timepoint,
+    repitition = repetition, filtering = filtering, includedMismatches = includedMismatches
+  ))
+  
+  print(getCorrelationResults(pairedCutSiteDistances))
+  plotPairedCutSiteDistances(pairedCutSiteDistances,
+                             title = paste(cellType, lesion, timepoint, includedMismatches, "Cut Site Correlation"))
+  
+}
+```
+
+
+```{r generate_cut_site_correlation_figures}
+cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "1h", "NHF1", NHF1CutSiteCorrelationDirectory)
+```
+
