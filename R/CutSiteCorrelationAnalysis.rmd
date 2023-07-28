@@ -1,0 +1,73 @@
+---
+title: "5'CutSiteAnalysisDataGeneration"
+author: "Ben MOrledge-Hampton"
+date: '2022-07-14'
+output: html_document
+params:
+  bioinformaticsDirectory:
+    label: "Bioinformatics Projects Directory"
+    value: C:/Bioinformatics_Projects
+    input: select
+    choices: [C:/Bioinformatics_Projects, F:/Bioinformatics_Projects]
+---
+
+
+```{r setup_chunk}
+library(knitr)
+
+expansionOffset = 10
+filtering = "TGG_filtered"
+
+if (interactive()) {
+  bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
+} else {
+  bioinformaticsDirectory = params$bioinformaticsDirectory
+}
+
+if (is.na(bioinformaticsDirectory)) stop("No bioinformatics directory given.")
+
+deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data")
+NHF1MismatchesByReadDirectory = file.path(deaminationDataDirectory, "NHF1", "mismatches_by_read")
+
+humanReadMinMax = c(22, 30)
+drosophilaReadMinMax = c(23, 32)
+arabidopsisReadMinMax = c(24, 30)
+yeastReadMinMax = c(22, 25)
+EColiReadMinMax = c(11, 13)
+```
+
+
+```{r source_functions}
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "UsefulFileSystemFunctions.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "DeaminationAnchoredExcisionSiteAnalysis.R"))
+```
+
+
+```{r define_all_that_and_a_bag_of_chips_function}
+cutSiteCorrelationAnalysis = function(lesion, repetition, timepoint, cellType, directory,
+                                      includedMismatches = c("CC>TT")) {
+  mismatchesByRead = fread(generateFilePath(
+    directory, dataTypeStrings$mismatchesByReadRelationFormatted , ".bed",
+    cellType = cellType, lesion = lesion, timepoint = timepoint,
+    repitition = repetition, filtering = filtering, includedMismatches = includedMismatches
+  ))
+  colnames(mismatchesByRead) = c("Chromosome", "Mismatch_Pos_0", "Mismatch_Pos_1", "Three_Prime_Relative_Mismatch_Pos",
+                                 "Mismatch_Type", "Mismatch_Strand", "Read_Length")
+  
+  mismatchesByRead[,Three_Prime_Cut_Site_Distance := abs(Three_Prime_Relative_Mismatch_Pos)]
+  mismatchesByRead[,Five_Prime_Cut_Site_Distance := Read_Length-abs(Three_Prime_Relative_Mismatch_Pos)+1]
+  
+  return(cor.test(mismatchesByRead$Three_Prime_Cut_Site_Distance,
+                 mismatchesByRead$Five_Prime_Cut_Site_Distance, method = "pearson"))
+  
+  #return(mismatchesByRead[,.(Three_Prime_Cut_Site_Distance, Five_Prime_Cut_Site_Distance)])
+}
+```
+
+
+```{r compute_and_write_sequence_frequencies}
+print(cutSiteCorrelationAnalysis("CPD", "all_reps", "1h", "NHF1", NHF1MismatchesByReadDirectory))
+```
+
