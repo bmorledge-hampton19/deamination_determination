@@ -22,7 +22,7 @@ library(knitr)
 
 cellType = "NHF1"
 CPDTimepoints = list(`1h` = NULL, `8h` = NULL, `24h` = NULL, `48h` = NULL)
-mismatchTypes = list(`C>T_CC>TT` = NULL)
+mismatchTypes = list(`C>T` = NULL, `CC>TT` = NULL, `C>T_CC>TT` = NULL)
 TFBSs = list(`CTCF_known1_DHS` = NULL, `CTCF_known1_non-DHS` = NULL)
 nucMaps = list(`hg19_mnase_all` = NULL)
 
@@ -85,13 +85,15 @@ for (CPDTimepoint in names(CPDTimepoints)) {
       plotFeatureRelativeCounts(featureRelativePositionData, FEATURE_RELATIVE_POSITION,
                                 plotCountsMirror = TRUE, smoothCountsData = FALSE, mainYAxisLabel = "C>T Mismatches",
                                 countsPlotColor = "black", countsMirrorColor = "gold2",
-                                title = paste(cellType, "CPD", CPDTimepoint, mismatchType, tfbs, "Aligned Strands"))
+                                title = paste(cellType, "CPD", CPDTimepoint, mismatchType, tfbs, "Aligned Strands"),
+                                xAxisLabel = "TFBS-Relative Position")
       
       plotFeatureRelativeCounts(meanThreePrimeCutSiteDistanceData, FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
                                 smoothCountsData = FALSE, countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
                                 meanCutSiteDistanceTable = meanFivePrimeCutSiteDistanceData,
                                 cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
-                                title = paste(cellType, "CPD", CPDTimepoint, mismatchType, tfbs, "Aligned Strands"))
+                                title = paste(cellType, "CPD", CPDTimepoint, mismatchType, tfbs, "Aligned Strands"),
+                                xAxisLabel = "TFBS-Relative Position")
       
     }
   }
@@ -128,13 +130,22 @@ for (CPDTimepoint in names(CPDTimepoints)) {
 
       plotFeatureRelativeCounts(featureRelativePositionData, FEATURE_RELATIVE_POSITION,
                                 plotCountsMirror = TRUE, smoothCountsData = FALSE, mainYAxisLabel = "C>T Mismatches",
-                                title = paste(cellType, "CPD", CPDTimepoint, mismatchType, nucMap, "Aligned Strands"))
+                                title = paste(cellType, "CPD", CPDTimepoint, mismatchType, nucMap, "Aligned Strands"),
+                                xAxisLabel = "Dyad-Relative Position", xlim = c(0,300))
       
       plotFeatureRelativeCounts(meanThreePrimeCutSiteDistanceData, FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
                                 smoothCountsData = FALSE, countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
                                 meanCutSiteDistanceTable = meanFivePrimeCutSiteDistanceData,
                                 cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
-                                title = paste(cellType, "CPD", CPDTimepoint, mismatchType, nucMap, "Aligned Strands"))
+                                title = paste(cellType, "CPD", CPDTimepoint, mismatchType, nucMap, "Aligned Strands"),
+                                xAxisLabel = "Dyad-Relative Position", xlim = c(-100, 100))
+      
+      plotFeatureRelativeCounts(meanThreePrimeCutSiteDistanceData, FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
+                                smoothCountsData = FALSE, countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
+                                meanCutSiteDistanceTable = meanFivePrimeCutSiteDistanceData,
+                                cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
+                                title = paste(cellType, "CPD", CPDTimepoint, mismatchType, nucMap, "Aligned Strands"),
+                                xAxisLabel = "Dyad-Relative Position", xlim = c(0,300))
       
     }
   }
@@ -142,7 +153,7 @@ for (CPDTimepoint in names(CPDTimepoints)) {
 ```
 
 
-```{r periodicity analysis}
+```{r single_nucleosome_periodicity_analysis}
 library(mutperiodR)
 
 for (CPDTimepoint in names(CPDTimepoints)) {
@@ -186,3 +197,67 @@ for (CPDTimepoint in names(CPDTimepoints)) {
 
 ```
 
+
+```{r linker_region_periodicity_analysis}
+library(mutperiodR)
+
+for (CPDTimepoint in names(CPDTimepoints)) {
+  for (mismatchType in names(mismatchTypes)) {
+    for (nucMap in names(nucMaps)) {
+
+        meanThreePrimeCutSiteDistanceData = fread(generateFilePath(
+          featureRelativeDataDirectory, dataTypeStrings$featureRelativeMeanCutSiteDistance, ".tsv", strandPolarity = THREE_PRIME,
+          cellType = cellType, lesion = "CPD", repitition = "all_reps", filtering = filtering,
+          timepoint = CPDTimepoint, includedMismatches = mismatchType,
+          additionalInformation = paste0(nucMap,"_related")
+        ))
+        
+        meanFivePrimeCutSiteDistanceData = fread(generateFilePath(
+          featureRelativeDataDirectory, dataTypeStrings$featureRelativeMeanCutSiteDistance, ".tsv", strandPolarity = FIVE_PRIME,
+          cellType = cellType, lesion = "CPD", repitition = "all_reps", filtering = filtering,
+          timepoint = CPDTimepoint, includedMismatches = mismatchType,
+          additionalInformation = paste0(nucMap,"_related")
+        ))
+  
+        print(paste(cellType, CPDTimepoint, mismatchType, nucMap, ":"))
+        
+        print("Mean 3` cut site distance:")
+        print("  pre-linker:")
+        periodAndSNR = getPeakPeriodicityAndSNR(
+          meanThreePrimeCutSiteDistanceData[
+            Feature_Relative_Mismatch_Pos < -70 & Feature_Relative_Mismatch_Pos > -120,
+            Mean_Three_Prime_Cut_Site_Distance], 5, 25)
+        print(paste("    Peak Period:",periodAndSNR[1]))
+        print(paste("    SNR:",periodAndSNR[2]))
+        
+        print("  post-linker:")
+        periodAndSNR = getPeakPeriodicityAndSNR(
+          meanThreePrimeCutSiteDistanceData[
+            Feature_Relative_Mismatch_Pos > 70 & Feature_Relative_Mismatch_Pos < 120,
+            Mean_Three_Prime_Cut_Site_Distance], 5, 25)
+        print(paste("    Peak Period:",periodAndSNR[1]))
+        print(paste("    SNR:",periodAndSNR[2]))
+        
+        print("Mean 5` cut site distance:")
+        print("  pre-linker:")
+        periodAndSNR = getPeakPeriodicityAndSNR(
+          meanFivePrimeCutSiteDistanceData[
+            Feature_Relative_Mismatch_Pos < -70 & Feature_Relative_Mismatch_Pos > -120,
+            Mean_Five_Prime_Cut_Site_Distance], 5, 25)
+        print(paste("    Peak Period:",periodAndSNR[1]))
+        print(paste("    SNR:",periodAndSNR[2]))
+        
+        print("  post-linker:")
+        periodAndSNR = getPeakPeriodicityAndSNR(
+          meanFivePrimeCutSiteDistanceData[
+            Feature_Relative_Mismatch_Pos > 70 & Feature_Relative_Mismatch_Pos < 120,
+            Mean_Five_Prime_Cut_Site_Distance], 5, 25)
+        print(paste("    Peak Period:",periodAndSNR[1]))
+        print(paste("    SNR:",periodAndSNR[2]))
+        
+        print('')
+    }
+  }
+}
+
+```
