@@ -46,16 +46,34 @@ source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
 
 ```{r define_all_that_and_a_bag_of_chips_function}
 cutSiteCorrelationAnalysisFigureGeneration = function(lesion, repetition, timepoint, cellType, directory,
-                                                    includedMismatches = c("CC>TT")) {
+                                                      includedMismatches = c("CC>TT"), filteredAndFormattedInput = TRUE,
+                                                      shuffle = FALSE) {
+
+  if (filteredAndFormattedInput) {
+    additionalInformation = character()
+  } else {
+    additionalInformation = "minimal_filtering"
+  }
+
   pairedCutSiteDistances = fread(generateFilePath(
     directory, dataTypeStrings$pairedCutSiteDistances , ".tsv",
     cellType = cellType, lesion = lesion, timepoint = timepoint,
-    repitition = repetition, filtering = filtering, includedMismatches = includedMismatches
+    repitition = repetition, filtering = filtering, includedMismatches = includedMismatches,
+    additionalInformation = additionalInformation
   ))
   
-  print(getCorrelationResults(pairedCutSiteDistances))
+  if (shuffle) {
+    pairedCutSiteDistances[,Three_Prime_Cut_Site_Distance :=
+                             sample(Three_Prime_Cut_Site_Distance, nrow(pairedCutSiteDistances))]
+  }
+  
+  correlationResults = getCorrelationResults(pairedCutSiteDistances)
+  print(correlationResults)
+  print(paste("True p-value:",correlationResults$p.value))
+  
   plotPairedCutSiteDistances(pairedCutSiteDistances,
-                             title = paste(cellType, lesion, timepoint, includedMismatches, "Cut Site Correlation"))
+                             title = paste(cellType, lesion, timepoint, includedMismatches,
+                                           "Cut Site Correlation", additionalInformation))
   
 }
 ```
@@ -63,5 +81,20 @@ cutSiteCorrelationAnalysisFigureGeneration = function(lesion, repetition, timepo
 
 ```{r generate_cut_site_correlation_figures}
 cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "1h", "NHF1", NHF1CutSiteCorrelationDirectory)
+cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "1h", "NHF1", NHF1CutSiteCorrelationDirectory,
+                                           includedMismatches = "C>T")
+cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "1h", "NHF1", NHF1CutSiteCorrelationDirectory,
+                                           filteredAndFormattedInput = FALSE)
+cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "1h", "NHF1", NHF1CutSiteCorrelationDirectory,
+                                           includedMismatches = "C>T", filteredAndFormattedInput = FALSE)
+```
+
+
+```{r shuffled_for_sanity_check}
+cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "1h", "NHF1", NHF1CutSiteCorrelationDirectory,
+                                           shuffle = TRUE)
+cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "1h", "NHF1", NHF1CutSiteCorrelationDirectory,
+                                           includedMismatches = "CC>TT", filteredAndFormattedInput = FALSE,
+                                           shuffle = TRUE)
 ```
 

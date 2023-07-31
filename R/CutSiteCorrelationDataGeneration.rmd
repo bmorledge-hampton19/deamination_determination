@@ -43,16 +43,41 @@ source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
 
 ```{r define_all_that_and_a_bag_of_chips_function}
 cutSiteCorrelationAnalysisDataGeneration = function(lesion, repetition, timepoint, cellType, inputDirectory, outputDirectory,
-                                                    includedMismatches = c("CC>TT")) {
+                                                    includedMismatches = c("CC>TT"), filteredAndFormattedInput = TRUE,
+                                                    filePathIncludedMismatches = NA) {
+  
+  if (length(filePathIncludedMismatches) > 0 && is.na(filePathIncludedMismatches)) {
+    filePathIncludedMismatches = includedMismatches
+  }
+  
+  if (filteredAndFormattedInput) {
+    inputType = dataTypeStrings$mismatchesByReadRelationFormatted
+  } else {
+    inputType = dataTypeStrings$mismatchesByRead
+  }
+  
   mismatchesByRead = fread(generateFilePath(
-    inputDirectory, dataTypeStrings$mismatchesByReadRelationFormatted , ".bed",
+    inputDirectory, inputType, ".bed",
     cellType = cellType, lesion = lesion, timepoint = timepoint,
-    repitition = repetition, filtering = filtering, includedMismatches = includedMismatches
+    repitition = repetition, filtering = filtering, includedMismatches = filePathIncludedMismatches
   ))
-  fwrite(getPairedCutSiteDistances(mismatchesByRead),  sep = '\t', file = generateFilePath(
+  
+  if (filteredAndFormattedInput) {
+    additionalInformation = character()
+  } else {
+    additionalInformation = "minimal_filtering"
+  }
+  
+  if (length(filePathIncludedMismatches) != length(includedMismatches)) {
+    mismatchesByRead = mismatchesByRead[V5 %in% includedMismatches]
+    mismatchesByRead[,V4:=as.numeric(V4)]
+  }
+  
+  fwrite(getPairedCutSiteDistances(mismatchesByRead, filteredAndFormattedInput), sep = '\t', file = generateFilePath(
     outputDirectory, dataTypeStrings$pairedCutSiteDistances , ".tsv",
     cellType = cellType, lesion = lesion, timepoint = timepoint,
-    repitition = repetition, filtering = filtering, includedMismatches = includedMismatches
+    repitition = repetition, filtering = filtering, includedMismatches = includedMismatches,
+    additionalInformation = additionalInformation
   ))
   
 }
@@ -62,5 +87,15 @@ cutSiteCorrelationAnalysisDataGeneration = function(lesion, repetition, timepoin
 ```{r generate_cut_site_correlation_data}
 cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
                                          NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory)
+cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
+                                         NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
+                                         includedMismatches = "C>T")
+cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
+                                         NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
+                                         includedMismatches = "C>T", filteredAndFormattedInput = FALSE,
+                                         filePathIncludedMismatches = character())
+cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
+                                         NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
+                                         includedMismatches = "CC>TT", filteredAndFormattedInput = FALSE)
 ```
 

@@ -12,10 +12,17 @@ blankBackground = theme(panel.grid.major = element_blank(), panel.grid.minor = e
                         panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
 
-getPairedCutSiteDistances = function(mismatchesByRead) {
-  # NOTE: Expects mismatches filtered and formatted from the FormatMismatchesForRelation Python script
-  colnames(mismatchesByRead) = c("Chromosome", "Mismatch_Pos_0", "Mismatch_Pos_1", "Three_Prime_Relative_Mismatch_Pos",
-                                 "Mismatch_Type", "Mismatch_Strand", "Read_Length")
+getPairedCutSiteDistances = function(mismatchesByRead, filteredAndFormattedInput = TRUE) {
+
+  if (filteredAndFormattedInput) {
+    colnames(mismatchesByRead) = c("Chromosome", "Mismatch_Pos_0", "Mismatch_Pos_1", "Three_Prime_Relative_Mismatch_Pos",
+                                   "Mismatch_Type", "Mismatch_Strand", "Read_Length")
+  } else {
+    colnames(mismatchesByRead) = c("Chromosome", "Read_Pos_0", "Read_Pos_1", "Three_Prime_Relative_Mismatch_Pos",
+                                   "Mismatch_Type", "Mismatch_Strand", "Read_Sequence")
+
+    mismatchesByRead[,Read_Length := nchar(Read_Sequence)]
+  }
 
   mismatchesByRead[,Three_Prime_Cut_Site_Distance := abs(Three_Prime_Relative_Mismatch_Pos)]
   mismatchesByRead[,Five_Prime_Cut_Site_Distance := Read_Length-abs(Three_Prime_Relative_Mismatch_Pos)+1]
