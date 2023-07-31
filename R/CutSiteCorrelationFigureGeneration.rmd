@@ -33,6 +33,8 @@ opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5,
 
 deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data")
 NHF1CutSiteCorrelationDirectory = file.path(deaminationDataDirectory, "NHF1", "cut_site_correlation")
+arabidopsisCutSiteCorrelationDirectory = file.path(deaminationDataDirectory, "Arabidopsis", "cut_site_correlation")
+yeastCutSiteCorrelationDirectory = file.path(deaminationDataDirectory, "yeast", "cut_site_correlation")
 ```
 
 
@@ -87,6 +89,9 @@ cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "1h", "NHF1", NHF1
                                            filteredAndFormattedInput = FALSE)
 cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "1h", "NHF1", NHF1CutSiteCorrelationDirectory,
                                            includedMismatches = "C>T", filteredAndFormattedInput = FALSE)
+
+cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "ZT2", "Arabidopsis", arabidopsisCutSiteCorrelationDirectory)
+cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "20min", "yeast", yeastCutSiteCorrelationDirectory)
 ```
 
 

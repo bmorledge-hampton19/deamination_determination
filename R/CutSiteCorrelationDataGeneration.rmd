@@ -29,7 +29,13 @@ if (is.na(bioinformaticsDirectory)) stop("No bioinformatics directory given.")
 deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data")
 NHF1MismatchesByReadDirectory = file.path(deaminationDataDirectory, "NHF1", "mismatches_by_read")
 NHF1CutSiteCorrelationDirectory = file.path(deaminationDataDirectory, "NHF1", "cut_site_correlation")
+arabidopsisMismatchesByReadDirectory = file.path(deaminationDataDirectory, "Arabidopsis", "mismatches_by_read")
+arabidopsisCutSiteCorrelationDirectory = file.path(deaminationDataDirectory, "Arabidopsis", "cut_site_correlation")
+yeastMismatchesByReadDirectory = file.path(deaminationDataDirectory, "yeast", "mismatches_by_read")
+yeastCutSiteCorrelationDirectory = file.path(deaminationDataDirectory, "yeast", "cut_site_correlation")
 dir.create(NHF1CutSiteCorrelationDirectory, showWarnings = FALSE, recursive = TRUE)
+dir.create(arabidopsisCutSiteCorrelationDirectory, showWarnings = FALSE, recursive = TRUE)
+dir.create(yeastCutSiteCorrelationDirectory, showWarnings = FALSE, recursive = TRUE)
 ```
 
 
@@ -97,5 +103,10 @@ cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
 cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
                                          NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
                                          includedMismatches = "CC>TT", filteredAndFormattedInput = FALSE)
+
+cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "ZT2", "Arabidopsis",
+                                         arabidopsisMismatchesByReadDirectory, arabidopsisCutSiteCorrelationDirectory)
+cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "20min", "yeast",
+                                         yeastMismatchesByReadDirectory, yeastCutSiteCorrelationDirectory)
 ```
 
