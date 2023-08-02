@@ -133,9 +133,11 @@ plotFeatureRelativeCounts = function(countsTable, countsDataType, countsYVar = C
                                      meanCutSiteDistanceTable = NULL, cutSiteStrandPolarity = NULL,
                                      smoothMeanCutSiteDistance = FALSE,
                                      title = NULL, sameStrand = NULL, xlim = NULL, xAxisBreaks = waiver(),
-                                     mainYAxisMin = NULL, mainYAxisMax = NULL, xAxisLabel = NULL, mainYAxisLabel = NULL,
+                                     xAxisLabel = NULL, mainYAxisLabel = NULL,
+                                     mainYAxisMin = NULL, mainYAxisMax = NULL,
+                                     centerMainYAxis = TRUE, mainYAxisBreaks = waiver(),
                                      meanCutSiteDistanceMin = NULL, meanCutSiteDistanceMax = NULL,
-                                     secondaryAxisBreaks = waiver()) {
+                                     centerMeanCutSiteDistanceAxis = TRUE, secondaryAxisBreaks = waiver()) {
 
   countsTable = copy(countsTable)
   if (!is.null(sameStrand)) { countsTable = countsTable[Same_Strand == sameStrand | is.na(sameStrand)] }
@@ -152,6 +154,17 @@ plotFeatureRelativeCounts = function(countsTable, countsDataType, countsYVar = C
   if (is.null(mainYAxisMin)) {
     mainYAxisMin = min(countsTable[[countsYVar]])
     if (mainYAxisMin != 0) mainYAxisMin = mainYAxisMin - adjustmentFactor
+  }
+
+  if (centerMainYAxis) {
+    thisMedian = median(countsTable[[countsYVar]])
+    upperDif = mainYAxisMax - thisMedian
+    lowerDif = thisMedian - mainYAxisMin
+    if (upperDif > lowerDif) {
+      mainYAxisMin = mainYAxisMin - (upperDif-lowerDif)
+    } else {
+      mainYAxisMax = mainYAxisMax + (lowerDif-upperDif)
+    }
   }
 
   if (countsDataType == FEATURE_RELATIVE_POSITION) {
@@ -193,6 +206,17 @@ plotFeatureRelativeCounts = function(countsTable, countsDataType, countsYVar = C
     adjustmentFactor = (max(countsTable[[meanCutSiteDistanceCol]]) - min(countsTable[[meanCutSiteDistanceCol]]))*0.05
     if (is.null(meanCutSiteDistanceMin)) {meanCutSiteDistanceMin = min(countsTable[[meanCutSiteDistanceCol]]) - adjustmentFactor}
     if (is.null(meanCutSiteDistanceMax)) {meanCutSiteDistanceMax = max(countsTable[[meanCutSiteDistanceCol]]) + adjustmentFactor}
+    if (centerMeanCutSiteDistanceAxis) {
+      thisMedian = median(countsTable[[meanCutSiteDistanceCol]])
+      upperDif = meanCutSiteDistanceMax - thisMedian
+      lowerDif = thisMedian - meanCutSiteDistanceMin
+      if (upperDif > lowerDif) {
+        meanCutSiteDistanceMin = meanCutSiteDistanceMin - (upperDif-lowerDif)
+      } else {
+        meanCutSiteDistanceMax = meanCutSiteDistanceMax + (lowerDif-upperDif)
+      }
+    }
+
     yAxisRatio = (mainYAxisMax-mainYAxisMin)/(meanCutSiteDistanceMax-meanCutSiteDistanceMin)
 
   }
@@ -225,15 +249,15 @@ plotFeatureRelativeCounts = function(countsTable, countsDataType, countsYVar = C
       geom_line(aes(x = !!sym(FEATURE_RELATIVE_POSITION),
                     y = countsTable[[meanCutSiteDistanceCol]] * yAxisRatio - (meanCutSiteDistanceMax*yAxisRatio-mainYAxisMax)),
                 linewidth = 1, color = lineColor) +
-      scale_y_continuous(breaks = secondaryAxisBreaks, limits = c(mainYAxisMin,mainYAxisMax), expand = expansion(),
+      scale_y_continuous(breaks = mainYAxisBreaks, limits = c(mainYAxisMin,mainYAxisMax), expand = expansion(),
                          sec.axis = sec_axis(~. / yAxisRatio + (meanCutSiteDistanceMax-mainYAxisMax/yAxisRatio),
-                                             name = secondaryAxisLabel)) +
+                                             name = secondaryAxisLabel), breaks = secondaryAxisBreaks) +
       theme(axis.text.y.right = element_text(size = 18, color = lineColor),
             axis.title.y.right = element_text(size = 22, color = lineColor))
 
   } else {
 
-    plot = plot + scale_y_continuous(limits = c(mainYAxisMin,mainYAxisMax), expand = expansion())
+    plot = plot + scale_y_continuous(breaks = mainYAxisBreaks, limits = c(mainYAxisMin,mainYAxisMax), expand = expansion())
 
   }
 
