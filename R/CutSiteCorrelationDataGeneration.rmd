@@ -14,6 +14,7 @@ params:
 
 ```{r setup_chunk}
 library(knitr)
+library(stringr)
 
 expansionOffset = 10
 filtering = "TGG_filtered"
@@ -49,11 +50,15 @@ source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
 
 ```{r define_all_that_and_a_bag_of_chips_function}
 cutSiteCorrelationAnalysisDataGeneration = function(lesion, repetition, timepoint, cellType, inputDirectory, outputDirectory,
-                                                    includedMismatches = c("CC>TT"), filteredAndFormattedInput = TRUE,
-                                                    filePathIncludedMismatches = NA) {
+                                                    includedMismatches = character(), omittedMismatches = character(),
+                                                    filteredAndFormattedInput = TRUE,
+                                                    filePathIncludedMismatches = NULL, filePathOmittedMismatches = NULL) {
   
-  if (length(filePathIncludedMismatches) > 0 && is.na(filePathIncludedMismatches)) {
+  if (is.null(filePathIncludedMismatches)) {
     filePathIncludedMismatches = includedMismatches
+  }
+  if (is.null(filePathOmittedMismatches)) {
+    filePathOmittedMismatches = omittedMismatches
   }
   
   if (filteredAndFormattedInput) {
@@ -65,7 +70,8 @@ cutSiteCorrelationAnalysisDataGeneration = function(lesion, repetition, timepoin
   mismatchesByRead = fread(generateFilePath(
     inputDirectory, inputType, ".bed",
     cellType = cellType, lesion = lesion, timepoint = timepoint,
-    repitition = repetition, filtering = filtering, includedMismatches = filePathIncludedMismatches
+    repitition = repetition, filtering = filtering,
+    includedMismatches = filePathIncludedMismatches, omittedMismatches = filePathOmittedMismatches
   ))
   
   if (filteredAndFormattedInput) {
@@ -74,15 +80,21 @@ cutSiteCorrelationAnalysisDataGeneration = function(lesion, repetition, timepoin
     additionalInformation = "minimal_filtering"
   }
   
+  if (!filteredAndFormattedInput) {mismatchesByRead = mismatchesByRead[str_count(V5, ':') == 0]}
+  
   if (length(filePathIncludedMismatches) != length(includedMismatches)) {
     mismatchesByRead = mismatchesByRead[V5 %in% includedMismatches]
+    mismatchesByRead[,V4:=as.numeric(V4)]
+  } else if (length(filePathOmittedMismatches) != length(omittedMismatches)) {
+    mismatchesByRead = mismatchesByRead[!V5 %in% omittedMismatches]
     mismatchesByRead[,V4:=as.numeric(V4)]
   }
   
   fwrite(getPairedCutSiteDistances(mismatchesByRead, filteredAndFormattedInput), sep = '\t', file = generateFilePath(
     outputDirectory, dataTypeStrings$pairedCutSiteDistances , ".tsv",
     cellType = cellType, lesion = lesion, timepoint = timepoint,
-    repitition = repetition, filtering = filtering, includedMismatches = includedMismatches,
+    repitition = repetition, filtering = filtering,
+    includedMismatches = includedMismatches, omittedMismatches = omittedMismatches,
     additionalInformation = additionalInformation
   ))
   
@@ -92,21 +104,46 @@ cutSiteCorrelationAnalysisDataGeneration = function(lesion, repetition, timepoin
 
 ```{r generate_cut_site_correlation_data}
 cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
-                                         NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory)
+                                         NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
+                                         includedMismatches = "CC>TT")
 cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
                                          NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
                                          includedMismatches = "C>T")
+cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
+                                         NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
+                                         omittedMismatches = "C>T")
+cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
+                                         NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
+                                         includedMismatches = "CC>TT", filteredAndFormattedInput = FALSE)
 cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
                                          NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
                                          includedMismatches = "C>T", filteredAndFormattedInput = FALSE,
                                          filePathIncludedMismatches = character())
 cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
                                          NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
-                                         includedMismatches = "CC>TT", filteredAndFormattedInput = FALSE)
+                                         omittedMismatches = "C>T", filteredAndFormattedInput = FALSE,
+                                         filePathOmittedMismatches = character())
 
 cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "ZT2", "Arabidopsis",
-                                         arabidopsisMismatchesByReadDirectory, arabidopsisCutSiteCorrelationDirectory)
+                                         arabidopsisMismatchesByReadDirectory, arabidopsisCutSiteCorrelationDirectory,
+                                         includedMismatches = "CC>TT")
+cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "ZT2", "Arabidopsis",
+                                         arabidopsisMismatchesByReadDirectory, arabidopsisCutSiteCorrelationDirectory,
+                                         includedMismatches = "C>T")
+cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "ZT2", "Arabidopsis",
+                                         arabidopsisMismatchesByReadDirectory, arabidopsisCutSiteCorrelationDirectory,
+                                         omittedMismatches = "C>T")
+
+
 cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "20min", "yeast",
-                                         yeastMismatchesByReadDirectory, yeastCutSiteCorrelationDirectory)
+                                         yeastMismatchesByReadDirectory, yeastCutSiteCorrelationDirectory,
+                                         includedMismatches = "CC>TT")
+cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "20min", "yeast",
+                                         yeastMismatchesByReadDirectory, yeastCutSiteCorrelationDirectory,
+                                         includedMismatches = "C>T")
+cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "20min", "yeast",
+                                         yeastMismatchesByReadDirectory, yeastCutSiteCorrelationDirectory,
+                                         omittedMismatches = "C>T")
+
 ```
 

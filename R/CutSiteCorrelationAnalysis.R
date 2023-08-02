@@ -11,6 +11,8 @@ defaultTextScaling = theme(plot.title = element_text(size = 22, hjust = 0.5),
 blankBackground = theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                         panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
+THREE_PRIME_CUT_SITE_DISTANCE = "Three_Prime_Cut_Site_Distance"
+READ_LENGTH = "Read_Length"
 
 getPairedCutSiteDistances = function(mismatchesByRead, filteredAndFormattedInput = TRUE) {
 
@@ -27,24 +29,34 @@ getPairedCutSiteDistances = function(mismatchesByRead, filteredAndFormattedInput
   mismatchesByRead[,Three_Prime_Cut_Site_Distance := abs(Three_Prime_Relative_Mismatch_Pos)]
   mismatchesByRead[,Five_Prime_Cut_Site_Distance := Read_Length-abs(Three_Prime_Relative_Mismatch_Pos)+1]
 
-  return(mismatchesByRead[,.(Three_Prime_Cut_Site_Distance, Five_Prime_Cut_Site_Distance)])
+  return(mismatchesByRead[,.(Three_Prime_Cut_Site_Distance, Five_Prime_Cut_Site_Distance, Read_Length)])
 
 }
 
-getCorrelationResults = function(pairedCutSiteDistances) {
+getCorrelationResults = function(pairedCutSiteDistances, dependentVariable) {
 
-  return(cor.test(pairedCutSiteDistances$Three_Prime_Cut_Site_Distance,
+  return(cor.test(pairedCutSiteDistances[[dependentVariable]],
                   pairedCutSiteDistances$Five_Prime_Cut_Site_Distance, method = "pearson"))
 
 }
 
-plotPairedCutSiteDistances = function(pairedCutSiteDistances,
-                                       xAxisLabel = "3' Cut Site Distance", yAxisLabel = "5' CutSite Distance",
-                                       title = "Paired Cut Site Distances") {
+plotPairedCutSiteDistances = function(pairedCutSiteDistances, dependentVariable,
+                                      xAxisLabel = "5' Cut Site Distance", yAxisLabel = NULL,
+                                      title = "Paired Cut Site Distances", sizeRange = c(0.1,5),
+                                      xlim = NULL, ylim = NULL) {
 
-  plot = ggplot(pairedCutSiteDistances, aes(x = Three_Prime_Cut_Site_Distance, y = Five_Prime_Cut_Site_Distance)) +
-    geom_count() + blankBackground + defaultTextScaling +
-    labs(title = title, x = xAxisLabel, y = yAxisLabel)
+  if (is.null(yAxisLabel)) {
+    if (dependentVariable == THREE_PRIME_CUT_SITE_DISTANCE) {
+      yAxisLabel = "3' Cut Site Distance"
+    } else if (dependentVariable == READ_LENGTH) {
+      yAxisLabel = "Read Length"
+    }
+  }
+
+  plot = ggplot(pairedCutSiteDistances, aes(x = Five_Prime_Cut_Site_Distance, y = !!sym(dependentVariable))) +
+    geom_count() + scale_size(range = sizeRange) + blankBackground + defaultTextScaling +
+    geom_smooth(method = "lm", formula = y~x, color = "red2") +
+    labs(title = title, x = xAxisLabel, y = yAxisLabel) + coord_cartesian(xlim = xlim, ylim = ylim, expand = FALSE)
 
   print(plot)
 
