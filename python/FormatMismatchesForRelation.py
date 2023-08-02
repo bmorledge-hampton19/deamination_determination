@@ -5,10 +5,12 @@ from benbiohelpers.FileSystemHandling.DirectoryHandling import getTempDir
 from benbiohelpers.TkWrappers.TkinterDialog import TkinterDialog
 from benbiohelpers.InputParsing.CheckForNumber import checkForNumber
 from benbiohelpers.InputParsing.ParseToIterable import parseToIterable
+from benbiohelpers.CustomErrors import UserInputError
 
 
 def formatMismatchesForRelation(mismatchesByReadFilePath: str, zScoresFilePath, zScoreCutoff = 4,
-                                acceptableReadLengths = range(22,31), acceptableMismatchTypes: List[str] = ["C>T", "CC>TT"],
+                                acceptableReadLengths = range(22,31),acceptableMismatchTypes: List[str] = ["C>T", "CC>TT"],
+                                unacceptableMismatchTypes: List[str] = None, filterCompositeMismatches = True,
                                 outputSuffix = "_relation_formatted", addMismatchTypesToName = True, outputToTmpDir = False,
                                 sortOutput = True, verbose = False):
     """
@@ -20,21 +22,27 @@ def formatMismatchesForRelation(mismatchesByReadFilePath: str, zScoresFilePath, 
     Returns the new file path.
     """
 
-    # Determine which positions are valid for each read length based on the given z-score cutoff.
-    # Initialize a nested dictionary with one key for read length, another key for position and a final boolean value stating whether the zscore meets the cutoff.
-    if verbose: print("Determining positions with acceptable z-scores...")
-    zscoreDictionary = dict()
-    for readLength in acceptableReadLengths:
-        zscoreDictionary[readLength] = dict()
+    # Make sure invalid arguments were not given.
+    if acceptableMismatchTypes is not None and unacceptableMismatchTypes is not None:
+        raise UserInputError("Acceptable mismatch types and unacceptable mismatch types are incompatible and cannot both have values.")
 
-    # Determine which positions have zscores which meet the cutoff.
-    with open(zScoresFilePath, 'r') as zScoresFile:
-        zScoresFile.readline() # Skip the headers
-        for line in zScoresFile:
-            readLength, position, frequency, zScore = line.split()
-            readLength = int(readLength)
-            if readLength not in acceptableReadLengths: continue
-            else: zscoreDictionary[readLength][float(position)] = float(zScore) >= zScoreCutoff
+
+    # Determine which positions are valid for each read length based on the given z-score cutoff.
+    if zScoresFilePath is not None:
+        # Initialize a nested dictionary with one key for read length, another key for position and a final boolean value stating whether the zscore meets the cutoff.
+        if verbose: print("Determining positions with acceptable z-scores...")
+        zscoreDictionary = dict()
+        for readLength in acceptableReadLengths:
+            zscoreDictionary[readLength] = dict()
+
+        # Determine which positions have zscores which meet the cutoff.
+        with open(zScoresFilePath, 'r') as zScoresFile:
+            zScoresFile.readline() # Skip the headers
+            for line in zScoresFile:
+                readLength, position, frequency, zScore = line.split()
+                readLength = int(readLength)
+                if readLength not in acceptableReadLengths: continue
+                else: zscoreDictionary[readLength][float(position)] = float(zScore) >= zScoreCutoff
 
     # Generate the output file path.
     if outputToTmpDir: outputDir = getTempDir(mismatchesByReadFilePath)
@@ -45,10 +53,19 @@ def formatMismatchesForRelation(mismatchesByReadFilePath: str, zScoresFilePath, 
                       os.path.basename(mismatchesByReadFilePath).rsplit("mismatches_by_read",1)[1])
     if addMismatchTypesToName:
 
-        for mismatchType in acceptableMismatchTypes:
-            mismatchName = mismatchType.replace('>', "_to_")
-            if mismatchName in outputBaseName: pass
-            else: outputBaseName = outputBaseName.replace("mismatches_by_read", f"{mismatchName}_mismatches_by_read")
+        if acceptableMismatchTypes is not None:
+            for mismatchType in acceptableMismatchTypes:
+                mismatchName = mismatchType.replace('>', "_to_")
+                if mismatchName in outputBaseName: pass
+                else: outputBaseName = outputBaseName.replace("mismatches_by_read", f"{mismatchName}_mismatches_by_read")
+
+        elif unacceptableMismatchTypes is not None:
+            for mismatchType in unacceptableMismatchTypes:
+                if "omitted_mismatches_by_read" in outputBaseName: pass
+                else: outputBaseName = outputBaseName.replace("mismatches_by_read", "omitted_mismatches_by_read")
+                mismatchName = mismatchType.replace('>', "_to_")
+                if mismatchName in outputBaseName: pass
+                else: outputBaseName = outputBaseName.replace("omitted_mismatches_by_read", f"{mismatchName}_omitted_mismatches_by_read")
 
     outputFilePath = os.path.join(outputDir, outputBaseName)
 
@@ -65,10 +82,12 @@ def formatMismatchesForRelation(mismatchesByReadFilePath: str, zScoresFilePath, 
             readLength = int(splitLine[2]) - int(splitLine[1])
             if readLength not in acceptableReadLengths: continue
 
-            if splitLine[4] not in acceptableMismatchTypes: continue
+            if filterCompositeMismatches and ':' in splitLine[4]: continue
+            if acceptableMismatchTypes is not None and splitLine[4] not in acceptableMismatchTypes: continue
+            if unacceptableMismatchTypes is not None and splitLine[4] in unacceptableMismatchTypes: continue
 
             position = float(splitLine[3])
-            if not zscoreDictionary[readLength][position]: continue
+            if zScoresFilePath is not None and not zscoreDictionary[readLength][position]: continue
 
             if 'N' in splitLine[6]: continue
 
