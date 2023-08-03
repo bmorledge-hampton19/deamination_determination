@@ -124,6 +124,16 @@ cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
                                          omittedMismatches = "C>T", filteredAndFormattedInput = FALSE,
                                          filePathOmittedMismatches = character())
 
+cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "8h", "NHF1",
+                                         NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
+                                         includedMismatches = "CC>TT")
+cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "8h", "NHF1",
+                                         NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
+                                         includedMismatches = "C>T")
+cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "8h", "NHF1",
+                                         NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
+                                         omittedMismatches = "C>T")
+
 cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "ZT2", "Arabidopsis",
                                          arabidopsisMismatchesByReadDirectory, arabidopsisCutSiteCorrelationDirectory,
                                          includedMismatches = "CC>TT")
