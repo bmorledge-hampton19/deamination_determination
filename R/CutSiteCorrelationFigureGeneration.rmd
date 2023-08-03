@@ -66,9 +66,7 @@ cutSiteCorrelationAnalysisFigureGeneration = function(lesion, repetition, timepo
   ))
   
   if (shuffle) {
-    pairedCutSiteDistances[,Three_Prime_Cut_Site_Distance :=
-                             sample(Three_Prime_Cut_Site_Distance, nrow(pairedCutSiteDistances))]
-    pairedCutSiteDistances[,Read_Length := Three_Prime_Cut_Site_Distance + Five_Prime_Cut_Site_Distance]
+    pairedCutSiteDistances = getShufflePairedCutSiteDistances(pairedCutSiteDistances)
     additionalInformation = paste(additionalInformation,"5'_shuffled")
   }
   
@@ -105,7 +103,7 @@ cutSiteCorrelationAnalysisFigureGeneration = function(lesion, repetition, timepo
 ```
 
 
-```{r NHF1_cut_site_correlation_figures}
+```{r NHF1_1h_cut_site_correlation_figures}
 cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "1h", "NHF1", NHF1CutSiteCorrelationDirectory,
                                            includedMismatches = "CC>TT")
 cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "1h", "NHF1", NHF1CutSiteCorrelationDirectory,
@@ -126,6 +124,23 @@ cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "1h", "NHF1", NHF1
                                            includedMismatches = "C>T", filteredAndFormattedInput = FALSE)
 cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "1h", "NHF1", NHF1CutSiteCorrelationDirectory,
                                            omittedMismatches = "C>T", filteredAndFormattedInput = FALSE)
+```
+
+
+```{r NHF1_8h_cut_site_correlation_figures}
+cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "8h", "NHF1", NHF1CutSiteCorrelationDirectory,
+                                           includedMismatches = "CC>TT")
+cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "8h", "NHF1", NHF1CutSiteCorrelationDirectory,
+                                           includedMismatches = "C>T")
+cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "8h", "NHF1", NHF1CutSiteCorrelationDirectory,
+                                           omittedMismatches = "C>T")
+
+cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "8h", "NHF1", NHF1CutSiteCorrelationDirectory,
+                                           includedMismatches = "CC>TT", shuffle = TRUE)
+cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "8h", "NHF1", NHF1CutSiteCorrelationDirectory,
+                                           includedMismatches = "C>T", shuffle = TRUE)
+cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "8h", "NHF1", NHF1CutSiteCorrelationDirectory,
+                                           omittedMismatches = "C>T", shuffle = TRUE)
 ```
 
 
