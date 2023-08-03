@@ -395,7 +395,8 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
                                    startBasedBackgroundNum = NULL, endBasedBackgroundNum = NULL, backgroundPositions = NULL,
                                    startBasedCheckPositions = NULL, endBasedCheckPositions = NULL, checkPositions = NULL,
                                    displayPValue = FALSE, zScoreCutoff = 4, significanceAsteriskBreakpoints = NULL,
-                                   xAxisLabel = NULL, xAxisOffset = 0, positionOffset = 0, defaultColor = "grey35") {
+                                   xAxisLabel = NULL, xAxisOffset = 0, positionOffset = 0, readLengthOffset = 0,
+                                   defaultColor = "grey35") {
 
   if (is.null(xAxisLabel)) {
     if (posType == THREE_PRIME) {
@@ -431,6 +432,7 @@ plotSequenceFrequencies = function(seqFreqTablesByTimepoint, posType = THREE_PRI
   maxQueryLength = max(nchar(querySequences))
 
   if (!combinedReadLengths) {
+    fullFrequencyTable[,Read_Length := Read_Length + readLengthOffset]
     if (!is.null(minReadLength)) fullFrequencyTable = fullFrequencyTable[Read_Length >= minReadLength]
     if (!is.null(maxReadLength)) fullFrequencyTable = fullFrequencyTable[Read_Length <= maxReadLength]
   }
