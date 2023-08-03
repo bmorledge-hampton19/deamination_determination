@@ -40,16 +40,20 @@ NHF1MismatchesByReadDataDirectory = file.path(NHF1DataDirectory, "mismatches_by_
 NHF1SequenceAndPositionDataDirectory = file.path(NHF1DataDirectory, "sequence_and_position_analysis")
 NHF1ExcisionSiteDataDirectory = file.path(NHF1DataDirectory, "excision_site_analysis")
 NHF1GeneralReadSequenceDataDirectory = file.path(NHF1DataDirectory, "general_read_sequences")
+NHF1CutSiteCorrelationDirectory = file.path(deaminationDataDirectory, "NHF1", "cut_site_correlation")
+NHF1FeatureRelativeDataDirectory = file.path(deaminationDataDirectory, "NHF1", "feature_relative_analysis")
 
 arabidopsisDataDirectory = file.path(deaminationDataDirectory, "Arabidopsis")
 arabidopsisSequenceAndPositionDataDirectory = file.path(arabidopsisDataDirectory, "sequence_and_position_analysis")
 arabidopsisExcisionSiteDataDirectory = file.path(arabidopsisDataDirectory, "excision_site_analysis")
 arabidopsisGeneralReadSequenceDataDirectory = file.path(arabidopsisDataDirectory, "general_read_sequences")
+arabidopsisCutSiteCorrelationDirectory = file.path(deaminationDataDirectory, "Arabidopsis", "cut_site_correlation")
 
 yeastDataDirectory = file.path(deaminationDataDirectory, "yeast")
 yeastSequenceAndPositionDataDirectory = file.path(yeastDataDirectory, "sequence_and_position_analysis")
 yeastExcisionSiteDataDirectory = file.path(yeastDataDirectory, "excision_site_analysis")
 yeastGeneralReadSequenceDataDirectory = file.path(yeastDataDirectory, "general_read_sequences")
+yeastCutSiteCorrelationDirectory = file.path(deaminationDataDirectory, "yeast", "cut_site_correlation")
 
 GM12878DataDirectory = file.path(deaminationDataDirectory, "GM12878")
 GM12878SequenceAndPositionDataDirectory = file.path(GM12878DataDirectory, "sequence_and_position_analysis")
@@ -78,6 +82,10 @@ source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
                  "DeaminationSequenceAndPositionAnalysis.R"))
 source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
                  "DeaminationAnchoredExcisionSiteAnalysis.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "CutSiteCorrelationAnalysis.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "DeaminationFeatureRelativeAnalysis.R"))
 ```
 
 
@@ -634,6 +642,142 @@ print(paste("3' variation (weighted): ",
             getThreePrimeVariation(yeastCPDCCToTTGroupedStatsAllRepsFiltered$three_prime[Timepoint == "20min"],
                                    yeastCPDCCToTTGroupedStatsAllRepsFiltered$five_prime[Timepoint == "20min"],
                                    mismatchData = yeastCPDCCtoTTMismatchDataAllRepsFiltered$`20min`)))
+```
+
+
+```{r read_figure_7_data}
+set.seed(8785)
+NHF1PairedCutSiteDistances = list(`1h` = NULL, `8h` = NULL)
+NHF1ShuffledCutSiteDistances = list(`1h` = NULL, `8h` = NULL)
+for (i in seq_along(NHF1PairedCutSiteDistances)) {
+  NHF1PairedCutSiteDistances[[i]] = list(CC_to_TT = NULL, non_C_to_T = NULL)
+  NHF1PairedCutSiteDistances[[i]]$CC_to_TT = fread(generateFilePath(
+    NHF1CutSiteCorrelationDirectory, dataTypeStrings$pairedCutSiteDistances , ".tsv",
+    cellType = "NHF1", lesion = "CPD", timepoint = names(NHF1PairedCutSiteDistances)[i],
+    repitition = "all_reps", filtering = "TGG_filtered",
+    includedMismatches = "CC>TT"
+  ))
+  NHF1ShuffledCutSiteDistances[[i]] = getShufflePairedCutSiteDistances(NHF1PairedCutSiteDistances[[i]]$CC_to_TT)
+  NHF1PairedCutSiteDistances[[i]]$non_C_to_T = fread(generateFilePath(
+    NHF1CutSiteCorrelationDirectory, dataTypeStrings$pairedCutSiteDistances , ".tsv",
+    cellType = "NHF1", lesion = "CPD", timepoint = names(NHF1PairedCutSiteDistances)[i],
+    repitition = "all_reps", filtering = "TGG_filtered",
+    omittedMismatches = "C>T"
+  ))
+}
+
+arabidopsisPairedCutSiteDistances = list(ZT2 = NULL)
+arabidopsisShuffledCutSiteDistances = list(ZT2 = NULL)
+arabidopsisPairedCutSiteDistances$ZT2 = list(CC_to_TT = NULL, non_C_to_T = NULL)
+arabidopsisPairedCutSiteDistances$ZT2$CC_to_TT = fread(generateFilePath(
+  arabidopsisCutSiteCorrelationDirectory, dataTypeStrings$pairedCutSiteDistances , ".tsv",
+  cellType = "Arabidopsis", lesion = "CPD", timepoint = "ZT2",
+  repitition = "all_reps", filtering = "TGG_filtered",
+  includedMismatches = "CC>TT"
+))
+arabidopsisShuffledCutSiteDistances$ZT2 = getShufflePairedCutSiteDistances(arabidopsisPairedCutSiteDistances$ZT2$CC_to_TT)
+arabidopsisPairedCutSiteDistances$ZT2$non_C_to_T = fread(generateFilePath(
+  arabidopsisCutSiteCorrelationDirectory, dataTypeStrings$pairedCutSiteDistances , ".tsv",
+  cellType = "Arabidopsis", lesion = "CPD", timepoint = "ZT2",
+  repitition = "all_reps", filtering = "TGG_filtered",
+  omittedMismatches = "C>T"
+))
+
+```
+
+
+```{r figure_7A, fig.width = 6, fig.height = 5}
+print(paste0("Coupling: ", getCouplingRate(NHF1PairedCutSiteDistances$`1h`$CC_to_TT)*-100, '%'))
+plotPairedCutSiteDistances(NHF1PairedCutSiteDistances$`1h`$CC_to_TT, THREE_PRIME_CUT_SITE_DISTANCE,
+                           title = "NHF1 1h CC>TT All Reps TGG-filtered",
+                           xlim = c(12,26), ylim = c(0,14.5),
+                           xAxisBreaks = seq(12,26,2), yAxisBreaks = seq(0,14,2))
+```
+```{r figure_7B, fig.width = 6, fig.height = 5}
+print(paste0("Coupling: ", getCouplingRate(NHF1ShuffledCutSiteDistances$`1h`)*-100, '%'))
+plotPairedCutSiteDistances(NHF1ShuffledCutSiteDistances$`1h`, THREE_PRIME_CUT_SITE_DISTANCE,
+                           title = "NHF1 1h CC>TT All Reps TGG-filtered Shuffled",
+                           xlim = c(12,26), ylim = c(0,14.5),
+                           xAxisBreaks = seq(12,26,2), yAxisBreaks = seq(0,14,2))
+```
+```{r figure_7C, fig.width = 6, fig.height = 5}
+print(paste0("Coupling: ", getCouplingRate(NHF1PairedCutSiteDistances$`1h`$non_C_to_T)*-100, '%'))
+plotPairedCutSiteDistances(NHF1PairedCutSiteDistances$`1h`$non_C_to_T, THREE_PRIME_CUT_SITE_DISTANCE,
+                           title = "NHF1 1h Non-C>T All Reps TGG-filtered",
+                           xlim = c(0,31), ylim = c(0,31))
+```
+```{r figure_7D, fig.width = 6, fig.height = 5}
+print(paste0("Coupling: ", getCouplingRate(arabidopsisPairedCutSiteDistances$ZT2$CC_to_TT)*-100, '%'))
+plotPairedCutSiteDistances(arabidopsisPairedCutSiteDistances$ZT2$CC_to_TT, THREE_PRIME_CUT_SITE_DISTANCE,
+                           title = "Arabidopsis ZT2 CC>TT All Reps TGG-filtered",
+                           xlim = c(15,25.5), ylim = c(4,12.5))
+```
+```{r figure_7E, fig.width = 6, fig.height = 5}
+print(paste0("Coupling: ", getCouplingRate(arabidopsisShuffledCutSiteDistances$ZT2)*-100, '%'))
+plotPairedCutSiteDistances(arabidopsisShuffledCutSiteDistances$ZT2, THREE_PRIME_CUT_SITE_DISTANCE,
+                           title = "Arabidopsis ZT2 CC>TT All Reps TGG-filtered Shuffled",
+                           xlim = c(15,25.5), ylim = c(4,12.5))
+```
+```{r figure_7F, fig.width = 6, fig.height = 5}
+print(paste0("Coupling: ", getCouplingRate(arabidopsisPairedCutSiteDistances$ZT2$non_C_to_T)*-100, '%'))
+plotPairedCutSiteDistances(arabidopsisPairedCutSiteDistances$ZT2$non_C_to_T, THREE_PRIME_CUT_SITE_DISTANCE,
+                           title = "Arabidopsis ZT2 Non-C>T All Reps TGG-filtered",
+                           xlim = c(0,31), ylim = c(0,31))
+```
+
+
+```{r read_figure_8_data}
+NHF1NucleosomeRelativeCutSiteDistances = NHF1CPDTimepoints
+for (i in seq_along(NHF1NucleosomeRelativeCutSiteDistances)) {
+  NHF1NucleosomeRelativeCutSiteDistances[[i]] = list(three_prime = NULL, five_prime = NULL)
+  NHF1NucleosomeRelativeCutSiteDistances[[i]]$three_prime = fread(generateFilePath(
+    NHF1FeatureRelativeDataDirectory, dataTypeStrings$featureRelativeMeanCutSiteDistance, ".tsv",
+    cellType = "NHF1", lesion = "CPD", timepoint = names(NHF1NucleosomeRelativeCutSiteDistances)[i],
+    strandPolarity = THREE_PRIME, repitition = "all_reps", filtering = "TGG_filtered",
+    includedMismatches = "C>T", additionalInformation = "hg19_mnase_all_related_strand_aligned"
+  ))
+  NHF1NucleosomeRelativeCutSiteDistances[[i]]$five_prime = fread(generateFilePath(
+    NHF1FeatureRelativeDataDirectory, dataTypeStrings$featureRelativeMeanCutSiteDistance, ".tsv",
+    cellType = "NHF1", lesion = "CPD", timepoint = names(NHF1NucleosomeRelativeCutSiteDistances)[i],
+    strandPolarity = FIVE_PRIME, repitition = "all_reps", filtering = "TGG_filtered",
+    includedMismatches = "C>T", additionalInformation = "hg19_mnase_all_related_strand_aligned"
+  ))
+}
+```
+
+
+```{r figure_8A, fig.width = 10, fig.height = 5}
+plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances$`1h`$three_prime,
+                          FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
+                          countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
+                          meanCutSiteDistanceTable = NHF1NucleosomeRelativeCutSiteDistances$`1h`$five_prime,
+                          cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
+                          title = "NHF1 1h C>T All Reps TGG-Filtered Strand-Aligned",
+                          xAxisLabel = "Dyad-Relative Position", xlim = c(-200, 200),
+                          secondaryAxisBreaks = seq(19,19.8,0.2),
+                          meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975)
+```
+```{r figure_8B}
+plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances$`1h`$three_prime,
+                          FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
+                          countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
+                          meanCutSiteDistanceTable = NHF1NucleosomeRelativeCutSiteDistances$`1h`$five_prime,
+                          cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
+                          title = "NHF1 1h C>T All Reps TGG-Filtered Strand-Aligned",
+                          xAxisLabel = "Dyad-Relative Position", xlim = c(-100, -40),
+                          secondaryAxisBreaks = seq(19,19.8,0.2),
+                          meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975)
+```
+```{r figure_8C}
+plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances$`1h`$three_prime,
+                          FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
+                          countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
+                          meanCutSiteDistanceTable = NHF1NucleosomeRelativeCutSiteDistances$`1h`$five_prime,
+                          cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
+                          title = "NHF1 1h C>T All Reps TGG-Filtered Strand-Aligned",
+                          xAxisLabel = "Dyad-Relative Position", xlim = c(40, 100),
+                          secondaryAxisBreaks = seq(19,19.8,0.2),
+                          meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975)
 ```
 
 
@@ -1274,4 +1418,93 @@ plotPositionAcrossTimepointAndReadLength(NHF1CPDGGtoAAMismatchDataAllRepsFiltere
                                          zScoreTables = NHF1CPDGGtoAAMMFreqZScoresAllRepsFiltered,
                                          yAxisLabel = "Relative GG>AA Frequency",
                                          xAxisBreaks = c(-1,-10,-20,-30))
+```
+
+
+```{r figure_S13, fig.width = 6, fig.height = 5}
+print(paste0("CC>TT Coupling: ", getCouplingRate(NHF1PairedCutSiteDistances$`8h`$CC_to_TT)*-100, '%'))
+plotPairedCutSiteDistances(NHF1PairedCutSiteDistances$`1h`$CC_to_TT, THREE_PRIME_CUT_SITE_DISTANCE,
+                           title = "NHF1 8h CC>TT All Reps TGG-filtered",
+                           xlim = c(12,26), ylim = c(0,14.5),
+                           xAxisBreaks = seq(12,26,2), yAxisBreaks = seq(0,14,2))
+print(paste0("Shuffled CC>TT Coupling: ", getCouplingRate(NHF1ShuffledCutSiteDistances$`8h`)*-100, '%'))
+plotPairedCutSiteDistances(NHF1ShuffledCutSiteDistances$`1h`, THREE_PRIME_CUT_SITE_DISTANCE,
+                           title = "NHF1 8h CC>TT All Reps TGG-filtered Shuffled",
+                           xlim = c(12,26), ylim = c(0,14.5),
+                           xAxisBreaks = seq(12,26,2), yAxisBreaks = seq(0,14,2))
+print(paste0("Non-C>T Coupling: ", getCouplingRate(NHF1PairedCutSiteDistances$`8h`$non_C_to_T)*-100, '%'))
+plotPairedCutSiteDistances(NHF1PairedCutSiteDistances$`1h`$non_C_to_T, THREE_PRIME_CUT_SITE_DISTANCE,
+                           title = "NHF1 8h Non-C>T All Reps TGG-filtered",
+                           xlim = c(0,31), ylim = c(0,31))
+```
+
+
+```{r read_figure_S14_data}
+yeastPairedCutSiteDistances = list(`20min` = NULL)
+yeastShuffledCutSiteDistances = list(`20min` = NULL)
+yeastPairedCutSiteDistances$`20min` = list(CC_to_TT = NULL, non_C_to_T = NULL)
+yeastPairedCutSiteDistances$`20min`$CC_to_TT = fread(generateFilePath(
+  yeastCutSiteCorrelationDirectory, dataTypeStrings$pairedCutSiteDistances, ".tsv",
+  cellType = "yeast", lesion = "CPD", timepoint = "20min",
+  repitition = "all_reps", filtering = "TGG_filtered",
+  includedMismatches = "CC>TT"
+))
+yeastShuffledCutSiteDistances$`20min` = getShufflePairedCutSiteDistances(yeastPairedCutSiteDistances$`20min`$CC_to_TT)
+yeastPairedCutSiteDistances$`20min`$non_C_to_T = fread(generateFilePath(
+  yeastCutSiteCorrelationDirectory, dataTypeStrings$pairedCutSiteDistances, ".tsv",
+  cellType = "yeast", lesion = "CPD", timepoint = "20min",
+  repitition = "all_reps", filtering = "TGG_filtered",
+  omittedMismatches = "C>T"
+))
+```
+
+
+```{r figure_S14, fig.width = 6, fig.height = 5}
+print(paste0("CC>TT Coupling: ", getCouplingRate(yeastPairedCutSiteDistances$`20min`$CC_to_TT)*-100, '%'))
+plotPairedCutSiteDistances(yeastPairedCutSiteDistances$`20min`$CC_to_TT, THREE_PRIME_CUT_SITE_DISTANCE,
+                           title = "Yeast 20min CC>TT All Reps TGG-filtered",
+                           xlim = c(11,19.5), ylim = c(5,14), yAxisBreaks = c(5,7,9,11,13))
+print(paste0("Shuffled CC>TT Coupling: ", getCouplingRate(yeastShuffledCutSiteDistances$`20min`)*-100, '%'))
+plotPairedCutSiteDistances(yeastShuffledCutSiteDistances$`20min`, THREE_PRIME_CUT_SITE_DISTANCE,
+                           title = "Yeast 20min CC>TT All Reps TGG-filtered Shuffled",
+                           xlim = c(11,19.5), ylim = c(5,14), yAxisBreaks = c(5,7,9,11,13))
+print(paste0("Non-C>T Coupling: ", getCouplingRate(yeastPairedCutSiteDistances$`20min`$non_C_to_T)*-100, '%'))
+plotPairedCutSiteDistances(yeastPairedCutSiteDistances$`20min`$non_C_to_T, THREE_PRIME_CUT_SITE_DISTANCE,
+                           title = "Yeast 20min Non-C>T All Reps TGG-filtered",
+                           xlim = c(0,26), ylim = c(0,26))
+```
+
+
+```{r figure_S15A, fig.width = 10, fig.height = 5}
+plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances$`8h`$three_prime,
+                          FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
+                          countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
+                          meanCutSiteDistanceTable = NHF1NucleosomeRelativeCutSiteDistances$`1h`$five_prime,
+                          cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
+                          title = "NHF1 8h C>T All Reps TGG-Filtered Strand-Aligned",
+                          xAxisLabel = "Dyad-Relative Position", xlim = c(-200, 200),
+                          secondaryAxisBreaks = seq(19,19.8,0.2),
+                          meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975)
+```
+```{r figure_S15B}
+plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances$`8h`$three_prime,
+                          FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
+                          countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
+                          meanCutSiteDistanceTable = NHF1NucleosomeRelativeCutSiteDistances$`1h`$five_prime,
+                          cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
+                          title = "NHF1 8h C>T All Reps TGG-Filtered Strand-Aligned",
+                          xAxisLabel = "Dyad-Relative Position", xlim = c(-100, -40),
+                          secondaryAxisBreaks = seq(19,19.8,0.2),
+                          meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975)
+```
+```{r figure_S15C}
+plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances$`8h`$three_prime,
+                          FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
+                          countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
+                          meanCutSiteDistanceTable = NHF1NucleosomeRelativeCutSiteDistances$`1h`$five_prime,
+                          cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
+                          title = "NHF1 8h C>T All Reps TGG-Filtered Strand-Aligned",
+                          xAxisLabel = "Dyad-Relative Position", xlim = c(40, 100),
+                          secondaryAxisBreaks = seq(19,19.8,0.2),
+                          meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975)
 ```
