@@ -129,6 +129,7 @@ getFeatureRelativeCounts = function(table, dataType, strandAlign = FALSE) {
 # This function plots counts of feature-relative features, as specified by the "feature" parameter.
 plotFeatureRelativeCounts = function(countsTable, countsDataType, countsYVar = COUNTS,
                                      plotCountsMirror = FALSE, smoothCountsData = FALSE,
+                                     plotCutSiteSignificance = TRUE, zScoreCutoff = 4, significanceColor = "black",
                                      countsPlotType = LINE, countsPlotColor = "black", countsMirrorColor = "gray",
                                      meanCutSiteDistanceTable = NULL, cutSiteStrandPolarity = NULL,
                                      smoothMeanCutSiteDistance = FALSE,
@@ -167,6 +168,17 @@ plotFeatureRelativeCounts = function(countsTable, countsDataType, countsYVar = C
     }
   }
 
+  if (plotCutSiteSignificance && (
+    countsYVar == MEAN_THREE_PRIME_CUT_SITE_DISTANCE || countsYVar == MEAN_FIVE_PRIME_CUT_SITE_DISTANCE)
+  ) {
+    if (smoothCountsData) {
+      warning("Plotting significance with smoothed data is ill-advised, as SEM is calculated before smoothing.")
+    }
+    thisMedian = median(countsTable[[countsYVar]])
+    countsTable[,Main_Z_Score := (thisMedian - countsTable[[countsYVar]]) / Standard_Error]
+    countsTable[,Main_Significant := abs(Main_Z_Score) > zScoreCutoff]
+  }
+
   if (countsDataType == FEATURE_RELATIVE_POSITION) {
     if (is.null(xAxisLabel)) xAxisLabel = "Feature Relative Position"
     if (is.null(title)) title = "Feature Relative Mismatch Position Frequencies"
@@ -200,6 +212,16 @@ plotFeatureRelativeCounts = function(countsTable, countsDataType, countsYVar = C
       meanCutSiteDistanceCol = paste0(meanCutSiteDistanceCol,"_Smoothed")
     }
     meanCutSiteDistanceTable = meanCutSiteDistanceTable[complete.cases(meanCutSiteDistanceTable)]
+
+    if (plotCutSiteSignificance) {
+      if (smoothMeanCutSiteDistance) {
+        warning("Plotting significance with smoothed data is ill-advised, as SEM is calculated before smoothing.")
+      }
+      thisMedian = median(meanCutSiteDistanceTable[[meanCutSiteDistanceCol]])
+      meanCutSiteDistanceTable[,Secondary_Z_Score :=
+                                 (thisMedian - meanCutSiteDistanceTable[[meanCutSiteDistanceCol]]) / Standard_Error]
+      meanCutSiteDistanceTable[,Secondary_Significant := abs(Secondary_Z_Score) > zScoreCutoff]
+    }
 
     countsTable = merge.data.table(countsTable, meanCutSiteDistanceTable, by = FEATURE_RELATIVE_POSITION)
 
@@ -251,7 +273,7 @@ plotFeatureRelativeCounts = function(countsTable, countsDataType, countsYVar = C
                 linewidth = 1, color = lineColor) +
       scale_y_continuous(breaks = mainYAxisBreaks, limits = c(mainYAxisMin,mainYAxisMax), expand = expansion(),
                          sec.axis = sec_axis(~. / yAxisRatio + (meanCutSiteDistanceMax-mainYAxisMax/yAxisRatio),
-                                             name = secondaryAxisLabel), breaks = secondaryAxisBreaks) +
+                                             name = secondaryAxisLabel, breaks = secondaryAxisBreaks)) +
       theme(axis.text.y.right = element_text(size = 18, color = lineColor),
             axis.title.y.right = element_text(size = 22, color = lineColor))
 
@@ -259,6 +281,20 @@ plotFeatureRelativeCounts = function(countsTable, countsDataType, countsYVar = C
 
     plot = plot + scale_y_continuous(breaks = mainYAxisBreaks, limits = c(mainYAxisMin,mainYAxisMax), expand = expansion())
 
+  }
+
+  if (plotCutSiteSignificance) {
+    if (countsYVar == MEAN_THREE_PRIME_CUT_SITE_DISTANCE || countsYVar == MEAN_FIVE_PRIME_CUT_SITE_DISTANCE) {
+      plot = plot + geom_point(aes(x = !!sym(FEATURE_RELATIVE_POSITION), y = !!sym(countsYVar)),
+                               data = countsTable[Main_Significant==TRUE], color = significanceColor)
+    }
+
+    if (!is.null(meanCutSiteDistanceTable)) {
+      plot = plot + geom_point(aes(x = !!sym(FEATURE_RELATIVE_POSITION),
+                                   y = countsTable[Secondary_Significant==TRUE][[meanCutSiteDistanceCol]] * yAxisRatio -
+                                     (meanCutSiteDistanceMax*yAxisRatio-mainYAxisMax)),
+                               data = countsTable[Secondary_Significant==TRUE], color = significanceColor)
+    }
   }
 
   print(plot)
