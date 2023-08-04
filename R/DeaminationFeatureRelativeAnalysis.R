@@ -58,9 +58,19 @@ parseMismatchesByFeature = function(table) {
 }
 
 
+# A function for getting a p-value from a simple t-test.
+# Returns 1 if there is no variance in the data.
+getTTestPValue = function(x, mu) {
+  if (length(unique(x)) <= 1) return(1)
+  else return(t.test(x,mu = mu)$p.value)
+}
+
+
 # This functions take a parsed table of feature-relative mismatch data and return a table of
 # the relevant feature-relative data, as specified by the "feature" parameter.
 getFeatureRelativeCounts = function(table, dataType, strandAlign = FALSE) {
+
+  table = copy(table)
 
   if (dataType == FEATURE_RELATIVE_POSITION) {
     if (strandAlign) {
@@ -84,29 +94,31 @@ getFeatureRelativeCounts = function(table, dataType, strandAlign = FALSE) {
       table = table[,.N, by = list(Feature_Relative_Five_Prime_Cut_Site, Same_Strand)]
     }
   } else if (dataType == MEAN_THREE_PRIME_CUT_SITE_DISTANCE) {
+    table[,Three_Prime_Cut_Site_Distance := abs(Read_Relative_Mismatch_Pos)]
+    mu = mean(table$Three_Prime_Cut_Site_Distance)
     if (strandAlign) {
       table[Same_Strand == FALSE, Feature_Relative_Mismatch_Pos := -Feature_Relative_Mismatch_Pos]
       table = table[,.(Mean_Three_Prime_Cut_Site_Distance = mean(abs(Read_Relative_Mismatch_Pos)),
-                       Standard_Deviation = sd(abs(Read_Relative_Mismatch_Pos)), N = .N),
+                       P_Value = getTTestPValue(Three_Prime_Cut_Site_Distance, mu)),
                     by = list(Feature_Relative_Mismatch_Pos)]
     } else {
       table = table[,.(Mean_Three_Prime_Cut_Site_Distance = mean(abs(Read_Relative_Mismatch_Pos)),
-                       Standard_Deviation = sd(abs(Read_Relative_Mismatch_Pos)), N = .N),
+                       P_Value = getTTestPValue(Three_Prime_Cut_Site_Distance, mu)),
                     by = list(Feature_Relative_Mismatch_Pos, Same_Strand)]
     }
-    table[,Standard_Error := Standard_Deviation/sqrt(N)]
   } else if (dataType == MEAN_FIVE_PRIME_CUT_SITE_DISTANCE) {
+    table[,Five_Prime_Cut_Site_Distance := Read_Length-abs(Read_Relative_Mismatch_Pos)+1]
+    mu = mean(table$Five_Prime_Cut_Site_Distance)
     if (strandAlign) {
       table[Same_Strand == FALSE, Feature_Relative_Mismatch_Pos := -Feature_Relative_Mismatch_Pos]
       table = table[,.(Mean_Five_Prime_Cut_Site_Distance = mean(Read_Length-abs(Read_Relative_Mismatch_Pos)+1),
-                       Standard_Deviation = sd(Read_Length-abs(Read_Relative_Mismatch_Pos)+1), N = .N),
+                       P_Value = getTTestPValue(Five_Prime_Cut_Site_Distance, mu)),
                     by = list(Feature_Relative_Mismatch_Pos)]
     } else {
       table = table[,.(Mean_Five_Prime_Cut_Site_Distance = mean(Read_Length-abs(Read_Relative_Mismatch_Pos)+1),
-                       Standard_Deviation = sd(Read_Length-abs(Read_Relative_Mismatch_Pos)+1), N = .N),
+                       P_Value = getTTestPValue(Five_Prime_Cut_Site_Distance, mu)),
                     by = list(Feature_Relative_Mismatch_Pos, Same_Strand)]
     }
-    table[,Standard_Error := Standard_Deviation/sqrt(N)]
   } else stop("Unrecognized value for feature parameter")
 
   if (dataType == MEAN_THREE_PRIME_CUT_SITE_DISTANCE || dataType == MEAN_FIVE_PRIME_CUT_SITE_DISTANCE) {
@@ -129,7 +141,7 @@ getFeatureRelativeCounts = function(table, dataType, strandAlign = FALSE) {
 # This function plots counts of feature-relative features, as specified by the "feature" parameter.
 plotFeatureRelativeCounts = function(countsTable, countsDataType, countsYVar = COUNTS,
                                      plotCountsMirror = FALSE, smoothCountsData = FALSE,
-                                     plotCutSiteSignificance = TRUE, zScoreCutoff = 4, significanceColor = "black",
+                                     plotCutSiteSignificance = TRUE, pValueCutoff = 0.00005,
                                      countsPlotType = LINE, countsPlotColor = "black", countsMirrorColor = "gray",
                                      meanCutSiteDistanceTable = NULL, cutSiteStrandPolarity = NULL,
                                      smoothMeanCutSiteDistance = FALSE,
@@ -140,6 +152,10 @@ plotFeatureRelativeCounts = function(countsTable, countsDataType, countsYVar = C
                                      meanCutSiteDistanceMin = NULL, meanCutSiteDistanceMax = NULL,
                                      centerMeanCutSiteDistanceAxis = TRUE, secondaryAxisBreaks = waiver()) {
 
+  if (plotCutSiteSignificance && (smoothCountsData || smoothMeanCutSiteDistance)) {
+    warning("Plotting significance with smoothed data is ill-advised, as the t-test is performed before smoothing.")
+  }
+
   countsTable = copy(countsTable)
   if (!is.null(sameStrand)) { countsTable = countsTable[Same_Strand == sameStrand | is.na(sameStrand)] }
   if (countsYVar == RELATIVE_FREQUENCY) { countsTable[, Relative_Frequency := N/sum(N)] }
@@ -149,6 +165,12 @@ plotFeatureRelativeCounts = function(countsTable, countsDataType, countsYVar = C
     countsYVar = paste0(countsYVar,"_Smoothed")
   }
   countsTable = countsTable[complete.cases(countsTable)]
+
+  if (plotCutSiteSignificance && (
+    countsYVar == MEAN_THREE_PRIME_CUT_SITE_DISTANCE || countsYVar == MEAN_FIVE_PRIME_CUT_SITE_DISTANCE)
+  ) {
+    countsTable[,Main_Significant := P_Value < pValueCutoff]
+  }
 
   adjustmentFactor = (max(countsTable[[countsYVar]]) - min(countsTable[[countsYVar]]))*0.05
   if (is.null(mainYAxisMax)) {mainYAxisMax = max(countsTable[[countsYVar]]) + adjustmentFactor}
@@ -166,17 +188,6 @@ plotFeatureRelativeCounts = function(countsTable, countsDataType, countsYVar = C
     } else {
       mainYAxisMax = mainYAxisMax + (lowerDif-upperDif)
     }
-  }
-
-  if (plotCutSiteSignificance && (
-    countsYVar == MEAN_THREE_PRIME_CUT_SITE_DISTANCE || countsYVar == MEAN_FIVE_PRIME_CUT_SITE_DISTANCE)
-  ) {
-    if (smoothCountsData) {
-      warning("Plotting significance with smoothed data is ill-advised, as SEM is calculated before smoothing.")
-    }
-    thisMedian = median(countsTable[[countsYVar]])
-    countsTable[,Main_Z_Score := (thisMedian - countsTable[[countsYVar]]) / Standard_Error]
-    countsTable[,Main_Significant := abs(Main_Z_Score) > zScoreCutoff]
   }
 
   if (countsDataType == FEATURE_RELATIVE_POSITION) {
@@ -214,13 +225,7 @@ plotFeatureRelativeCounts = function(countsTable, countsDataType, countsYVar = C
     meanCutSiteDistanceTable = meanCutSiteDistanceTable[complete.cases(meanCutSiteDistanceTable)]
 
     if (plotCutSiteSignificance) {
-      if (smoothMeanCutSiteDistance) {
-        warning("Plotting significance with smoothed data is ill-advised, as SEM is calculated before smoothing.")
-      }
-      thisMedian = median(meanCutSiteDistanceTable[[meanCutSiteDistanceCol]])
-      meanCutSiteDistanceTable[,Secondary_Z_Score :=
-                                 (thisMedian - meanCutSiteDistanceTable[[meanCutSiteDistanceCol]]) / Standard_Error]
-      meanCutSiteDistanceTable[,Secondary_Significant := abs(Secondary_Z_Score) > zScoreCutoff]
+      meanCutSiteDistanceTable[,Secondary_Significant := P_Value < pValueCutoff]
     }
 
     countsTable = merge.data.table(countsTable, meanCutSiteDistanceTable, by = FEATURE_RELATIVE_POSITION)
@@ -286,14 +291,16 @@ plotFeatureRelativeCounts = function(countsTable, countsDataType, countsYVar = C
   if (plotCutSiteSignificance) {
     if (countsYVar == MEAN_THREE_PRIME_CUT_SITE_DISTANCE || countsYVar == MEAN_FIVE_PRIME_CUT_SITE_DISTANCE) {
       plot = plot + geom_point(aes(x = !!sym(FEATURE_RELATIVE_POSITION), y = !!sym(countsYVar)),
-                               data = countsTable[Main_Significant==TRUE], color = significanceColor)
+                               data = countsTable[Main_Significant==TRUE],
+                               shape = 21, color = countsPlotColor, fill = "white", size = 1.5, stroke = 1.5)
     }
 
     if (!is.null(meanCutSiteDistanceTable)) {
       plot = plot + geom_point(aes(x = !!sym(FEATURE_RELATIVE_POSITION),
                                    y = countsTable[Secondary_Significant==TRUE][[meanCutSiteDistanceCol]] * yAxisRatio -
                                      (meanCutSiteDistanceMax*yAxisRatio-mainYAxisMax)),
-                               data = countsTable[Secondary_Significant==TRUE], color = significanceColor)
+                               data = countsTable[Secondary_Significant==TRUE],
+                               shape = 21, color = lineColor, fill = "white", size = 1.5, stroke = 1.5)
     }
   }
 
