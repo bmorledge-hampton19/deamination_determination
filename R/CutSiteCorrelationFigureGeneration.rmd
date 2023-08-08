@@ -49,10 +49,15 @@ source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
 ```{r define_all_that_and_a_bag_of_chips_function}
 cutSiteCorrelationAnalysisFigureGeneration = function(lesion, repetition, timepoint, cellType, directory,
                                                       includedMismatches = character(), omittedMismatches = character(),
-                                                      filteredAndFormattedInput = TRUE, shuffle = FALSE) {
+                                                      filteredAndFormattedInput = TRUE, noPositionFiltering = FALSE,
+                                                      shuffle = FALSE) {
 
   if (filteredAndFormattedInput) {
-    additionalInformation = character()
+    if (noPositionFiltering) {
+      additionalInformation = "no_position_filtering"
+    } else {
+      additionalInformation = character()
+    }
   } else {
     additionalInformation = "minimal_filtering"
   }
@@ -124,6 +129,11 @@ cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "1h", "NHF1", NHF1
                                            includedMismatches = "C>T", filteredAndFormattedInput = FALSE)
 cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "1h", "NHF1", NHF1CutSiteCorrelationDirectory,
                                            omittedMismatches = "C>T", filteredAndFormattedInput = FALSE)
+
+cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "1h", "NHF1", NHF1CutSiteCorrelationDirectory,
+                                           includedMismatches = "CC>TT", noPositionFiltering = TRUE)
+cutSiteCorrelationAnalysisFigureGeneration("CPD", "all_reps", "1h", "NHF1", NHF1CutSiteCorrelationDirectory,
+                                           includedMismatches = "C>T", noPositionFiltering = TRUE)
 ```
 
 

@@ -51,7 +51,7 @@ source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
 ```{r define_all_that_and_a_bag_of_chips_function}
 cutSiteCorrelationAnalysisDataGeneration = function(lesion, repetition, timepoint, cellType, inputDirectory, outputDirectory,
                                                     includedMismatches = character(), omittedMismatches = character(),
-                                                    filteredAndFormattedInput = TRUE,
+                                                    filteredAndFormattedInput = TRUE, noPositionFiltering = FALSE,
                                                     filePathIncludedMismatches = NULL, filePathOmittedMismatches = NULL) {
   
   if (is.null(filePathIncludedMismatches)) {
@@ -62,7 +62,11 @@ cutSiteCorrelationAnalysisDataGeneration = function(lesion, repetition, timepoin
   }
   
   if (filteredAndFormattedInput) {
-    inputType = dataTypeStrings$mismatchesByReadRelationFormatted
+    if (noPositionFiltering) {
+      inputType = paste0(dataTypeStrings$mismatchesByReadRelationFormatted,"_no_position_filtering")
+    } else {
+      inputType = dataTypeStrings$mismatchesByReadRelationFormatted
+    }
   } else {
     inputType = dataTypeStrings$mismatchesByRead
   }
@@ -75,7 +79,11 @@ cutSiteCorrelationAnalysisDataGeneration = function(lesion, repetition, timepoin
   ))
   
   if (filteredAndFormattedInput) {
-    additionalInformation = character()
+    if (noPositionFiltering) {
+      additionalInformation = "no_position_filtering"
+    } else {
+      additionalInformation = character()
+    }
   } else {
     additionalInformation = "minimal_filtering"
   }
@@ -123,6 +131,12 @@ cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
                                          NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
                                          omittedMismatches = "C>T", filteredAndFormattedInput = FALSE,
                                          filePathOmittedMismatches = character())
+cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
+                                         NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
+                                         includedMismatches = "CC>TT", noPositionFiltering = TRUE)
+cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
+                                         NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
+                                         includedMismatches = "C>T", noPositionFiltering = TRUE)
 
 cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "8h", "NHF1",
                                          NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
