@@ -53,6 +53,11 @@ getCouplingRate = function(pairedCutSiteDistances) {
   return(linearModel$coefficients[2])
 }
 
+getReadLengthSlope = function(pairedCutSiteDistances) {
+  linearModel = lm(Read_Length ~ Five_Prime_Cut_Site_Distance, pairedCutSiteDistances)
+  return(linearModel$coefficients[2])
+}
+
 plotPairedCutSiteDistances = function(pairedCutSiteDistances, dependentVariable,
                                       xAxisLabel = "5' Cut Site Distance", yAxisLabel = NULL,
                                       title = "Paired Cut Site Distances", sizeRange = c(0.1,5),
