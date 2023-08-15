@@ -34,9 +34,12 @@ arabidopsisMismatchesByReadDirectory = file.path(deaminationDataDirectory, "Arab
 arabidopsisCutSiteCorrelationDirectory = file.path(deaminationDataDirectory, "Arabidopsis", "cut_site_correlation")
 yeastMismatchesByReadDirectory = file.path(deaminationDataDirectory, "yeast", "mismatches_by_read")
 yeastCutSiteCorrelationDirectory = file.path(deaminationDataDirectory, "yeast", "cut_site_correlation")
+eColiMismatchesByReadDirectory = file.path(deaminationDataDirectory, "E_coli_WT", "mismatches_by_read")
+eColiCutSiteCorrelationDirectory = file.path(deaminationDataDirectory, "E_coli_WT", "cut_site_correlation")
 dir.create(NHF1CutSiteCorrelationDirectory, showWarnings = FALSE, recursive = TRUE)
 dir.create(arabidopsisCutSiteCorrelationDirectory, showWarnings = FALSE, recursive = TRUE)
 dir.create(yeastCutSiteCorrelationDirectory, showWarnings = FALSE, recursive = TRUE)
+dir.create(eColiCutSiteCorrelationDirectory, showWarnings = FALSE, recursive = TRUE)
 ```
 
 
@@ -52,7 +55,8 @@ source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
 cutSiteCorrelationAnalysisDataGeneration = function(lesion, repetition, timepoint, cellType, inputDirectory, outputDirectory,
                                                     includedMismatches = character(), omittedMismatches = character(),
                                                     filteredAndFormattedInput = TRUE, noPositionFiltering = FALSE,
-                                                    filePathIncludedMismatches = NULL, filePathOmittedMismatches = NULL) {
+                                                    filePathIncludedMismatches = NULL, filePathOmittedMismatches = NULL,
+                                                    atypicalPositionFiltering = FALSE) {
   
   if (is.null(filePathIncludedMismatches)) {
     filePathIncludedMismatches = includedMismatches
@@ -64,6 +68,8 @@ cutSiteCorrelationAnalysisDataGeneration = function(lesion, repetition, timepoin
   if (filteredAndFormattedInput) {
     if (noPositionFiltering) {
       inputType = paste0(dataTypeStrings$mismatchesByReadRelationFormatted,"_no_position_filtering")
+    } else if (atypicalPositionFiltering) {
+      inputType = paste0(dataTypeStrings$mismatchesByReadRelationFormatted,"_atypical_position_filtering")
     } else {
       inputType = dataTypeStrings$mismatchesByReadRelationFormatted
     }
@@ -81,6 +87,8 @@ cutSiteCorrelationAnalysisDataGeneration = function(lesion, repetition, timepoin
   if (filteredAndFormattedInput) {
     if (noPositionFiltering) {
       additionalInformation = "no_position_filtering"
+    } else if (atypicalPositionFiltering) {
+      additionalInformation = "atypical_position_filtering"
     } else {
       additionalInformation = character()
     }
@@ -120,6 +128,7 @@ cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
 cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
                                          NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
                                          omittedMismatches = "C>T")
+
 cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
                                          NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
                                          includedMismatches = "CC>TT", filteredAndFormattedInput = FALSE)
@@ -131,12 +140,17 @@ cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
                                          NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
                                          omittedMismatches = "C>T", filteredAndFormattedInput = FALSE,
                                          filePathOmittedMismatches = character())
+
 cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
                                          NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
                                          includedMismatches = "CC>TT", noPositionFiltering = TRUE)
 cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
                                          NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
                                          includedMismatches = "C>T", noPositionFiltering = TRUE)
+cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "1h", "NHF1",
+                                         NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
+                                         omittedMismatches = "C>T", atypicalPositionFiltering = TRUE)
+
 
 cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "8h", "NHF1",
                                          NHF1MismatchesByReadDirectory, NHF1CutSiteCorrelationDirectory,
@@ -167,6 +181,16 @@ cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "20min", "yeast",
                                          includedMismatches = "C>T")
 cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "20min", "yeast",
                                          yeastMismatchesByReadDirectory, yeastCutSiteCorrelationDirectory,
+                                         omittedMismatches = "C>T")
+
+cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "5min", "E_coli_WT",
+                                         eColiMismatchesByReadDirectory, eColiCutSiteCorrelationDirectory,
+                                         includedMismatches = "CC>TT", noPositionFiltering = TRUE)
+cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "5min", "E_coli_WT",
+                                         eColiMismatchesByReadDirectory, eColiCutSiteCorrelationDirectory,
+                                         includedMismatches = "C>T", noPositionFiltering = TRUE)
+cutSiteCorrelationAnalysisDataGeneration("CPD", "all_reps", "5min", "E_coli_WT",
+                                         eColiMismatchesByReadDirectory, eColiCutSiteCorrelationDirectory,
                                          omittedMismatches = "C>T")
 
 ```
