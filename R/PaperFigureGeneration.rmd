@@ -1428,7 +1428,31 @@ plotPositionAcrossTimepointAndReadLength(NHF1CPDGGtoAAMismatchDataAllRepsFiltere
 ```
 
 
+```{r read_figure_S13_data}
+NHF1PairedCutSiteDistances$`1h`$Non_C_to_T_Position_Filtered = fread(generateFilePath(
+  NHF1CutSiteCorrelationDirectory, dataTypeStrings$pairedCutSiteDistances, ".tsv",
+  cellType = "NHF1", lesion = "CPD", timepoint = "1h",
+  repitition = "all_reps", filtering = "TGG_filtered",
+  omittedMismatches = "C>T", additionalInformation = "atypical_position_filtering"
+))
+```
+
+
 ```{r figure_S13, fig.width = 6, fig.height = 5}
+print(paste0("1h non-C>T Read Length Slope: ", getReadLengthSlope(NHF1PairedCutSiteDistances$`1h`$Non_C_to_T_Position_Filtered)))
+plotPairedCutSiteDistances(NHF1PairedCutSiteDistances$`1h`$Non_C_to_T_Position_Filtered, READ_LENGTH,
+                           title = "NHF1 1h Non-C>T Position-Filtered All Reps TGG-filtered",
+                           xlim = c(10.5, 26.5), ylim = c(17.5, 33.5),
+                           xAxisBreaks = seq(11,26,3), yAxisBreaks = seq(18,33,3))
+print(paste0("1h non-C>T Coupling: ", getCouplingRate(NHF1PairedCutSiteDistances$`1h`$Non_C_to_T_Position_Filtered)))
+plotPairedCutSiteDistances(NHF1PairedCutSiteDistances$`1h`$Non_C_to_T_Position_Filtered, THREE_PRIME_CUT_SITE_DISTANCE,
+                           title = "NHF1 1h Non-C>T Position-Filtered All Reps TGG-filtered",
+                           xlim = c(10.5,26.5), ylim = c(0,16),
+                           xAxisBreaks = seq(11,26,3), yAxisBreaks = seq(0,15,3))
+```
+
+
+```{r figure_S14, fig.width = 6, fig.height = 5}
 print(paste0("1h C>T Read Length Slope: ", getReadLengthSlope(NHF1PairedCutSiteDistances$`1h`$C_to_T)))
 plotPairedCutSiteDistances(NHF1PairedCutSiteDistances$`1h`$C_to_T, READ_LENGTH,
                            title = "NHF1 1h C>T All Reps TGG-filtered",
@@ -1475,7 +1499,7 @@ arabidopsisPairedCutSiteDistances$ZT2$CC_to_TT = fread(generateFilePath(
 ```
 
 
-```{r figure_S14, fig.width = 6, fig.height = 5}
+```{r figure_S15, fig.width = 6, fig.height = 5}
 print(paste0("Arabidopsis CC>TT read length slope: ", getReadLengthSlope(arabidopsisPairedCutSiteDistances$ZT2$CC_to_TT)))
 plotPairedCutSiteDistances(arabidopsisPairedCutSiteDistances$ZT2$CC_to_TT, READ_LENGTH,
                            title = "Arabidopsis ZT2 CC>TT All Reps TGG-filtered",
@@ -1497,7 +1521,7 @@ plotPairedCutSiteDistances(yeastPairedCutSiteDistances$`20min`$CC_to_TT, THREE_P
 ```
 
 
-```{r figure_S15A, fig.width = 10, fig.height = 5}
+```{r figure_S16A, fig.width = 10, fig.height = 5}
 plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances$`8h`$three_prime,
                           plotCutSiteSignificance = FALSE,
                           FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
@@ -1509,7 +1533,7 @@ plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances$`8h`$three_prim
                           secondaryAxisBreaks = seq(19,19.8,0.2),
                           meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975)
 ```
-```{r figure_S15B}
+```{r figure_S16B}
 plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances$`8h`$three_prime,
                           FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
                           countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
@@ -1520,7 +1544,7 @@ plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances$`8h`$three_prim
                           secondaryAxisBreaks = seq(19,19.8,0.2),
                           meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975)
 ```
-```{r figure_S15C}
+```{r figure_S16C}
 plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances$`8h`$three_prime,
                           FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
                           countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
