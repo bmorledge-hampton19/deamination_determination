@@ -663,7 +663,7 @@ set.seed(8785)
 NHF1PairedCutSiteDistances = list(`1h` = NULL, `8h` = NULL)
 NHF1ShuffledCutSiteDistances = list(`1h` = NULL, `8h` = NULL)
 for (i in seq_along(NHF1PairedCutSiteDistances)) {
-  NHF1PairedCutSiteDistances[[i]] = list(CC_to_TT = NULL, C_to_T = NULL, non_C_to_T = NULL)
+  NHF1PairedCutSiteDistances[[i]] = list(CC_to_TT = NULL, C_to_T = NULL, Non_C_to_T_Position_Filtered = NULL)
   NHF1PairedCutSiteDistances[[i]]$CC_to_TT = fread(generateFilePath(
     NHF1CutSiteCorrelationDirectory, dataTypeStrings$pairedCutSiteDistances , ".tsv",
     cellType = "NHF1", lesion = "CPD", timepoint = names(NHF1PairedCutSiteDistances)[i],
@@ -678,14 +678,14 @@ for (i in seq_along(NHF1PairedCutSiteDistances)) {
     repitition = "all_reps", filtering = "TGG_filtered",
     includedMismatches = "C>T"
   ))
-  
-  NHF1PairedCutSiteDistances[[i]]$non_C_to_T = fread(generateFilePath(
-    NHF1CutSiteCorrelationDirectory, dataTypeStrings$pairedCutSiteDistances , ".tsv",
-    cellType = "NHF1", lesion = "CPD", timepoint = names(NHF1PairedCutSiteDistances)[i],
-    repitition = "all_reps", filtering = "TGG_filtered",
-    omittedMismatches = "C>T"
-  ))
 }
+
+NHF1PairedCutSiteDistances$`1h`$Non_C_to_T_Position_Filtered = fread(generateFilePath(
+  NHF1CutSiteCorrelationDirectory, dataTypeStrings$pairedCutSiteDistances , ".tsv",
+  cellType = "NHF1", lesion = "CPD", timepoint = "1h",
+  repitition = "all_reps", filtering = "TGG_filtered",
+  omittedMismatches = "C>T", additionalInformation = "atypical_position_filtering"
+))
 
 ```
 
@@ -703,10 +703,11 @@ plotPairedCutSiteDistances(NHF1ShuffledCutSiteDistances$`1h`, READ_LENGTH,
                            xlim = c(6,30), ylim = c(13,37))
 ```
 ```{r figure_7C, fig.width = 6, fig.height = 5}
-print(paste0("Read length slope: ", getReadLengthSlope(NHF1PairedCutSiteDistances$`1h`$non_C_to_T)))
-plotPairedCutSiteDistances(NHF1PairedCutSiteDistances$`1h`$non_C_to_T, READ_LENGTH,
-                           title = "NHF1 1h Non-C>T All Reps TGG-filtered",
-                           xlim = c(0,31), ylim = c(15,31))
+print(paste0("Read Length Slope: ", getReadLengthSlope(NHF1PairedCutSiteDistances$`1h`$Non_C_to_T_Position_Filtered)))
+plotPairedCutSiteDistances(NHF1PairedCutSiteDistances$`1h`$Non_C_to_T_Position_Filtered, READ_LENGTH,
+                           title = "NHF1 1h Non-C>T Position-Filtered All Reps TGG-filtered",
+                           xlim = c(10.5, 26.5), ylim = c(17.5, 33.5),
+                           xAxisBreaks = seq(11,26,3), yAxisBreaks = seq(18,33,3))
 ```
 ```{r figure_7D, fig.width = 6, fig.height = 5}
 print(paste0("Coupling: ", getCouplingRate(NHF1PairedCutSiteDistances$`1h`$CC_to_TT)*-100, '%'))
@@ -723,10 +724,11 @@ plotPairedCutSiteDistances(NHF1ShuffledCutSiteDistances$`1h`, THREE_PRIME_CUT_SI
                            xAxisBreaks = seq(12,26,2), yAxisBreaks = seq(0,14,2))
 ```
 ```{r figure_7F, fig.width = 6, fig.height = 5}
-print(paste0("Coupling: ", getCouplingRate(NHF1PairedCutSiteDistances$`1h`$non_C_to_T)*-100, '%'))
-plotPairedCutSiteDistances(NHF1PairedCutSiteDistances$`1h`$non_C_to_T, THREE_PRIME_CUT_SITE_DISTANCE,
-                           title = "NHF1 1h Non-C>T All Reps TGG-filtered",
-                           xlim = c(0,31), ylim = c(0,31))
+print(paste0("Coupling: ", getCouplingRate(NHF1PairedCutSiteDistances$`1h`$Non_C_to_T_Position_Filtered)*-100, '%'))
+plotPairedCutSiteDistances(NHF1PairedCutSiteDistances$`1h`$Non_C_to_T_Position_Filtered, THREE_PRIME_CUT_SITE_DISTANCE,
+                           title = "NHF1 1h Non-C>T Position-Filtered All Reps TGG-filtered",
+                           xlim = c(10.5,26.5), ylim = c(0,16),
+                           xAxisBreaks = seq(11,26,3), yAxisBreaks = seq(0,15,3))
 ```
 
 ```{r read_figure_8_data}
@@ -1428,25 +1430,15 @@ plotPositionAcrossTimepointAndReadLength(NHF1CPDGGtoAAMismatchDataAllRepsFiltere
 ```
 
 
-```{r read_figure_S13_data}
-NHF1PairedCutSiteDistances$`1h`$Non_C_to_T_Position_Filtered = fread(generateFilePath(
-  NHF1CutSiteCorrelationDirectory, dataTypeStrings$pairedCutSiteDistances, ".tsv",
-  cellType = "NHF1", lesion = "CPD", timepoint = "1h",
-  repitition = "all_reps", filtering = "TGG_filtered",
-  omittedMismatches = "C>T", additionalInformation = "atypical_position_filtering"
-))
-```
-
-
 ```{r figure_S13, fig.width = 6, fig.height = 5}
-print(paste0("1h non-C>T Read Length Slope: ", getReadLengthSlope(NHF1PairedCutSiteDistances$`1h`$Non_C_to_T_Position_Filtered)))
-plotPairedCutSiteDistances(NHF1PairedCutSiteDistances$`1h`$Non_C_to_T_Position_Filtered, READ_LENGTH,
-                           title = "NHF1 1h Non-C>T Position-Filtered All Reps TGG-filtered",
+print(paste0("8h CC>TT Read Length Slope: ", getReadLengthSlope(NHF1PairedCutSiteDistances$`8h`$CC_to_TT)))
+plotPairedCutSiteDistances(NHF1PairedCutSiteDistances$`8h`$CC_to_TT, READ_LENGTH,
+                           title = "NHF1 8h CC>TT All Reps TGG-filtered",
                            xlim = c(10.5, 26.5), ylim = c(17.5, 33.5),
                            xAxisBreaks = seq(11,26,3), yAxisBreaks = seq(18,33,3))
-print(paste0("1h non-C>T Coupling: ", getCouplingRate(NHF1PairedCutSiteDistances$`1h`$Non_C_to_T_Position_Filtered)))
-plotPairedCutSiteDistances(NHF1PairedCutSiteDistances$`1h`$Non_C_to_T_Position_Filtered, THREE_PRIME_CUT_SITE_DISTANCE,
-                           title = "NHF1 1h Non-C>T Position-Filtered All Reps TGG-filtered",
+print(paste0("8h CC>TT Coupling: ", getCouplingRate(NHF1PairedCutSiteDistances$`8h`$CC_to_TT)*-100, '%'))
+plotPairedCutSiteDistances(NHF1PairedCutSiteDistances$`8h`$CC_to_TT, THREE_PRIME_CUT_SITE_DISTANCE,
+                           title = "NHF1 8h CC>TT All Reps TGG-filtered",
                            xlim = c(10.5,26.5), ylim = c(0,16),
                            xAxisBreaks = seq(11,26,3), yAxisBreaks = seq(0,15,3))
 ```
@@ -1463,21 +1455,22 @@ plotPairedCutSiteDistances(NHF1PairedCutSiteDistances$`1h`$C_to_T, THREE_PRIME_C
                            title = "NHF1 1h C>T All Reps TGG-filtered",
                            xlim = c(10.5,26.5), ylim = c(0,16),
                            xAxisBreaks = seq(11,26,3), yAxisBreaks = seq(0,15,3))
-
-print(paste0("8h CC>TT Read Length Slope: ", getReadLengthSlope(NHF1PairedCutSiteDistances$`8h`$CC_to_TT)))
-plotPairedCutSiteDistances(NHF1PairedCutSiteDistances$`8h`$CC_to_TT, READ_LENGTH,
-                           title = "NHF1 8h CC>TT All Reps TGG-filtered",
+print(paste0("8h C>T Read Length Slope: ", getReadLengthSlope(NHF1PairedCutSiteDistances$`8h`$C_to_T)))
+plotPairedCutSiteDistances(NHF1PairedCutSiteDistances$`8h`$C_to_T, READ_LENGTH,
+                           title = "NHF1 8h C>T All Reps TGG-filtered",
                            xlim = c(10.5, 26.5), ylim = c(17.5, 33.5),
-                           xAxisBreaks = seq(11,26,3), yAxisBreaks = seq(18,33,3))
-print(paste0("8h CC>TT Coupling: ", getCouplingRate(NHF1PairedCutSiteDistances$`8h`$CC_to_TT)*-100, '%'))
-plotPairedCutSiteDistances(NHF1PairedCutSiteDistances$`8h`$CC_to_TT, THREE_PRIME_CUT_SITE_DISTANCE,
-                           title = "NHF1 8h CC>TT All Reps TGG-filtered",
+                           xAxisBreaks = seq(11,26,3), yAxisBreaks = seq(18,33,3),
+                           breaks = c(25000, 50000, 75000, 100000))
+print(paste0("8h C>T Coupling: ", getCouplingRate(NHF1PairedCutSiteDistances$`8h`$C_to_T)*-100, '%'))
+plotPairedCutSiteDistances(NHF1PairedCutSiteDistances$`8h`$C_to_T, THREE_PRIME_CUT_SITE_DISTANCE,
+                           title = "NHF1 8h C>T All Reps TGG-filtered",
                            xlim = c(10.5,26.5), ylim = c(0,16),
-                           xAxisBreaks = seq(11,26,3), yAxisBreaks = seq(0,15,3))
+                           xAxisBreaks = seq(11,26,3), yAxisBreaks = seq(0,15,3),
+                           breaks = c(25000, 50000, 75000, 100000))
 ```
 
 
-```{r read_figure_S14_data}
+```{r read_figure_S15_data}
 yeastPairedCutSiteDistances = list(`20min` = NULL)
 yeastPairedCutSiteDistances$`20min` = list(CC_to_TT = NULL, non_C_to_T = NULL)
 yeastPairedCutSiteDistances$`20min`$CC_to_TT = fread(generateFilePath(
