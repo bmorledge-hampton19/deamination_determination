@@ -150,7 +150,8 @@ plotFeatureRelativeCounts = function(countsTable, countsDataType, countsYVar = C
                                      mainYAxisMin = NULL, mainYAxisMax = NULL,
                                      centerMainYAxis = TRUE, mainYAxisBreaks = waiver(),
                                      meanCutSiteDistanceMin = NULL, meanCutSiteDistanceMax = NULL,
-                                     centerMeanCutSiteDistanceAxis = TRUE, secondaryAxisBreaks = waiver()) {
+                                     centerMeanCutSiteDistanceAxis = TRUE, secondaryAxisBreaks = waiver(),
+                                     markFirstNucleosomeBoundaries = FALSE) {
 
   if (plotCutSiteSignificance && (smoothCountsData || smoothMeanCutSiteDistance)) {
     warning("Plotting significance with smoothed data is ill-advised, as the t-test is performed before smoothing.")
@@ -302,6 +303,10 @@ plotFeatureRelativeCounts = function(countsTable, countsDataType, countsYVar = C
                                data = countsTable[Secondary_Significant==TRUE],
                                shape = 21, color = lineColor, fill = "white", size = 1.5, stroke = 1.5)
     }
+  }
+
+  if (markFirstNucleosomeBoundaries) {
+    plot = plot + geom_vline(xintercept = c(-73,73), linetype = "dashed")
   }
 
   print(plot)
