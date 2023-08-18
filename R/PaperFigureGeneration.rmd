@@ -762,7 +762,8 @@ plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances$`1h`$three_prim
                           xAxisLabel = "Dyad-Relative Position", xlim = c(-200, 200),
                           mainYAxisMin = 7.08, mainYAxisBreaks = seq(7.1,7.8,0.1),
                           secondaryAxisBreaks = seq(19,19.8,0.2),
-                          meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975)
+                          meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975,
+                          markFirstNucleosomeBoundaries = TRUE)
 ```
 ```{r figure_8B}
 plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances$`1h`$three_prime,
@@ -1524,7 +1525,8 @@ plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances$`8h`$three_prim
                           title = "NHF1 8h C>T All Reps TGG-Filtered Strand-Aligned",
                           xAxisLabel = "Dyad-Relative Position", xlim = c(-200, 200),
                           secondaryAxisBreaks = seq(19,19.8,0.2),
-                          meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975)
+                          meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975,
+                          markFirstNucleosomeBoundaries = TRUE)
 ```
 ```{r figure_S16B}
 plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances$`8h`$three_prime,
