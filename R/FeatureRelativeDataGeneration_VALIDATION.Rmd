@@ -1,0 +1,52 @@
+---
+title: "FeatureRelativeDataGeneration_VALIDATION"
+author: "Ben Morledge-Hampton"
+date: "2023-09-25"
+output: html_document
+---
+
+
+```{r setup_chunk}
+bioinformaticsDirectory = choose.dir(caption = "Select Bioinformatics_Projects Directory")
+filtering = "TGG_filtered"
+validationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data", "validation")
+```
+
+
+```{r source_functions}
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "UsefulFileSystemFunctions.R"))
+source(file.path(bioinformaticsDirectory, "deamination_determination", 'R',
+                 "DeaminationFeatureRelativeAnalysis.R"))
+```
+
+
+```{r generate_and_write_feature_relative_counts_data}
+featureRelativeData = parseMismatchesByFeature(fread(generateFilePath(
+  validationDataDirectory, dataTypeStrings$mismatchesByReadRelationFormatted, ".bed",
+  cellType = "validation", filtering = filtering, includedMismatches = "C>T",
+  additionalInformation = "nucleosome_related"
+)))
+      
+fwrite(featureRelativeData, sep = '\t', file = generateFilePath(
+  validationDataDirectory, dataTypeStrings$featureRelativeData, ".tsv",
+  cellType = "validation", filtering = filtering, includedMismatches = "C>T",
+  additionalInformation = "nucleosome_related"
+))
+        
+fwrite(getFeatureRelativeCounts(featureRelativeData, dataType = MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
+                                strandAlign = TRUE),
+       sep = '\t', na = "NA", file = generateFilePath(
+  validationDataDirectory, dataTypeStrings$featureRelativeMeanCutSiteDistance, ".tsv", strandPolarity = THREE_PRIME,
+  cellType = "validation", filtering = filtering, includedMismatches = "C>T",
+  additionalInformation = "nucleosome_related_strand_aligned"
+))
+
+fwrite(getFeatureRelativeCounts(featureRelativeData, dataType = MEAN_FIVE_PRIME_CUT_SITE_DISTANCE,
+                                strandAlign = TRUE),
+       sep = '\t', na = "NA", file = generateFilePath(
+  validationDataDirectory, dataTypeStrings$featureRelativeMeanCutSiteDistance, ".tsv", strandPolarity = FIVE_PRIME,
+  cellType = "validation", filtering = filtering, includedMismatches = "C>T",
+  additionalInformation = "nucleosome_related_strand_aligned"
+))
+```

@@ -1,0 +1,28 @@
+Mismatches by read:
+chr2	12475370	12475396	-17	A>G	-	TTCACAGGGGTGCTTTTCTTTGGCAC	# Not the right mismatch and no associated nucleosome.
+chr10	43128718	43128744	-11	C>T	-	CCAACTGGATGTCTTTTCCTATGTAC	# Position 1 relative to nucleosome. (-1 before strand aligning)
+													# 3' distance: 10.5	5' distance: 15.5
+chr7	93926093	93926119	-8	C>T	+	AAGCTGATCCTCTCATCTTTCTCATC	# Position 21 relative to nucleosome.
+													# 3' distance: 7.5	5' distance: 18.5
+chr17	71300251	71300276	-7	C>T	+	AACCTCAGGGGTAGACCCTTCCCCA	# No proximal nucleosome.
+chr20	57289814	57289840	-7	C>T	-	GGGTCACAGACAGAAGTTTTTGATGA	# Position -120 relative to nucleosome. (120 before strand aligning)
+													# 3' distance: 6.5	5' distance: 19.5
+chr5	138210932	138210958	-8	C>T	-	CTGCAACAAGCCACCCATTTGCCATC	# No proximal nucleosome.
+chr18	51842522	51842547	-12	T>G	+	GATCTTCCTGCCTGGGCTTCCCAGA	# Proximal nucleosome but not the right mismatch.
+chr2	215421421	215421446	-7	C>T	-	CTCCTGGTATGGATTCCTTGCCTCA	# Position -7 relative to nucleosome (7 before strand aligning)
+													# 3' distance 6.5	5' distance: 18.5
+chr10	43128719	43128745	-11	C>T	-	CCAACTGGATGTCTTTTCCTATGTAC	# Position 0 relative to nucleosome. (Still 0 before strand aligning; fake read)
+													# 3' distance 10.5	5' distance: 15.5
+chr1	22545739	22545770	-7	C>T	+	GTGAGACGGATGGCTCCCAAGCTTTTCTTGA	# Proximal nucleosome, but read length falls outside of valid range
+chr7	45057111	45057135	-23	C>T	-	GTCACAGGGTTCTTCTTTTTCTCT	# Proximal nucleosome, but mismatch position falls outside of valid range.
+
+nucleosomes:
+chr1	22545740	22545741	.	.	.	# In proximity to read 10
+chr10	43128729	43128730	.	.	.	# In proximity to reads 2 and 9.
+chr17	71300851	71300852	.	.	.	# In proximity to no reads (Too far from read 4)
+chr18	51842546	51842547	.	.	.	# In proximity to read 7
+chr19	12345678	12345679	.	.	.	# In proximity to no reads
+chr2	215421420	215421421	.	.	.	# In proximity to read 1
+chr20	57289700	57289701	.	.	.	# In proximity to read 5
+chr7	45057119	45057120	.	.	.	# In proximity to read 11
+chr7	93926090	93926091	.	.	.	# In proximity to read 3
