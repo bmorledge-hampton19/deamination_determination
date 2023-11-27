@@ -6,12 +6,12 @@ output: html_document
 params:
   bioinformaticsDirectory:
     label: "Bioinformatics Projects Directory"
-    value: C:/Bioinformatics_Projects
+    value: ~/bioinformatics
     input: select
-    choices: [C:/Bioinformatics_Projects, F:/Bioinformatics_Projects]
+    choices: [C:/Bioinformatics_Projects, F:/Bioinformatics_Projects, ~/bioinformatics]
   filtering:
     label: "Filtering"
-    value: NONE
+    value: TGG_filtered
     input: select
     choices: [NONE, TGG_filtered, TG_filtered]
 ---
@@ -23,7 +23,9 @@ library(knitr)
 cellType = "NHF1"
 CPDTimepoints = list(`1h` = NULL, `8h` = NULL, `24h` = NULL, `48h` = NULL)
 mismatchTypes = list(`C>T` = NULL, `CC>TT` = NULL, `C>T_CC>TT` = NULL)
-features = list(`CTCF_known1_DHS` = NULL, `CTCF_known1_non-DHS` = NULL, `hg19_mnase_all` = NULL)
+# features = list(`CTCF_known1_DHS` = NULL, `CTCF_known1_non-DHS` = NULL,
+#                 `hg19_mnase_all` = NULL, `hg19_LCL_mnase_all` = NULL, `hg19_LCL_mnase_all_mappable` = NULL)
+features = list(`hg19_LCL_mnase_all_mappable_100bp` = NULL)
 
 
 if (interactive()) {
@@ -39,7 +41,7 @@ if (is.na(bioinformaticsDirectory)) stop("No bioinformatics directory given.")
 
 deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data", cellType)
 mismatchesByReadDirectory = file.path(deaminationDataDirectory, "mismatches_by_read")
-featureRelativeDataDirectory = file.path(deaminationDataDirectory,"feature_relative_analysis")
+featureRelativeDataDirectory = file.path(deaminationDataDirectory, "feature_relative_analysis")
 dir.create(featureRelativeDataDirectory, showWarnings = FALSE, recursive = TRUE)
 ```
 
@@ -63,68 +65,67 @@ for (i in 1:length(cpdFeatureRelativeData)) {
         generateFilePath(mismatchesByReadDirectory, dataTypeStrings$mismatchesByReadRelationFormatted, ".bed",
                          cellType = cellType, lesion = "CPD", repitition = "all_reps", filtering = filtering,
                          timepoint = names(cpdFeatureRelativeData)[i], includedMismatches = names(cpdFeatureRelativeData[[i]])[j],
-                         additionalInformation = paste0(names(cpdFeatureRelativeData[[i]][[j]])[k],"_related"))
+                         additionalInformation = paste0(names(cpdFeatureRelativeData[[i]][[j]])[k], "_related"))
       ))
-      
+
       fwrite(cpdFeatureRelativeData[[i]][[j]][[k]], sep = '\t', file = generateFilePath(
         featureRelativeDataDirectory, dataTypeStrings$featureRelativeData, ".tsv",
         cellType = cellType, lesion = "CPD", repitition = "all_reps", filtering = filtering,
         timepoint = names(cpdFeatureRelativeData)[i], includedMismatches = names(cpdFeatureRelativeData[[i]])[j],
-        additionalInformation = paste0(names(cpdFeatureRelativeData[[i]][[j]])[k],"_related")
+        additionalInformation = paste0(names(cpdFeatureRelativeData[[i]][[j]])[k], "_related")
       ))
-      
+
       for (bool in c(TRUE, FALSE)) {
-        
-        if (bool) {strandInfoText = "_strand_aligned"} else {strandInfoText = ""}
-        
+
+        if (bool) strandInfoText = "_strand_aligned" else strandInfoText = ""
+
         fwrite(getFeatureRelativeCounts(cpdFeatureRelativeData[[i]][[j]][[k]], dataType = FEATURE_RELATIVE_POSITION,
                                         strandAlign = bool),
                sep = '\t', na = "NA", file = generateFilePath(
           featureRelativeDataDirectory, dataTypeStrings$featureRelativePositionCounts, ".tsv",
           cellType = cellType, lesion = "CPD", repitition = "all_reps", filtering = filtering,
           timepoint = names(cpdFeatureRelativeData)[i], includedMismatches = names(cpdFeatureRelativeData[[i]])[j],
-          additionalInformation = paste0(names(cpdFeatureRelativeData[[i]][[j]])[k],"_related",strandInfoText)
+          additionalInformation = paste0(names(cpdFeatureRelativeData[[i]][[j]])[k], "_related", strandInfoText)
         ))
-        
+
         fwrite(getFeatureRelativeCounts(cpdFeatureRelativeData[[i]][[j]][[k]], dataType = FEATURE_RELATIVE_THREE_PRIME_CUT_SITE,
                                         strandAlign = bool),
                sep = '\t', na = "NA", file = generateFilePath(
           featureRelativeDataDirectory, dataTypeStrings$featureRelativeCutSiteCounts, ".tsv", strandPolarity = THREE_PRIME,
           cellType = cellType, lesion = "CPD", repitition = "all_reps", filtering = filtering,
           timepoint = names(cpdFeatureRelativeData)[i], includedMismatches = names(cpdFeatureRelativeData[[i]])[j],
-          additionalInformation = paste0(names(cpdFeatureRelativeData[[i]][[j]])[k],"_related",strandInfoText)
+          additionalInformation = paste0(names(cpdFeatureRelativeData[[i]][[j]])[k], "_related", strandInfoText)
         ))
-        
+
         fwrite(getFeatureRelativeCounts(cpdFeatureRelativeData[[i]][[j]][[k]], dataType = FEATURE_RELATIVE_FIVE_PRIME_CUT_SITE,
                                         strandAlign = bool),
                sep = '\t', na = "NA", file = generateFilePath(
           featureRelativeDataDirectory, dataTypeStrings$featureRelativeCutSiteCounts, ".tsv", strandPolarity = FIVE_PRIME,
           cellType = cellType, lesion = "CPD", repitition = "all_reps", filtering = filtering,
           timepoint = names(cpdFeatureRelativeData)[i], includedMismatches = names(cpdFeatureRelativeData[[i]])[j],
-          additionalInformation = paste0(names(cpdFeatureRelativeData[[i]][[j]])[k],"_related",strandInfoText)
+          additionalInformation = paste0(names(cpdFeatureRelativeData[[i]][[j]])[k], "_related", strandInfoText)
         ))
-        
+
         fwrite(getFeatureRelativeCounts(cpdFeatureRelativeData[[i]][[j]][[k]], dataType = MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
                                         strandAlign = bool),
                sep = '\t', na = "NA", file = generateFilePath(
           featureRelativeDataDirectory, dataTypeStrings$featureRelativeMeanCutSiteDistance, ".tsv", strandPolarity = THREE_PRIME,
           cellType = cellType, lesion = "CPD", repitition = "all_reps", filtering = filtering,
           timepoint = names(cpdFeatureRelativeData)[i], includedMismatches = names(cpdFeatureRelativeData[[i]])[j],
-          additionalInformation = paste0(names(cpdFeatureRelativeData[[i]][[j]])[k],"_related",strandInfoText)
+          additionalInformation = paste0(names(cpdFeatureRelativeData[[i]][[j]])[k], "_related", strandInfoText)
         ))
-        
+
         fwrite(getFeatureRelativeCounts(cpdFeatureRelativeData[[i]][[j]][[k]], dataType = MEAN_FIVE_PRIME_CUT_SITE_DISTANCE,
                                         strandAlign = bool),
                sep = '\t', na = "NA", file = generateFilePath(
           featureRelativeDataDirectory, dataTypeStrings$featureRelativeMeanCutSiteDistance, ".tsv", strandPolarity = FIVE_PRIME,
           cellType = cellType, lesion = "CPD", repitition = "all_reps", filtering = filtering,
           timepoint = names(cpdFeatureRelativeData)[i], includedMismatches = names(cpdFeatureRelativeData[[i]])[j],
-          additionalInformation = paste0(names(cpdFeatureRelativeData[[i]][[j]])[k],"_related",strandInfoText)
+          additionalInformation = paste0(names(cpdFeatureRelativeData[[i]][[j]])[k], "_related", strandInfoText)
         ))
-        
+
       }
     }
   }
 }
-
 ```

@@ -6,9 +6,9 @@ output: html_document
 params:
   bioinformaticsDirectory:
     label: "Bioinformatics Projects Directory"
-    value: C:/Bioinformatics_Projects
+    value: ~/bioinformatics
     input: select
-    choices: [C:/Bioinformatics_Projects, F:/Bioinformatics_Projects]
+    choices: [C:/Bioinformatics_Projects, F:/Bioinformatics_Projects, ~/bioinformatics]
 ---
 
 ```{r setup_chunk}
@@ -29,8 +29,8 @@ if (interactive()) {
   bioinformaticsDirectory = params$bioinformaticsDirectory
 }
 
-opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5, 
-               fig.path = paste0(file.path("deamination_analysis_output","paper_figures"),
+opts_chunk$set(dev = "png", dpi = 600, fig.width = 7, fig.height = 5,
+               fig.path = paste0(file.path("deamination_analysis_output", "paper_figures"),
                                  .Platform$file.sep))
 
 deaminationDataDirectory = file.path(bioinformaticsDirectory, "deamination_determination", "data")
@@ -161,7 +161,7 @@ plotPositionAcrossTimepointAndReadLength(NHF1CPDMismatchDataAllReps["1h"], inclu
 ```
 ```{r figure_2B, fig.width = 6.5, fig.height = 6}
 ### Just the 1h timepoint ###
-plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllReps[Timepoint == "1h"], 
+plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllReps[Timepoint == "1h"],
                                title = "NHF1 CPD 1h All Reps 5' Anchored Nuc Freq",
                                secondaryYAxisLabel = "3' Cut Site Distance",
                                posType = FIVE_PRIME, showThreePrimeCutSite = TRUE,
@@ -169,7 +169,7 @@ plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllReps[Timepoint 
                                xAxisLabel = "Mismatch Relative Position", positionOffset = -1)
 
 ### All timepoints together ###
-# plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllReps, 
+# plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllReps,
 #                                title = "NHF1 CPD All Reps 5' Anchored Nuc Freq",
 #                                secondaryYAxisLabel = "3' Cut Site Distance",
 #                                posType = FIVE_PRIME, showThreePrimeCutSite = TRUE,
@@ -386,7 +386,7 @@ EColiGeneralReadsCPDSeqFreqAllReps5MinFilteredCombined = fread(generateFilePath(
 
 
 ```{r figure_4A, fig.width = 6.5, fig.height = 6}
-plotNucFreqVsReadLengthBarPlot(NHF1ThreePrimeMismatchCPDNucFreqAllRepsFiltered[Timepoint == "1h"], 
+plotNucFreqVsReadLengthBarPlot(NHF1ThreePrimeMismatchCPDNucFreqAllRepsFiltered[Timepoint == "1h"],
                                title = "NHF1 CPD 1h All Reps TGG-Filtered 3' Anchored Nuc Freq",
                                secondaryYAxisLabel = "5' Cut Site Distance",
                                posType = FIVE_PRIME, showFivePrimeCutSite = TRUE,
@@ -421,7 +421,7 @@ plotSequenceFrequencies(NHF1ThreePrimeMMAnchoredCPDSeqFreqAllRepsFiltered$`1h`,
 #                         endBasedCheckPositions = -10, displayPValue = TRUE, xAxisLabel = "Mismatch Relative Position")
 ```
 ```{r figure_4C, fig.width = 6.5, fig.height = 4.75}
-plotNucFreqVsReadLengthBarPlot(NHF1GeneralReadsCPDNucFreqAllReps1hFilteredCombined[Position <= 7], 
+plotNucFreqVsReadLengthBarPlot(NHF1GeneralReadsCPDNucFreqAllReps1hFilteredCombined[Position <= 7],
                                title = "NHF1 CPD 1h All Reps TGG-Filtered Nuc Freq",
                                secondaryYAxisLabel = "Read Length", ylim = c(0,1),
                                posType = FIVE_PRIME, showFivePrimeCutSite = TRUE,
@@ -482,7 +482,7 @@ print(
     ggplot(NHF1TandemMismatchCountsComparisonAllReps, aes(Mismatch_Type, Tandem_Mismatches_Count, fill = Search_Method)) +
       geom_bar(stat = "identity", position = "dodge") +
       labs(title = "NHF1 CPD 1h All Reps Tandem Mismatch Counts", x = "Mismatch Type", y = "Tandem Mismatch Count") +
-      geom_text(aes(label=Tandem_Mismatches_Count), position = position_dodge(width = 0.9), vjust = -0.25, size = 5) +
+      geom_text(aes(label = Tandem_Mismatches_Count), position = position_dodge(width = 0.9), vjust = -0.25, size = 5) +
       blankBackground + defaultTextScaling + scale_fill_brewer(palette = "Set1") +
       coord_cartesian(ylim = c(0,200000), expand = FALSE)
   )
@@ -671,7 +671,7 @@ for (i in seq_along(NHF1PairedCutSiteDistances)) {
     includedMismatches = "CC>TT"
   ))
   NHF1ShuffledCutSiteDistances[[i]] = getShufflePairedCutSiteDistances(NHF1PairedCutSiteDistances[[i]]$CC_to_TT)
-  
+
   NHF1PairedCutSiteDistances[[i]]$C_to_T = fread(generateFilePath(
     NHF1CutSiteCorrelationDirectory, dataTypeStrings$pairedCutSiteDistances , ".tsv",
     cellType = "NHF1", lesion = "CPD", timepoint = names(NHF1PairedCutSiteDistances)[i],
@@ -732,62 +732,73 @@ plotPairedCutSiteDistances(NHF1PairedCutSiteDistances$`1h`$Non_C_to_T_Position_F
 ```
 
 ```{r read_figure_8_data}
-NHF1NucleosomeRelativeCutSiteDistances = list(`1h` = NULL, `8h` = NULL)
-for (i in seq_along(NHF1NucleosomeRelativeCutSiteDistances)) {
-  NHF1NucleosomeRelativeCutSiteDistances[[i]] = list(three_prime = NULL, five_prime = NULL)
-  NHF1NucleosomeRelativeCutSiteDistances[[i]]$three_prime = fread(generateFilePath(
-    NHF1FeatureRelativeDataDirectory, dataTypeStrings$featureRelativeMeanCutSiteDistance, ".tsv",
-    cellType = "NHF1", lesion = "CPD", timepoint = names(NHF1NucleosomeRelativeCutSiteDistances)[i],
-    strandPolarity = THREE_PRIME, repitition = "all_reps", filtering = "TGG_filtered",
-    includedMismatches = "C>T", additionalInformation = "hg19_mnase_all_related_strand_aligned"
-  ))
-  NHF1NucleosomeRelativeCutSiteDistances[[i]]$five_prime = fread(generateFilePath(
-    NHF1FeatureRelativeDataDirectory, dataTypeStrings$featureRelativeMeanCutSiteDistance, ".tsv",
-    cellType = "NHF1", lesion = "CPD", timepoint = names(NHF1NucleosomeRelativeCutSiteDistances)[i],
-    strandPolarity = FIVE_PRIME, repitition = "all_reps", filtering = "TGG_filtered",
-    includedMismatches = "C>T", additionalInformation = "hg19_mnase_all_related_strand_aligned"
-  ))
+NHF1NucleosomeRelativeCutSiteDistances = list(hg19_LCL_mnase_all_mappable = NULL)
+for (j in seq_along(NHF1NucleosomeRelativeCutSiteDistances)) {
+  NHF1NucleosomeRelativeCutSiteDistances[[j]] = list(`1h` = NULL, `8h` = NULL)
+  for (i in seq_along(NHF1NucleosomeRelativeCutSiteDistances[[j]])) {
+    NHF1NucleosomeRelativeCutSiteDistances[[j]][[i]] = list(three_prime = NULL, five_prime = NULL)
+    NHF1NucleosomeRelativeCutSiteDistances[[j]][[i]]$three_prime = fread(generateFilePath(
+      NHF1FeatureRelativeDataDirectory, dataTypeStrings$featureRelativeMeanCutSiteDistance, ".tsv",
+      cellType = "NHF1", lesion = "CPD", timepoint = names(NHF1NucleosomeRelativeCutSiteDistances[[j]])[i],
+      strandPolarity = THREE_PRIME, repitition = "all_reps", filtering = "TGG_filtered",
+      includedMismatches = "C>T", additionalInformation = paste0(names(NHF1NucleosomeRelativeCutSiteDistances)[j],
+                                                                 "_related_strand_aligned")
+    ))
+    NHF1NucleosomeRelativeCutSiteDistances[[j]][[i]]$five_prime = fread(generateFilePath(
+      NHF1FeatureRelativeDataDirectory, dataTypeStrings$featureRelativeMeanCutSiteDistance, ".tsv",
+      cellType = "NHF1", lesion = "CPD", timepoint = names(NHF1NucleosomeRelativeCutSiteDistances[[j]])[i],
+      strandPolarity = FIVE_PRIME, repitition = "all_reps", filtering = "TGG_filtered",
+      includedMismatches = "C>T", additionalInformation = paste0(names(NHF1NucleosomeRelativeCutSiteDistances)[j],
+                                                                 "_related_strand_aligned")
+    ))
+  }
 }
 ```
 
 
 ```{r figure_8A, fig.width = 10, fig.height = 5}
-plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances$`1h`$three_prime,
-                          FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
-                          plotCutSiteSignificance = FALSE,
-                          countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
-                          meanCutSiteDistanceTable = NHF1NucleosomeRelativeCutSiteDistances$`1h`$five_prime,
-                          cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
-                          title = "NHF1 1h C>T All Reps TGG-Filtered Strand-Aligned",
-                          xAxisLabel = "Dyad-Relative Position", xlim = c(-200, 200),
-                          mainYAxisMin = 7.08, mainYAxisBreaks = seq(7.1,7.8,0.1),
-                          secondaryAxisBreaks = seq(19,19.8,0.2),
-                          meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975,
-                          markFirstNucleosomeBoundaries = TRUE)
+for (i in seq_along(NHF1NucleosomeRelativeCutSiteDistances)) {
+  plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances[[i]]$`1h`$three_prime,
+                            FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
+                            plotCutSiteSignificance = FALSE,
+                            countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
+                            meanCutSiteDistanceTable = NHF1NucleosomeRelativeCutSiteDistances[[i]]$`1h`$five_prime,
+                            cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
+                            title = "NHF1 1h C>T All Reps TGG-Filtered Strand-Aligned",
+                            xAxisLabel = "Dyad-Relative Position", xlim = c(-200, 200),
+                            mainYAxisMin = 7.08, mainYAxisBreaks = seq(7.1,7.8,0.1),
+                            secondaryAxisBreaks = seq(19,19.8,0.2),
+                            meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975,
+                            markFirstNucleosomeBoundaries = TRUE)
+}
 ```
 ```{r figure_8B}
-plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances$`1h`$three_prime,
-                          FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
-                          countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
-                          meanCutSiteDistanceTable = NHF1NucleosomeRelativeCutSiteDistances$`1h`$five_prime,
-                          cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
-                          title = "NHF1 1h C>T All Reps TGG-Filtered Strand-Aligned",
-                          xAxisLabel = "Dyad-Relative Position", xlim = c(-100, -40),
-                          mainYAxisMin = 7.08, mainYAxisBreaks = seq(7.1,7.8,0.1),
-                          secondaryAxisBreaks = seq(19,19.8,0.2),
-                          meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975)
+for (i in seq_along(NHF1NucleosomeRelativeCutSiteDistances)) {
+  plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances[[i]]$`1h`$three_prime,
+                            FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
+                            countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
+                            meanCutSiteDistanceTable = NHF1NucleosomeRelativeCutSiteDistances[[i]]$`1h`$five_prime,
+                            cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
+                            title = "NHF1 1h C>T All Reps TGG-Filtered Strand-Aligned",
+                            xAxisLabel = "Dyad-Relative Position", xlim = c(-100, -40),
+                            mainYAxisMin = 7.08, mainYAxisBreaks = seq(7.1,7.8,0.1),
+                            secondaryAxisBreaks = seq(19,19.8,0.2),
+                            meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975)
+}
 ```
 ```{r figure_8C}
-plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances$`1h`$three_prime,
-                          FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
-                          countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
-                          meanCutSiteDistanceTable = NHF1NucleosomeRelativeCutSiteDistances$`1h`$five_prime,
-                          cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
-                          title = "NHF1 1h C>T All Reps TGG-Filtered Strand-Aligned",
-                          xAxisLabel = "Dyad-Relative Position", xlim = c(40, 100),
-                          mainYAxisMin = 7.08, mainYAxisBreaks = seq(7.1,7.8,0.1),
-                          secondaryAxisBreaks = seq(19,19.8,0.2), 
-                          meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975)
+for (i in seq_along(NHF1NucleosomeRelativeCutSiteDistances)) {
+  plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances[[i]]$`1h`$three_prime,
+                            FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
+                            countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
+                            meanCutSiteDistanceTable = NHF1NucleosomeRelativeCutSiteDistances[[i]]$`1h`$five_prime,
+                            cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
+                            title = "NHF1 1h C>T All Reps TGG-Filtered Strand-Aligned",
+                            xAxisLabel = "Dyad-Relative Position", xlim = c(40, 100),
+                            mainYAxisMin = 7.08, mainYAxisBreaks = seq(7.1,7.8,0.1),
+                            secondaryAxisBreaks = seq(19,19.8,0.2),
+                            meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975)
+}
 ```
 
 
@@ -1056,7 +1067,7 @@ for (i in seq_along(NHF1CPDMMFreqZScoresAllRepsTGFiltered)) {
 
 ```{r figure_S7A, fig.width = 6.5, fig.height = 6}
 ### Just the 1h timepoint ###
-plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsTGGFiltered[Timepoint == "1h"], 
+plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsTGGFiltered[Timepoint == "1h"],
                                title = "NHF1 CPD 1h All Reps TGG-Filtered 5' Anchored Nuc Freq",
                                secondaryYAxisLabel = "3' Cut Site Distance",
                                posType = FIVE_PRIME, showThreePrimeCutSite = TRUE,
@@ -1064,7 +1075,7 @@ plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsTGGFiltered
                                xAxisLabel = "Mismatch Relative Position", positionOffset = -1)
 
 ### All timepoints together ###
-# plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsTGGFiltered, 
+# plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsTGGFiltered,
 #                                title = "NHF1 CPD All Reps TGG-Filtered 5' Anchored Nuc Freq",
 #                                secondaryYAxisLabel = "3' Cut Site Distance",
 #                                posType = FIVE_PRIME, showThreePrimeCutSite = TRUE,
@@ -1073,7 +1084,7 @@ plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsTGGFiltered
 ```
 ```{r figure_S7B, fig.width = 6.5, fig.height = 6}
 ### Just the 1h timepoint ###
-plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsTGFiltered[Timepoint == "1h"], 
+plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsTGFiltered[Timepoint == "1h"],
                                title = "NHF1 CPD 1h All Reps TG-Filtered 5' Anchored Nuc Freq",
                                secondaryYAxisLabel = "3' Cut Site Distance",
                                posType = FIVE_PRIME, showThreePrimeCutSite = TRUE,
@@ -1081,7 +1092,7 @@ plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsTGFiltered[
                                xAxisLabel = "Mismatch Relative Position", positionOffset = -1)
 
 ### All timepoints together ###
-# plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsTGFiltered, 
+# plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsTGFiltered,
 #                                title = "NHF1 CPD All Reps TG-Filtered 5' Anchored Nuc Freq",
 #                                secondaryYAxisLabel = "3' Cut Site Distance",
 #                                posType = FIVE_PRIME, showThreePrimeCutSite = TRUE,
@@ -1377,19 +1388,19 @@ yeastFivePrimeMismatchCPDNucFreqAllRepsFiltered = fread(generateFilePath(
 
 
 ```{r figure_S11, fig.width = 6.5, fig.height = 6}
-plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsFiltered[Timepoint == "1h"], 
+plotNucFreqVsReadLengthBarPlot(NHF1FivePrimeMismatchCPDNucFreqAllRepsFiltered[Timepoint == "1h"],
                                title = "NHF1 CPD 1h All Reps TGG-Filtered 5' Anchored Nuc Freq",
                                secondaryYAxisLabel = "3' Cut Site Distance",
                                posType = THREE_PRIME, showThreePrimeCutSite = TRUE,
                                expansionOffset = 10, minReadLength = 6, maxReadLength = 12,
                                xAxisLabel = "Mismatch Relative Position", positionOffset = -1)
-plotNucFreqVsReadLengthBarPlot(arabidopsisFivePrimeMismatchCPDNucFreqAllRepsFiltered[Timepoint == "ZT2"], 
+plotNucFreqVsReadLengthBarPlot(arabidopsisFivePrimeMismatchCPDNucFreqAllRepsFiltered[Timepoint == "ZT2"],
                                title = "Arabidopsis CPD 1h All Reps TGG-Filtered 5' Anchored Nuc Freq",
                                secondaryYAxisLabel = "3' Cut Site Distance",
                                posType = THREE_PRIME, showThreePrimeCutSite = TRUE,
                                expansionOffset = 10, minReadLength = 6, maxReadLength = 12,
                                xAxisLabel = "Mismatch Relative Position", positionOffset = -1)
-plotNucFreqVsReadLengthBarPlot(yeastFivePrimeMismatchCPDNucFreqAllRepsFiltered[Timepoint == "20min"], 
+plotNucFreqVsReadLengthBarPlot(yeastFivePrimeMismatchCPDNucFreqAllRepsFiltered[Timepoint == "20min"],
                                title = "Yeast CPD 1h All Reps TGG-Filtered 5' Anchored Nuc Freq",
                                secondaryYAxisLabel = "3' Cut Site Distance",
                                posType = THREE_PRIME, showThreePrimeCutSite = TRUE,
@@ -1516,37 +1527,43 @@ plotPairedCutSiteDistances(yeastPairedCutSiteDistances$`20min`$CC_to_TT, THREE_P
 
 
 ```{r figure_S16A, fig.width = 10, fig.height = 5}
-plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances$`8h`$three_prime,
-                          plotCutSiteSignificance = FALSE,
-                          FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
-                          countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
-                          meanCutSiteDistanceTable = NHF1NucleosomeRelativeCutSiteDistances$`1h`$five_prime,
-                          cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
-                          title = "NHF1 8h C>T All Reps TGG-Filtered Strand-Aligned",
-                          xAxisLabel = "Dyad-Relative Position", xlim = c(-200, 200),
-                          secondaryAxisBreaks = seq(19,19.8,0.2),
-                          meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975,
-                          markFirstNucleosomeBoundaries = TRUE)
+for (i in seq_along(NHF1NucleosomeRelativeCutSiteDistances)) {
+  plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances[[i]]$`8h`$three_prime,
+                            plotCutSiteSignificance = FALSE,
+                            FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
+                            countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
+                            meanCutSiteDistanceTable = NHF1NucleosomeRelativeCutSiteDistances[[i]]$`8h`$five_prime,
+                            cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
+                            title = "NHF1 8h C>T All Reps TGG-Filtered Strand-Aligned",
+                            xAxisLabel = "Dyad-Relative Position", xlim = c(-200, 200),
+                            secondaryAxisBreaks = seq(19,19.8,0.2),
+                            meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975,
+                            markFirstNucleosomeBoundaries = TRUE)
+}
 ```
 ```{r figure_S16B}
-plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances$`8h`$three_prime,
-                          FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
-                          countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
-                          meanCutSiteDistanceTable = NHF1NucleosomeRelativeCutSiteDistances$`1h`$five_prime,
-                          cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
-                          title = "NHF1 8h C>T All Reps TGG-Filtered Strand-Aligned",
-                          xAxisLabel = "Dyad-Relative Position", xlim = c(-100, -40),
-                          secondaryAxisBreaks = seq(19,19.8,0.2),
-                          meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975)
+for (i in seq_along(NHF1NucleosomeRelativeCutSiteDistances)) {
+  plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances[[i]]$`8h`$three_prime,
+                            FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
+                            countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
+                            meanCutSiteDistanceTable = NHF1NucleosomeRelativeCutSiteDistances[[i]]$`8h`$five_prime,
+                            cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
+                            title = "NHF1 8h C>T All Reps TGG-Filtered Strand-Aligned",
+                            xAxisLabel = "Dyad-Relative Position", xlim = c(-100, -40),
+                            secondaryAxisBreaks = seq(19,19.8,0.2),
+                            meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975)
+}
 ```
 ```{r figure_S16C}
-plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances$`8h`$three_prime,
-                          FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
-                          countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
-                          meanCutSiteDistanceTable = NHF1NucleosomeRelativeCutSiteDistances$`1h`$five_prime,
-                          cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
-                          title = "NHF1 8h C>T All Reps TGG-Filtered Strand-Aligned",
-                          xAxisLabel = "Dyad-Relative Position", xlim = c(40, 100),
-                          secondaryAxisBreaks = seq(19,19.8,0.2),
-                          meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975)
+for (i in seq_along(NHF1NucleosomeRelativeCutSiteDistances)) {
+  plotFeatureRelativeCounts(NHF1NucleosomeRelativeCutSiteDistances[[i]]$`8h`$three_prime,
+                            FEATURE_RELATIVE_POSITION, MEAN_THREE_PRIME_CUT_SITE_DISTANCE,
+                            countsPlotColor = "red2", mainYAxisLabel = "Mean 3' Cut Site Distance",
+                            meanCutSiteDistanceTable = NHF1NucleosomeRelativeCutSiteDistances[[i]]$`8h`$five_prime,
+                            cutSiteStrandPolarity = FIVE_PRIME, smoothMeanCutSiteDistance = FALSE,
+                            title = "NHF1 8h C>T All Reps TGG-Filtered Strand-Aligned",
+                            xAxisLabel = "Dyad-Relative Position", xlim = c(40, 100),
+                            secondaryAxisBreaks = seq(19,19.8,0.2),
+                            meanCutSiteDistanceMax = 19.825, meanCutSiteDistanceMin = 18.975)
+}
 ```
