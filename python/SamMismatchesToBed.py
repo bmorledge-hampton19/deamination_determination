@@ -17,7 +17,8 @@ def samMismatchesToBed(samFilePaths: List[str], omitIndels = True, outputDir = N
         gzipped = samFilePath.endswith(".gz")
 
         # Create output file paths (bed file + metadata)
-        if outputDir is None: outputDir = os.path.dirname(samFilePath)
+        if outputDir is None: thisOutputDir = os.path.dirname(samFilePath)
+        else: thisOutputDir = outputDir
 
         if gzipped:
             outputBedFileBasename = os.path.basename(samFilePath).rsplit('.',2)[0] + "_mismatches_by_read.bed"
@@ -26,7 +27,7 @@ def samMismatchesToBed(samFilePaths: List[str], omitIndels = True, outputDir = N
             outputBedFileBasename = os.path.basename(samFilePath).rsplit('.',1)[0] + "_mismatches_by_read.bed"
             openFunction = open
 
-        outputBedFilePath = os.path.join(outputDir, outputBedFileBasename)
+        outputBedFilePath = os.path.join(thisOutputDir, outputBedFileBasename)
         metadataFilePath = outputBedFilePath.rsplit('.',1)[0] + ".metadata"
 
         # Read through the sam file line by line, looking for mismatches and recording them.
