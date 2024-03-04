@@ -13,7 +13,7 @@ Using mismatches in XR-seq reads to pinpoint CPD positions
 ## Project Overview
 
 #### Accompanying Literature
-The code in this repository was used to produce the findings in [LINK TO PAPER ONCE PUBLISHED](). This paper contains additional insight into the analysis using this code.
+The code in this repository was used to produce the findings in [this publication](https://doi.org/10.1093/nar/gkad1195). This paper contains additional insight into the analysis using this code.
 
 #### Background
 Cytosine nucleotides deaminate much faster in cyclobutane pyrimidine dimers (CPDs) than in undamaged DNA. Because of this, XR-sequencing reads, which represent fragments from nucleotide excision repair of various helix-distorting lesions such as CPDs (more information [here](http://genesdev.cshlp.org/content/29/9/948)) may contain C>T mismatches where the CPD was present. Normally, the position of these lesions in the original repair fragment can only be estimated, but by identifying these C>T mismatches, the lesion positions can be pinpointed more accurately.
