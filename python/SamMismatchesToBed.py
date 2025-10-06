@@ -1,3 +1,5 @@
+# DEPRECATED! Use the newer version in benbiohelpers:
+#   https://github.com/bmorledge-hampton19/benbiohelpers/blob/main/python/benbiohelpers/Alignment/SamMismatchesToBed.py
 # This script takes a sam file and locates all the mismatches (potential deamination events) in it.
 # The results are written to a bed file along with a metadata file containing the total number of
 # reads analyzed, and the number of mismatches found.
@@ -10,6 +12,11 @@ strandFromIsReverseComplement = {True:'-', False:'+'}
 
 def samMismatchesToBed(samFilePaths: List[str], omitIndels = True, outputDir = None, verbose = False):
     
+    print(
+        "DEPRECATED! Use the newer version in benbiohelpers:\n" +
+        "https://github.com/bmorledge-hampton19/benbiohelpers/blob/main/python/benbiohelpers/Alignment/SamMismatchesToBed.py"
+    )
+
     for samFilePath in samFilePaths:
 
         print(f"\nWorking in {os.path.basename(samFilePath)}")
