@@ -173,6 +173,11 @@ def samMismatchesToBed(samFilePaths: List[str], omitIndels = True, outputDir = N
             metadataFile.write(f"Total_Aligned_Reads:\t{alignedReadsCounter}\n")
             metadataFile.write(f"Mismatches:\t{mismatchesCounter}\n")
 
+    print(
+        "DEPRECATED! Use the newer version in benbiohelpers:\n" +
+        "https://github.com/bmorledge-hampton19/benbiohelpers/blob/main/python/benbiohelpers/Alignment/SamMismatchesToBed.py"
+    )
+
 
 def main():
     # Create the Tkinter dialog.
